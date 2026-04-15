@@ -15,7 +15,10 @@ This is not a standalone fork. All output merges back into the EVA Foundation sh
 | Path | Role | Harvest | Discard |
 |------|------|---------|---------|
 | `../46-accelerator` | GitHub Spark PoC — 30-min demo shell for Portal 1 (self-service). Validates UX for workspace booking, team RBAC, surveys, cost recovery, admin dashboard. One of three portals in the full EVA DA management system. | UX patterns for workspace/index management, RBAC model (Reader/Contributor/Admin), entry/exit survey flow, admin KPI dashboard, Brain v2 client (`src/lib/brain-client.ts`) with cost-tag headers | Spark KV persistence, demo pricing, no real auth — all replaced by Azure-native equivalents |
-| `../PubSec-Info-Assistant` | Current EVA DA baseline (Microsoft) | Document processing pipeline (`functions/FileUploadedFunc` → queue routing → blob → vector index), RAG approaches (`app/backend/approaches/chatreadretrieveread.py`), chunking logic (`functions/shared_code/utilities.py`), Terraform infra modules (`infra/core/`), RBAC patterns, Azure DevOps pipelines | Fixed single-step RAG, static prompts, non-containerised components |
+| `../PubSec-Info-Assistant` | Current EVA DA baseline (Microsoft) — **functional requirements reference only**, no code ported | What needs to work: upload, chunk, embed, search, chat with citations, document status tracking, file deletion with index cleanup | All implementation: linear pipeline, static prompts, no observability, no provenance |
+| `../open-webui` | Open-source LLM wrapper platform — **platform management patterns reference** | Model registry (admin enable/disable, parameter overrides, per-group access), function valves (schema-driven tool config), prompt versioning with rollback, evaluation arena (Elo-based model comparison), persistent memories, pluggable RAG backends (vector DB/reranker/embeddings factory), artifact storage for stateful agents, content extraction engine abstraction | SvelteKit frontend, Ollama direct integration, 15 web search providers, RestrictedPython sandboxing |
+| `../75-EVA-vNext` | **P53's infrastructure chassis** — NOT reference, P53 is a product on this chassis | APIM public edge, Azure AI Foundry + OpenAI (gpt-5-mini, gpt-5.1), AI Search, Document Intelligence, Service Bus execution bus, VNet with private endpoints, Cosmos DB canonical model, Entra ID + JWT/JWKS, OpenTelemetry, Application Insights. P53 does NOT build parallel infrastructure. | — |
+| `../77-FinOps-TK` | **FinOps reference architecture** — 8 phases complete, production surface in P75 | Cost extraction (FOCUS 1.2-preview), executive metrics contract, waste score algorithm, AOE gate logic, security FinOps bridge. P53 FinOps Command Center consumes P75 APIs (`/v1/products/aca/*`), does NOT rebuild. | — |
 
 ## Source repo commands (for reference/testing during harvest)
 
@@ -181,6 +184,30 @@ Manages the whole EVA DA Workspaces platform and other RAG-like solutions. Lever
 - **AIOps** — model performance monitoring, RAG quality metrics (groundedness, relevance, coherence), agent tracing, drift detection
 - **LiveOps** — service health, incident management, SLA tracking, capacity planning across workspaces/indexes
 - **DevOps** — CI/CD pipelines, infrastructure provisioning, deployment management, environment promotion
+
+## UI/UX stack
+
+| Layer | Technology |
+|-------|-----------|
+| GC mandatory chrome | `@cdssnc/gcds-components-react` — header, footer, nav, language toggle, breadcrumbs, error summary |
+| Application components | shadcn/ui + Radix UI — chat, dashboards, dialogs, data tables, admin panels |
+| Styling | Tailwind CSS v4 + GC design tokens as CSS variables |
+| Charts | Recharts |
+| i18n | react-i18next + `{en,fr}.json` — all strings externalized, no hardcoded text |
+| a11y | GCDS baseline + axe-core + screen reader testing — WCAG 2.1 AA floor, EN 301 549 target |
+| Auth | `@azure/msal-react` — Entra ID SSO |
+| Framework | React 19 + Vite 6 + TypeScript 5.7 |
+
+Not Fluent UI — v9 doesn't support React 19, v8 is legacy. GC Design System is the official GoC standard with React wrappers.
+
+## Design principles
+
+Two companion docs in this repo define the full set of design principles:
+
+- **`Agentic-State-Vision.md`** — 10 principles from the Agentic State 12-layer framework (Ilves & Kilian, 2025): forensic audit trail, compliance-as-code, agent identity, escalation tiers, outcome-based FinOps, proactive service, interoperability, security for autonomy, bilingual/accessible.
+- **`EVA-Design-Principles-Beyond-Agentic-State.md`** — 9 principles filling practical gaps: confidence scoring & disclosure, explainability & reasoning transparency, temporal validity & source freshness, graceful degradation, multi-agent conflict resolution, feedback loops & continuous improvement, version control & rollback, contextual adaptation beyond language, sandbox & simulation testing.
+
+These are architectural invariants, not Phase 5 bolt-ons. Every answer carries: confidence score, explainability (retrieval path + reasoning + negative evidence), source freshness, behavioral fingerprint (model + prompt + corpus + policy versions), and full provenance chain.
 
 ## Reference documents
 
