@@ -1,12 +1,20 @@
-"""In-memory model registry store. Replaced by Cosmos DB adapter in production."""
+"""In-memory model registry store. Replaced by Cosmos DB adapter in production.
+
+Every change is versioned with author, rationale, timestamp, and field-level diff.
+"""
 
 from __future__ import annotations
+
+from datetime import datetime, timezone
 
 from ..models.admin import ModelConfig
 
 
 class ModelRegistryStore:
-    """In-memory store for AI model configurations seeded with P75 Azure OpenAI models."""
+    """In-memory store for AI model configurations seeded with P75 Azure OpenAI models.
+
+    All mutations are tracked in each model's change_history for full audit trail.
+    """
 
     def __init__(self) -> None:
         self._models: dict[str, ModelConfig] = {}
@@ -223,17 +231,69 @@ class ModelRegistryStore:
         """Look up a model by ID."""
         return self._models.get(model_id)
 
-    def update_model(self, model_id: str, updates: dict) -> ModelConfig | None:
-        """Partially update a model config. Returns None if not found."""
+    def update_model(
+        self,
+        model_id: str,
+        updates: dict,
+        author: str = "system",
+        rationale: str = "",
+    ) -> ModelConfig | None:
+        """Partially update a model config with full audit trail.
+
+        Every changed field is recorded in change_history with old/new values,
+        author, rationale, and timestamp.
+        """
         m = self._models.get(model_id)
         if m is None:
             return None
+
         data = m.model_dump()
+        history = list(data.get("change_history", []))
+        version = len(history) + 1
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Record each changed field
+        for field, new_value in updates.items():
+            if field == "change_history":
+                continue
+            old_value = data.get(field)
+            if old_value != new_value:
+                history.append({
+                    "version": version,
+                    "action": "update",
+                    "field": field,
+                    "old_value": old_value,
+                    "new_value": new_value,
+                    "author": author,
+                    "rationale": rationale,
+                    "timestamp": now,
+                })
+
         data.update(updates)
+        data["change_history"] = history
         updated = ModelConfig(**data)
         self._models[model_id] = updated
         return updated
 
-    def toggle_model(self, model_id: str, is_active: bool) -> ModelConfig | None:
-        """Enable or disable a model. Returns None if not found."""
-        return self.update_model(model_id, {"is_active": is_active})
+    def toggle_model(
+        self,
+        model_id: str,
+        is_active: bool,
+        author: str = "system",
+        rationale: str = "",
+    ) -> ModelConfig | None:
+        """Enable or disable a model with audit trail."""
+        action = "enabled" if is_active else "disabled"
+        return self.update_model(
+            model_id,
+            {"is_active": is_active},
+            author=author,
+            rationale=rationale or f"Model {action} by {author}",
+        )
+
+    def get_change_history(self, model_id: str) -> list[dict]:
+        """Return the full change history for a model."""
+        m = self._models.get(model_id)
+        if m is None:
+            return []
+        return m.change_history

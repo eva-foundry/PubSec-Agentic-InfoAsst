@@ -77,6 +77,10 @@ class ModelConfig(BaseModel):
         default="pay-as-you-go",
         description="'pay-as-you-go' (per-token), 'provisioned' (fixed monthly), 'serverless' (per-request MaaS)",
     )
+    change_history: list[dict] = Field(
+        default_factory=list,
+        description="Versioned audit trail: [{version, action, field, old_value, new_value, author, rationale, timestamp}]",
+    )
 
 
 class PromptVersion(BaseModel):

@@ -484,10 +484,26 @@ async def toggle_model(
     user: UserContext = Depends(get_current_user),
 ) -> ModelConfig:
     _require_admin(user)
-    model = model_registry_store.toggle_model(model_id, is_active)
+    action = "enabled" if is_active else "disabled"
+    model = model_registry_store.toggle_model(
+        model_id, is_active, author=user.email, rationale=f"Model {action} via admin portal",
+    )
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
     return model
+
+
+@router.get("/admin/models/{model_id}/history")
+async def get_model_history(
+    model_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """Return full change history for a model — every field change with author, rationale, timestamp."""
+    _require_admin(user)
+    history = model_registry_store.get_change_history(model_id)
+    if not history and model_registry_store.get_model(model_id) is None:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    return history
 
 
 # ---------------------------------------------------------------------------
