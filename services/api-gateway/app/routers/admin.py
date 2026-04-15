@@ -1,13 +1,36 @@
-"""Business administration endpoints (Portal 2 - Admin)."""
+"""Business administration endpoints (Portal 2 - Admin).
+
+All endpoints require the ``admin`` role. Data is backed by in-memory stores
+(replaced by Cosmos DB adapters in production).
+"""
 
 from __future__ import annotations
 
+import re
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth import UserContext, get_current_user
+from ..models.admin import (
+    Client,
+    Interview,
+    ModelConfig,
+    PromptVersion,
+    WorkspaceDecommissionPlan,
+    WorkspaceProvisionPlan,
+    WorkspaceProvisionRequest,
+)
+from ..stores import (
+    booking_store,
+    client_store,
+    model_registry_store,
+    prompt_store,
+    team_store,
+    workspace_store,
+)
 
 router = APIRouter()
 
@@ -21,159 +44,60 @@ def _require_admin(user: UserContext) -> None:
         raise HTTPException(status_code=403, detail="Admin role required")
 
 
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _recommend_archetype(use_case: str) -> str:
+    """Simple rule-based archetype recommendation from use-case description."""
+    lower = use_case.lower()
+    if re.search(r"\b(legislation|act|law|statute|regulation)\b", lower):
+        return "legislation"
+    if re.search(r"\b(tribunal|court|case|jurisprudence|ruling|decision)\b", lower):
+        return "case_law"
+    return "default"
+
+
 # ---------------------------------------------------------------------------
 # Request / Response models (local to admin surface)
 # ---------------------------------------------------------------------------
 
 class ClientOnboard(BaseModel):
-    name: str
-    department: str
-    contact_email: str
-    cost_centre: str
-    data_classification: str = "unclassified"
-
-
-class ClientRecord(BaseModel):
-    id: str
-    name: str
-    department: str
-    contact_email: str
-    cost_centre: str
-    status: str = "active"
-    data_classification: str = "unclassified"
-    created_at: str = ""
-    updated_at: str = ""
+    org_name: str
+    entra_group_id: str | None = None
+    billing_contact: str
+    data_classification_level: str = "unclassified"
 
 
 class ClientUpdate(BaseModel):
     status: str | None = None
-    contact_email: str | None = None
-    cost_centre: str | None = None
+    billing_contact: str | None = None
+    data_classification_level: str | None = None
+    entra_group_id: str | None = None
 
 
 class InterviewSubmission(BaseModel):
     client_id: str
-    interviewer_id: str
-    notes: str
-    topics_covered: list[str] = Field(default_factory=list)
-    outcome: str = Field(default="proceed", description="'proceed' | 'defer' | 'decline'")
+    use_case_description: str
+    data_sources: list[str] = Field(default_factory=list)
+    expected_volume: str = ""
+    compliance_requirements: str = ""
+    aicm_assessment: str = "level_1"
 
 
-class WorkspaceProvision(BaseModel):
-    name: str
-    type: str = "standard"
-    data_classification: str = "unclassified"
-    owner_id: str
-    cost_centre: str
-
-
-class WorkspaceSnapshot(BaseModel):
-    workspace_id: str
-    name: str
-    config: dict
-    exported_at: str
-
-
-class ModelRecord(BaseModel):
-    id: str
-    name: str
-    provider: str
-    version: str
-    status: str = "enabled"
-    max_tokens: int = 4096
-    capabilities: list[str] = Field(default_factory=list)
+class PromptCreate(BaseModel):
+    content: str
+    rationale: str = ""
 
 
 class ModelUpdate(BaseModel):
-    status: str | None = None
-    max_tokens: int | None = None
-
-
-class PromptVersion(BaseModel):
-    name: str
-    version: str
-    status: str = "active"
-    template_hash: str
-    updated_at: str
+    parameter_overrides: dict | None = None
+    access_grants: list[str] | None = None
+    classification_ceiling: str | None = None
 
 
 class ValveUpdate(BaseModel):
     valves: dict = Field(description="Key-value map of valve settings to update")
-
-
-# ---------------------------------------------------------------------------
-# Mock data
-# ---------------------------------------------------------------------------
-
-_MOCK_CLIENTS: list[ClientRecord] = [
-    ClientRecord(
-        id="cl-001",
-        name="Benefits Delivery Modernization",
-        department="ESDC - BDM",
-        contact_email="bdm-lead@esdc.gc.ca",
-        cost_centre="CC-BDM-01",
-        status="active",
-        data_classification="protected_b",
-        created_at="2025-09-01T00:00:00Z",
-        updated_at="2026-03-15T10:00:00Z",
-    ),
-    ClientRecord(
-        id="cl-002",
-        name="Service Canada Operations",
-        department="ESDC - SCO",
-        contact_email="sco-lead@esdc.gc.ca",
-        cost_centre="CC-SCO-01",
-        status="active",
-        data_classification="protected_a",
-        created_at="2025-11-01T00:00:00Z",
-        updated_at="2026-02-20T14:00:00Z",
-    ),
-]
-
-_MOCK_MODELS: list[ModelRecord] = [
-    ModelRecord(
-        id="model-gpt5.1",
-        name="gpt-5.1",
-        provider="Azure OpenAI",
-        version="2026-04",
-        status="enabled",
-        max_tokens=128_000,
-        capabilities=["chat", "function-calling", "vision"],
-    ),
-    ModelRecord(
-        id="model-gpt5-mini",
-        name="gpt-5-mini",
-        provider="Azure OpenAI",
-        version="2026-03",
-        status="enabled",
-        max_tokens=32_000,
-        capabilities=["chat", "function-calling"],
-    ),
-]
-
-_MOCK_PROMPTS: list[PromptVersion] = [
-    PromptVersion(
-        name="rag-system",
-        version="v3.2",
-        status="active",
-        template_hash="a1b2c3d4",
-        updated_at="2026-04-01T00:00:00Z",
-    ),
-    PromptVersion(
-        name="rag-system",
-        version="v3.1",
-        status="archived",
-        template_hash="e5f6g7h8",
-        updated_at="2026-03-15T00:00:00Z",
-    ),
-    PromptVersion(
-        name="guardrail-check",
-        version="v1.4",
-        status="active",
-        template_hash="i9j0k1l2",
-        updated_at="2026-03-20T00:00:00Z",
-    ),
-]
 
 
 # ---------------------------------------------------------------------------
@@ -184,39 +108,38 @@ _MOCK_PROMPTS: list[PromptVersion] = [
 async def onboard_client(
     payload: ClientOnboard,
     user: UserContext = Depends(get_current_user),
-) -> ClientRecord:
+) -> Client:
     _require_admin(user)
-    return ClientRecord(
+    client = Client(
         id=f"cl-{uuid.uuid4().hex[:8]}",
-        name=payload.name,
-        department=payload.department,
-        contact_email=payload.contact_email,
-        cost_centre=payload.cost_centre,
-        data_classification=payload.data_classification,
+        org_name=payload.org_name,
+        entra_group_id=payload.entra_group_id,
+        billing_contact=payload.billing_contact,
+        data_classification_level=payload.data_classification_level,
+        onboarded_at=_now(),
         status="active",
-        created_at="2026-04-14T12:00:00Z",
-        updated_at="2026-04-14T12:00:00Z",
     )
+    return client_store.create_client(client)
 
 
 @router.get("/admin/clients")
 async def list_clients(
     user: UserContext = Depends(get_current_user),
-) -> list[ClientRecord]:
+) -> list[Client]:
     _require_admin(user)
-    return _MOCK_CLIENTS
+    return client_store.list_clients()
 
 
 @router.get("/admin/clients/{client_id}")
 async def get_client(
     client_id: str,
     user: UserContext = Depends(get_current_user),
-) -> ClientRecord:
+) -> Client:
     _require_admin(user)
-    for c in _MOCK_CLIENTS:
-        if c.id == client_id:
-            return c
-    raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
+    client = client_store.get_client(client_id)
+    if client is None:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
+    return client
 
 
 @router.patch("/admin/clients/{client_id}")
@@ -224,16 +147,13 @@ async def update_client(
     client_id: str,
     payload: ClientUpdate,
     user: UserContext = Depends(get_current_user),
-) -> ClientRecord:
+) -> Client:
     _require_admin(user)
-    for c in _MOCK_CLIENTS:
-        if c.id == client_id:
-            data = c.model_dump()
-            for k, v in payload.model_dump(exclude_none=True).items():
-                data[k] = v
-            data["updated_at"] = "2026-04-14T12:00:00Z"
-            return ClientRecord(**data)
-    raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
+    updates = payload.model_dump(exclude_none=True)
+    client = client_store.update_client(client_id, updates)
+    if client is None:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
+    return client
 
 
 # ---------------------------------------------------------------------------
@@ -244,15 +164,36 @@ async def update_client(
 async def submit_interview(
     payload: InterviewSubmission,
     user: UserContext = Depends(get_current_user),
-) -> dict:
+) -> Interview:
     _require_admin(user)
-    return {
-        "id": str(uuid.uuid4()),
-        "client_id": payload.client_id,
-        "outcome": payload.outcome,
-        "submitted_by": user.user_id,
-        "status": "recorded",
-    }
+    # Verify client exists
+    if client_store.get_client(payload.client_id) is None:
+        raise HTTPException(status_code=404, detail=f"Client '{payload.client_id}' not found")
+    archetype = _recommend_archetype(payload.use_case_description)
+    interview = Interview(
+        id=f"iv-{uuid.uuid4().hex[:8]}",
+        client_id=payload.client_id,
+        admin_id=user.user_id,
+        use_case_description=payload.use_case_description,
+        data_sources=payload.data_sources,
+        expected_volume=payload.expected_volume,
+        compliance_requirements=payload.compliance_requirements,
+        aicm_assessment=payload.aicm_assessment,
+        archetype_recommendation=archetype,
+        created_at=_now(),
+    )
+    return client_store.create_interview(interview)
+
+
+@router.get("/admin/clients/{client_id}/interviews")
+async def list_client_interviews(
+    client_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> list[Interview]:
+    _require_admin(user)
+    if client_store.get_client(client_id) is None:
+        raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
+    return client_store.get_interviews_by_client(client_id)
 
 
 # ---------------------------------------------------------------------------
@@ -261,33 +202,75 @@ async def submit_interview(
 
 @router.post("/admin/workspaces/provision")
 async def provision_workspace(
-    payload: WorkspaceProvision,
-    dry_run: bool = Query(default=False),
+    payload: WorkspaceProvisionRequest,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
+    ws = workspace_store.get(payload.workspace_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{payload.workspace_id}' not found")
+
+    if payload.dry_run:
+        plan = WorkspaceProvisionPlan(
+            resources=[
+                {"type": "ai_search_index", "name": f"idx-{ws.id}", "sku": "standard"},
+                {"type": "blob_container", "name": f"blob-{ws.id}", "sku": "hot"},
+                {"type": "rbac_assignments", "name": f"rbac-{ws.id}", "count": 3},
+            ],
+            estimated_monthly_cost=f"${ws.monthly_cost:.2f}",
+            deployment_time_estimate="5-10 minutes",
+        )
+        return {"workspace_id": ws.id, "status": "preview", "plan": plan.model_dump()}
+
+    # Confirm provisioning: transition workspace to active
+    updated = workspace_store.update(ws.id, {"status": "active", "updated_at": _now()})
     return {
-        "workspace_id": f"ws-{uuid.uuid4().hex[:8]}",
-        "name": payload.name,
-        "type": payload.type,
-        "dry_run": dry_run,
-        "status": "preview" if dry_run else "provisioning",
-        "estimated_monthly_cost": 1250.00,
+        "workspace_id": ws.id,
+        "status": "provisioning",
+        "workspace": updated.model_dump() if updated else None,
     }
 
 
 @router.post("/admin/workspaces/{ws_id}/decommission")
 async def decommission_workspace(
     ws_id: str,
-    dry_run: bool = Query(default=False),
+    dry_run: bool = Query(default=True),
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+
+    # Collect members from all bookings associated with this workspace
+    ws_bookings = booking_store.list_by_workspace(ws_id)
+    member_ids: list[str] = []
+    for bk in ws_bookings:
+        for m in team_store.list_by_booking(bk.id):
+            if m.user_id not in member_ids:
+                member_ids.append(m.user_id)
+
+    plan = WorkspaceDecommissionPlan(
+        members_to_remove=member_ids,
+        documents_to_delete=ws.document_count,
+        index_entries_to_purge=ws.document_count * 10,  # rough estimate: 10 chunks per doc
+        safety_gates=[
+            "confirm_no_active_bookings",
+            "confirm_data_backup_completed",
+            "confirm_billing_settled",
+        ],
+    )
+
+    if dry_run:
+        return {"workspace_id": ws_id, "status": "preview", "plan": plan.model_dump()}
+
+    # Execute decommission: archive the workspace
+    updated = workspace_store.update(ws_id, {"status": "archived", "updated_at": _now()})
     return {
         "workspace_id": ws_id,
-        "dry_run": dry_run,
-        "status": "preview" if dry_run else "decommissioning",
-        "resources_to_delete": ["index", "blob-container", "rbac-assignments"],
+        "status": "decommissioned",
+        "plan": plan.model_dump(),
+        "workspace": updated.model_dump() if updated else None,
     }
 
 
@@ -297,44 +280,30 @@ async def get_workspace_resources(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
     return {
         "workspace_id": ws_id,
         "resources": {
-            "ai_search_index": {"status": "healthy", "document_count": 87, "size_mb": 142},
-            "blob_container": {"status": "healthy", "blob_count": 12, "size_gb": 2.4},
-            "rbac_assignments": {"status": "healthy", "count": 5},
+            "ai_search_index": {
+                "status": "healthy",
+                "document_count": ws.document_count,
+                "size_mb": ws.document_count * 1.5,
+            },
+            "blob_container": {
+                "status": "healthy",
+                "blob_count": ws.document_count,
+                "size_gb": round(ws.document_count * 0.005, 2),
+            },
+            "rbac_assignments": {
+                "status": "healthy",
+                "count": sum(
+                    len(team_store.list_by_booking(bk.id))
+                    for bk in booking_store.list_by_workspace(ws_id)
+                ),
+            },
         },
-    }
-
-
-@router.post("/admin/workspaces/{ws_id}/snapshot")
-async def export_workspace_snapshot(
-    ws_id: str,
-    user: UserContext = Depends(get_current_user),
-) -> WorkspaceSnapshot:
-    _require_admin(user)
-    return WorkspaceSnapshot(
-        workspace_id=ws_id,
-        name=f"snapshot-{ws_id}",
-        config={
-            "index_settings": {"analyzer": "standard", "dimensions": 1536},
-            "chunking": {"strategy": "token", "max_tokens": 512, "overlap": 50},
-            "valves": {"temperature": 0.1, "top_k": 5},
-        },
-        exported_at="2026-04-14T12:00:00Z",
-    )
-
-
-@router.post("/admin/workspaces/import")
-async def import_workspace_snapshot(
-    snapshot: WorkspaceSnapshot,
-    user: UserContext = Depends(get_current_user),
-) -> dict:
-    _require_admin(user)
-    return {
-        "workspace_id": f"ws-{uuid.uuid4().hex[:8]}",
-        "imported_from": snapshot.workspace_id,
-        "status": "provisioning",
     }
 
 
@@ -347,26 +316,15 @@ async def list_all_bookings(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
     _require_admin(user)
-    return [
-        {
-            "id": "bk-001",
-            "workspace_id": "ws-oas-act",
-            "requester_id": "demo-alice",
-            "client": "BDM",
-            "status": "active",
-            "start_date": "2026-03-01",
-            "end_date": "2026-06-30",
-        },
-        {
-            "id": "bk-002",
-            "workspace_id": "ws-ei-juris",
-            "requester_id": "demo-alice",
-            "client": "BDM",
-            "status": "pending",
-            "start_date": "2026-05-01",
-            "end_date": "2026-08-31",
-        },
-    ]
+    bookings = booking_store.list_all()
+    result = []
+    for bk in bookings:
+        ws = workspace_store.get(bk.workspace_id)
+        result.append({
+            **bk.model_dump(),
+            "workspace_name": ws.name if ws else "unknown",
+        })
+    return result
 
 
 @router.patch("/admin/bookings/{booking_id}")
@@ -376,11 +334,19 @@ async def approve_or_reject_booking(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
+    if action not in ("approve", "reject"):
+        raise HTTPException(status_code=400, detail="Action must be 'approve' or 'reject'")
+    bk = booking_store.get(booking_id)
+    if bk is None:
+        raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
+    new_status = "active" if action == "approve" else "rejected"
+    updated = booking_store.update(booking_id, {"status": new_status, "updated_at": _now()})
     return {
         "booking_id": booking_id,
         "action": action,
-        "status": "confirmed" if action == "approve" else "rejected",
+        "status": new_status,
         "updated_by": user.user_id,
+        "booking": updated.model_dump() if updated else None,
     }
 
 
@@ -391,9 +357,21 @@ async def approve_or_reject_booking(
 @router.get("/admin/models")
 async def list_models(
     user: UserContext = Depends(get_current_user),
-) -> list[ModelRecord]:
+) -> list[ModelConfig]:
     _require_admin(user)
-    return _MOCK_MODELS
+    return model_registry_store.list_models()
+
+
+@router.get("/admin/models/{model_id}")
+async def get_model(
+    model_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> ModelConfig:
+    _require_admin(user)
+    model = model_registry_store.get_model(model_id)
+    if model is None:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    return model
 
 
 @router.patch("/admin/models/{model_id}")
@@ -401,15 +379,26 @@ async def update_model(
     model_id: str,
     payload: ModelUpdate,
     user: UserContext = Depends(get_current_user),
-) -> ModelRecord:
+) -> ModelConfig:
     _require_admin(user)
-    for m in _MOCK_MODELS:
-        if m.id == model_id:
-            data = m.model_dump()
-            for k, v in payload.model_dump(exclude_none=True).items():
-                data[k] = v
-            return ModelRecord(**data)
-    raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    updates = payload.model_dump(exclude_none=True)
+    model = model_registry_store.update_model(model_id, updates)
+    if model is None:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    return model
+
+
+@router.post("/admin/models/{model_id}/toggle")
+async def toggle_model(
+    model_id: str,
+    is_active: bool = Query(description="True to enable, False to disable"),
+    user: UserContext = Depends(get_current_user),
+) -> ModelConfig:
+    _require_admin(user)
+    model = model_registry_store.toggle_model(model_id, is_active)
+    if model is None:
+        raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    return model
 
 
 # ---------------------------------------------------------------------------
@@ -419,24 +408,52 @@ async def update_model(
 @router.get("/admin/prompts")
 async def list_prompts(
     user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    _require_admin(user)
+    return prompt_store.list_prompts()
+
+
+@router.get("/admin/prompts/{name}/versions")
+async def get_prompt_versions(
+    name: str,
+    user: UserContext = Depends(get_current_user),
 ) -> list[PromptVersion]:
     _require_admin(user)
-    return _MOCK_PROMPTS
+    versions = prompt_store.get_versions(name)
+    if not versions:
+        raise HTTPException(status_code=404, detail=f"Prompt '{name}' not found")
+    return versions
+
+
+@router.post("/admin/prompts/{name}/versions", status_code=201)
+async def create_prompt_version(
+    name: str,
+    payload: PromptCreate,
+    user: UserContext = Depends(get_current_user),
+) -> PromptVersion:
+    _require_admin(user)
+    return prompt_store.create_version(
+        prompt_name=name,
+        content=payload.content,
+        author=user.user_id,
+        rationale=payload.rationale,
+    )
 
 
 @router.post("/admin/prompts/{name}/rollback")
 async def rollback_prompt(
     name: str,
-    target_version: str = Query(description="Version to roll back to, e.g. 'v3.1'"),
+    target_version: int = Query(description="Version number to roll back to"),
     user: UserContext = Depends(get_current_user),
-) -> dict:
+) -> PromptVersion:
     _require_admin(user)
-    return {
-        "prompt_name": name,
-        "rolled_back_to": target_version,
-        "status": "active",
-        "updated_by": user.user_id,
-    }
+    result = prompt_store.rollback(name, target_version)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Prompt '{name}' version {target_version} not found",
+        )
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -450,6 +467,10 @@ async def update_valves(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+    # Valves are stored as part of workspace metadata — for now, just acknowledge
     return {
         "workspace_id": ws_id,
         "valves": payload.valves,
