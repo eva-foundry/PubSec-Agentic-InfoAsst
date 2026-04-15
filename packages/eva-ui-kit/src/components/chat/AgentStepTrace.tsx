@@ -2,9 +2,10 @@
 // AgentStepTrace — animated vertical timeline of agent execution steps
 // ---------------------------------------------------------------------------
 
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { AgentStep } from '@eva/common';
+import { LiveRegion } from '../a11y/LiveRegion';
 
 export interface AgentStepTraceProps {
   steps: AgentStep[];
@@ -126,6 +127,15 @@ export function AgentStepTrace({ steps, isStreaming, language }: AgentStepTraceP
   const regionId = useId();
   const prefersReduced = useReducedMotion();
 
+  // Build a screen-reader announcement for the latest step
+  const latestStepAnnouncement = useMemo(() => {
+    if (steps.length === 0) return '';
+    const latest = steps[steps.length - 1];
+    const label = language === 'fr' ? latest.label_fr : latest.label_en;
+    const statusLabel = t[latest.status] ?? latest.status;
+    return `${label} — ${statusLabel}`;
+  }, [steps, language, t]);
+
   if (steps.length === 0) return null;
 
   const variants = prefersReduced
@@ -138,6 +148,9 @@ export function AgentStepTrace({ steps, isStreaming, language }: AgentStepTraceP
 
   return (
     <div className="mt-2">
+      {/* Screen-reader announcement for new/changed steps */}
+      <LiveRegion message={latestStepAnnouncement} politeness="polite" />
+
       <button
         type="button"
         onClick={() => setCollapsed((prev) => !prev)}

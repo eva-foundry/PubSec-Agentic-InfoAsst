@@ -4,7 +4,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useAuth } from "@eva/ui-kit";
+import { useAuth, FocusTrap } from "@eva/ui-kit";
 import {
   createBooking,
   submitEntrySurvey,
@@ -346,6 +346,7 @@ export default function BookingDialog({
             aria-label={step === 1 ? t.bookTitle : t.surveyTitle}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
+            <FocusTrap active={open} onEscape={handleClose}>
             <motion.div
               key={shakeKey}
               variants={prefersReducedMotion ? undefined : shakeVariants}
@@ -637,6 +638,7 @@ export default function BookingDialog({
                 )}
               </div>
             </motion.div>
+            </FocusTrap>
           </motion.div>
         </>
       )}

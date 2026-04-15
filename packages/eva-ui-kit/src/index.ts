@@ -6,11 +6,22 @@
 export { useAuth } from './hooks/use-auth';
 export type { AuthState, UserContext } from './hooks/use-auth';
 
+export { useI18n } from './hooks/use-i18n';
+export type { UseI18nReturn } from './hooks/use-i18n';
+
 export { useNdjsonStream } from './hooks/use-ndjson-stream';
 export type {
   UseNdjsonStreamOptions,
   UseNdjsonStreamReturn,
 } from './hooks/use-ndjson-stream';
+
+export { useReducedMotion } from './hooks/use-reduced-motion';
+export { useFocusOnMount, useReturnFocus } from './hooks/use-focus-management';
+
+// Accessibility components
+export { SkipLink } from './components/a11y/SkipLink';
+export { LiveRegion } from './components/a11y/LiveRegion';
+export { FocusTrap } from './components/a11y/FocusTrap';
 
 // Chat components
 export { AgentStepTrace } from './components/chat/AgentStepTrace';

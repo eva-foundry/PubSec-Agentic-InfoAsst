@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { FocusTrap } from "@eva/ui-kit";
 import type { TeamMember, TeamRole } from "@eva/common";
 import { getTeamMembers, addTeamMember, removeTeamMember } from "../api/client";
 
@@ -226,6 +227,7 @@ export default function TeamManagementDialog({
             aria-label={t.title}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
+            <FocusTrap active={open} onEscape={() => onOpenChange(false)}>
             <motion.div
               key={shakeKey}
               variants={prefersReducedMotion ? undefined : shakeVariants}
@@ -434,6 +436,7 @@ export default function TeamManagementDialog({
                 </button>
               </div>
             </motion.div>
+            </FocusTrap>
           </motion.div>
         </>
       )}

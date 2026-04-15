@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@eva/ui-kit';
+import { useAuth, SkipLink } from '@eva/ui-kit';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import AdminDashboard from './pages/AdminDashboard';
@@ -207,6 +207,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SkipLink targetId="main-content" language={lang} />
       {/* GC Header bar */}
       <div className="border-b border-red-700 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1.5">
@@ -264,7 +265,7 @@ function App() {
       </header>
 
       {/* Page content */}
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div key={activePage} {...pageTransition}>
             {activePage === 'dashboard' && <AdminDashboard lang={lang} />}

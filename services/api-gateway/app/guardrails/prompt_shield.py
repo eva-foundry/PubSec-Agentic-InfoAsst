@@ -17,12 +17,23 @@ class PromptShield:
     """Detects and blocks prompt injection attempts."""
 
     INJECTION_PATTERNS: list[str] = [
-        r"ignore\s+(previous|all|above)\s+instructions",
-        r"disregard\s+(previous|all|above)\s+instructions",
-        r"forget\s+(previous|all|above)\s+instructions",
+        # --- Direct injection: instruction override ---
+        r"ignore\s+(all\s+)?(previous|above)\s+instructions",
+        r"disregard\s+(all\s+)?(previous|above)\s+instructions",
+        r"forget\s+(all\s+)?(previous|above)\s+instructions",
+        r"ignore\s+all\s+instructions",
+        r"disregard\s+all\s+instructions",
+        r"forget\s+all\s+instructions",
+        r"override\s+(previous|all|above)\s+(context|instructions)",
+        # --- Role / identity confusion ---
         r"you\s+are\s+now\s+",
         r"act\s+as\s+if\s+you\s+are\s+",
-        r"pretend\s+you\s+are\s+",
+        r"pretend\s+(you\s+are|to\s+be)\s+",
+        r"you\s+have\s+been\s+freed\s+from",
+        r"you\s+(?:can|will)\s+do\s+anything",
+        r"without\s+(any\s+)?restrictions",
+        r"no\s+safety\s+filters",
+        # --- Prompt template / delimiter injection ---
         r"system\s*:\s*",
         r"<\|im_start\|>",
         r"<\|im_end\|>",
@@ -30,9 +41,26 @@ class PromptShield:
         r"\[INST\]",
         r"\[/INST\]",
         r"<\s*system\s*>",
+        r"```\s*system\b",
+        # --- Safety override ---
         r"override\s+(safety|content)\s+(filter|policy)",
         r"do\s+not\s+follow\s+(any|your)\s+(rules|guidelines)",
+        r"(enable|enter)\s+developer\s+mode",
+        r"(remove|disable|bypass)\s+(all\s+)?(safety|content)\s+(filter|restriction|guardrail)",
+        # --- Jailbreak markers ---
         r"jailbreak",
+        r"\bDAN\b.*do\s+anything\s+now",
+        r"do\s+anything\s+now",
+        # --- Data exfiltration ---
+        r"(show|reveal|display|tell|give)\s+(me\s+)?(your|the)\s+(system\s+prompt|instructions\s+verbatim|source\s+code|configuration)",
+        r"(list|show|reveal|output)\s+(all\s+)?(api\s+keys?|connection\s+strings?|environment\s+variables?|credentials|secrets)",
+        r"what\s+(is|are)\s+your\s+(system\s+prompt|instructions)",
+        r"repeat\s+(your|the)\s+(system|initial)\s+(prompt|instructions)\s+verbatim",
+        # --- Indirect injection via document content ---
+        r"ignore\s+safety\s+guidelines",
+        r"IMPORTANT\s*:\s*(override|ignore|disregard|forget)",
+        r"output\s+raw\s+data",
+        r"reveal\s+(system|internal)\s+configuration",
     ]
 
     def __init__(self) -> None:
