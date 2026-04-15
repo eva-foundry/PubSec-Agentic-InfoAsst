@@ -32,20 +32,20 @@ router = APIRouter()
 # Conditionally create real Azure OpenAI client (falls back to MockModelClient if unset)
 _settings = get_settings()
 _model_client = None
-if _settings.azure_openai_endpoint and _settings.azure_openai_api_key:
+if _settings.azure_openai_endpoint:
     _model_client = AzureOpenAIModelClient(
         endpoint=_settings.azure_openai_endpoint,
-        api_key=_settings.azure_openai_api_key,
+        api_key=_settings.azure_openai_api_key or None,  # None triggers Entra ID auth
         deployment=_settings.azure_openai_deployment,
         api_version=_settings.azure_openai_api_version,
     )
 
 # Create embedding client for search
 _embedding_client = None
-if _settings.azure_openai_endpoint and _settings.azure_openai_api_key:
+if _settings.azure_openai_endpoint:
     _embedding_client = AzureEmbeddingClient(
         endpoint=_settings.azure_openai_endpoint,
-        api_key=_settings.azure_openai_api_key,
+        api_key=_settings.azure_openai_api_key or None,
         deployment=_settings.azure_openai_embedding_deployment,
     )
 else:

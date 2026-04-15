@@ -14,12 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 class AzureEmbeddingClient:
-    """Real Azure OpenAI embeddings client."""
+    """Real Azure OpenAI embeddings client.
+
+    Supports API key or Entra ID (Azure AD) Bearer token auth.
+    """
 
     def __init__(
         self,
         endpoint: str,
-        api_key: str,
+        api_key: str | None,
         deployment: str,
         api_version: str = "2024-12-01-preview",
     ) -> None:
@@ -28,6 +31,15 @@ class AzureEmbeddingClient:
         self.deployment = deployment
         self.api_version = api_version
         self._client = httpx.AsyncClient(timeout=30.0)
+
+    def _auth_headers(self) -> dict[str, str]:
+        if self.api_key:
+            return {"api-key": self.api_key, "Content-Type": "application/json"}
+        from .azure_client import _get_entra_token
+        token = _get_entra_token()
+        if token:
+            return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        return {"Content-Type": "application/json"}
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         """Embed a batch of texts. Returns list of embedding vectors."""
@@ -39,10 +51,7 @@ class AzureEmbeddingClient:
         try:
             response = await self._client.post(
                 url,
-                headers={
-                    "api-key": self.api_key,
-                    "Content-Type": "application/json",
-                },
+                headers=self._auth_headers(),
                 json={"input": texts},
             )
             response.raise_for_status()

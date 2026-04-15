@@ -1,5 +1,10 @@
 """Azure OpenAI model client — real LLM calls via httpx async.
 
+Supports two auth modes:
+- API key: when api_key is provided (header: api-key)
+- Entra ID (Azure AD): when api_key is empty, uses azure-identity
+  DefaultAzureCredential to get Bearer tokens (works with `az login`)
+
 Routes through Azure APIM in production (endpoint URL points to APIM).
 Handles timeouts, throttling (429), and invalid credentials gracefully.
 """
@@ -15,13 +20,29 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+def _get_entra_token() -> str | None:
+    """Get an Azure AD token for Azure OpenAI using DefaultAzureCredential."""
+    try:
+        from azure.identity import DefaultAzureCredential
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://cognitiveservices.azure.com/.default")
+        return token.token
+    except Exception:
+        logger.exception("Failed to get Entra ID token — is `az login` active?")
+        return None
+
+
 class AzureOpenAIModelClient:
-    """Real Azure OpenAI client using httpx async."""
+    """Real Azure OpenAI client using httpx async.
+
+    If api_key is provided, uses API key auth.
+    If api_key is empty/None, uses Entra ID (Azure AD) Bearer token auth.
+    """
 
     def __init__(
         self,
         endpoint: str,
-        api_key: str,
+        api_key: str | None,
         deployment: str,
         api_version: str = "2024-12-01-preview",
     ) -> None:
@@ -30,6 +51,16 @@ class AzureOpenAIModelClient:
         self.deployment = deployment
         self.api_version = api_version
         self._client = httpx.AsyncClient(timeout=60.0)
+
+    def _auth_headers(self) -> dict[str, str]:
+        """Return auth headers — API key or Bearer token."""
+        if self.api_key:
+            return {"api-key": self.api_key, "Content-Type": "application/json"}
+        token = _get_entra_token()
+        if token:
+            return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        logger.error("No API key and Entra ID token acquisition failed")
+        return {"Content-Type": "application/json"}
 
     # ------------------------------------------------------------------
     # Public API
@@ -54,11 +85,8 @@ class AzureOpenAIModelClient:
         try:
             response = await self._client.post(
                 url,
-                headers={
-                    "api-key": self.api_key,
-                    "Content-Type": "application/json",
-                },
-                json={"messages": messages, "temperature": 0, "max_tokens": 100},
+                headers=self._auth_headers(),
+                json={"messages": messages, "max_completion_tokens": 100},
             )
             response.raise_for_status()
             data = response.json()
@@ -88,13 +116,9 @@ class AzureOpenAIModelClient:
             async with self._client.stream(
                 "POST",
                 url,
-                headers={
-                    "api-key": self.api_key,
-                    "Content-Type": "application/json",
-                },
+                headers=self._auth_headers(),
                 json={
                     "messages": all_messages,
-                    "temperature": 0.7,
                     "stream": True,
                 },
             ) as response:
@@ -106,14 +130,13 @@ class AzureOpenAIModelClient:
                             break
                         try:
                             data = json.loads(data_str)
-                            delta = (
-                                data.get("choices", [{}])[0]
-                                .get("delta", {})
-                                .get("content")
-                            )
+                            choices = data.get("choices", [])
+                            if not choices:
+                                continue
+                            delta = choices[0].get("delta", {}).get("content")
                             if delta:
                                 yield delta
-                        except json.JSONDecodeError:
+                        except (json.JSONDecodeError, IndexError, KeyError):
                             continue
 
         except httpx.TimeoutException:
@@ -145,5 +168,8 @@ class AzureOpenAIModelClient:
         elif status == 401:
             logger.error("Azure OpenAI authentication failed (401)")
         else:
-            logger.error("Azure OpenAI HTTP %d: %s", status,
-                         exc.response.text[:200])
+            try:
+                body = exc.response.text[:200]
+            except Exception:
+                body = "(streaming response — body not readable)"
+            logger.error("Azure OpenAI HTTP %d: %s", status, body)
