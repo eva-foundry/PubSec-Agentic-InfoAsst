@@ -42,18 +42,22 @@ async def service_health(
         overall = "healthy"
 
     from datetime import datetime, timezone
+
+    # Real MarcoSub Azure services inventory
+    services = [
+        {"name": "msub-eva-dev-openai", "type": "Azure OpenAI", "location": "canadaeast", "status": "healthy"},
+        {"name": "msub-eva-dev-search", "type": "AI Search", "location": "canadacentral", "status": "healthy"},
+        {"name": "msub-eva-dev-docint", "type": "Document Intelligence", "location": "canadacentral", "status": "healthy"},
+        {"name": "msub-sandbox-cosmos-free", "type": "Cosmos DB", "location": "canadacentral", "status": "healthy"},
+        {"name": "msub-sandbox-env", "type": "Container Apps", "location": "canadacentral", "status": "healthy"},
+        {"name": "msub-eva-vnext-bus-75", "type": "Service Bus", "location": "canadacentral", "status": "healthy"},
+        {"name": "msubsandkv202603031449", "type": "Key Vault", "location": "canadacentral", "status": "healthy"},
+        {"name": "msubsandacr202603031449", "type": "Container Registry", "location": "canadacentral", "status": "healthy"},
+    ]
+
     return {
         "overall": overall,
-        "services": {
-            "api_gateway": {"status": "healthy", "latency_p99_ms": 45},
-            "agent_orchestrator": {"status": "healthy", "latency_p99_ms": 1200},
-            "ai_search": {"status": "healthy", "latency_p99_ms": 180},
-            "document_intelligence": {"status": "healthy", "latency_p99_ms": 3500},
-            "azure_openai": {"status": "healthy", "latency_p99_ms": 800},
-            "cosmos_db": {"status": "healthy", "latency_p99_ms": 12},
-            "redis_cache": {"status": "healthy", "latency_p99_ms": 2},
-            "service_bus": {"status": "degraded", "latency_p99_ms": 450, "note": "Queue depth elevated"},
-        },
+        "services": services,
         "circuit_breakers": breaker_section,
         "fallback_tier": degradation_manager.get_fallback_tier(),
         "degradation_notice": degradation_manager.get_degradation_notice(),
@@ -313,8 +317,8 @@ async def evaluation_arena(
         "last_evaluation": "2026-04-12T00:00:00Z",
         "total_comparisons": 520,
         "rankings": [
-            {"model": "gpt-5.1", "elo": 1285, "win_rate_pct": 72.3, "avg_groundedness": 0.93},
-            {"model": "gpt-5-mini", "elo": 1180, "win_rate_pct": 58.1, "avg_groundedness": 0.89},
+            {"deployment": "reasoning-premium", "model": "gpt-5.1", "elo": 1285, "win_rate_pct": 72.3, "avg_groundedness": 0.93},
+            {"deployment": "chat-default", "model": "gpt-5-mini", "elo": 1180, "win_rate_pct": 58.1, "avg_groundedness": 0.89},
         ],
     }
 

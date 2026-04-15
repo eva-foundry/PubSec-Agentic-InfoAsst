@@ -207,8 +207,14 @@ class TestWorkspaceProvisioning:
         assert data["status"] == "preview"
         assert "plan" in data
         plan = data["plan"]
-        assert len(plan["resources"]) == 3
-        assert plan["estimated_monthly_cost"].startswith("$")
+        assert len(plan["resources"]) == 5
+        assert plan["estimated_monthly_cost"] == "$45 CAD"
+        assert plan["deployment_time_estimate"] == "~3 minutes"
+        assert plan["infrastructure"]["resource_group"] == "EVA-Sandbox-dev"
+        # Verify real resource names in resources
+        resource_services = {r["service"] for r in plan["resources"]}
+        assert "msub-eva-dev-search" in resource_services
+        assert "msub-sandbox-cosmos-free" in resource_services
 
     def test_provision_confirm_changes_status(self):
         # Set workspace to draft first
@@ -261,6 +267,8 @@ class TestWorkspaceProvisioning:
         data = resp.json()
         assert data["workspace_id"] == "ws-oas-act"
         assert "ai_search_index" in data["resources"]
+        assert data["resources"]["ai_search_index"]["service"] == "msub-eva-dev-search"
+        assert data["infrastructure"]["resource_group"] == "EVA-Sandbox-dev"
 
 
 # ==================== MODEL REGISTRY TESTS ====================
@@ -271,38 +279,45 @@ class TestModelRegistry:
         resp = client.get("/v1/eva/admin/models", headers=CAROL)
         assert resp.status_code == 200
         models = resp.json()
-        assert len(models) == 4
+        assert len(models) == 3
+        ids = {m["id"] for m in models}
+        assert ids == {"chat-default", "reasoning-premium", "embeddings-default"}
         names = {m["model_name"] for m in models}
         assert "gpt-5-mini" in names
         assert "gpt-5.1" in names
-        assert "text-embedding-ada-002" in names
-        assert "text-embedding-3-large" in names
+        assert "text-embedding-3-small" in names
 
     def test_get_model(self):
-        resp = client.get("/v1/eva/admin/models/model-gpt5-mini", headers=CAROL)
+        resp = client.get("/v1/eva/admin/models/chat-default", headers=CAROL)
         assert resp.status_code == 200
-        assert resp.json()["model_name"] == "gpt-5-mini"
+        data = resp.json()
+        assert data["model_name"] == "gpt-5-mini"
+        assert data["deployment_name"] == "chat-default"
+        assert data["endpoint"] == "https://msub-eva-dev-openai.openai.azure.com/"
+        assert data["location"] == "canadaeast"
+        assert data["sku"] == "GlobalStandard"
+        assert data["capacity"] == 60
 
     def test_toggle_model_disables(self):
         resp = client.post(
-            "/v1/eva/admin/models/model-gpt5-mini/toggle?is_active=false",
+            "/v1/eva/admin/models/chat-default/toggle?is_active=false",
             headers=CAROL,
         )
         assert resp.status_code == 200
         assert resp.json()["is_active"] is False
 
         # Verify persisted
-        resp2 = client.get("/v1/eva/admin/models/model-gpt5-mini", headers=CAROL)
+        resp2 = client.get("/v1/eva/admin/models/chat-default", headers=CAROL)
         assert resp2.json()["is_active"] is False
 
     def test_toggle_model_enables(self):
         # Disable then re-enable
         client.post(
-            "/v1/eva/admin/models/model-gpt5-mini/toggle?is_active=false",
+            "/v1/eva/admin/models/chat-default/toggle?is_active=false",
             headers=CAROL,
         )
         resp = client.post(
-            "/v1/eva/admin/models/model-gpt5-mini/toggle?is_active=true",
+            "/v1/eva/admin/models/chat-default/toggle?is_active=true",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -310,7 +325,7 @@ class TestModelRegistry:
 
     def test_update_model(self):
         resp = client.patch(
-            "/v1/eva/admin/models/model-gpt5-mini",
+            "/v1/eva/admin/models/chat-default",
             json={"parameter_overrides": {"temperature": 0.5}},
             headers=CAROL,
         )

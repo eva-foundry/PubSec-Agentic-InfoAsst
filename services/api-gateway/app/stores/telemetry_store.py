@@ -22,7 +22,8 @@ class APIMTelemetryRecord(BaseModel):
     workspace_id: str = ""
     session_id: str = ""
     client_id: str = "eva-agentic"
-    model: str = "gpt-5-mini"
+    deployment: str = "chat-default"
+    model_name: str = "gpt-5-mini"
     operation: str = "chat/completions"
     prompt_tokens: int = 0
     completion_tokens: int = 0
@@ -36,16 +37,23 @@ class APIMTelemetryRecord(BaseModel):
 # Pricing table (CAD per 1K tokens, illustrative)
 # ---------------------------------------------------------------------------
 
+# Deployment name → model name mapping
+_DEPLOYMENT_MODEL: dict[str, str] = {
+    "chat-default": "gpt-5-mini",
+    "reasoning-premium": "gpt-5.1",
+    "embeddings-default": "text-embedding-3-small",
+}
+
 _PRICING: dict[str, dict[str, float]] = {
-    "gpt-5-mini": {"prompt": 0.00015, "completion": 0.0006},
-    "gpt-5.1": {"prompt": 0.003, "completion": 0.012},
-    "text-embedding-3-large": {"prompt": 0.00013, "completion": 0.0},
+    "chat-default": {"prompt": 0.00015, "completion": 0.0006},
+    "reasoning-premium": {"prompt": 0.003, "completion": 0.012},
+    "embeddings-default": {"prompt": 0.00002, "completion": 0.0},
 }
 
 
-def estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> float:
+def estimate_cost(deployment: str, prompt_tokens: int, completion_tokens: int) -> float:
     """Estimate cost in CAD for a request."""
-    pricing = _PRICING.get(model, _PRICING["gpt-5-mini"])
+    pricing = _PRICING.get(deployment, _PRICING["chat-default"])
     return round(
         (prompt_tokens / 1000) * pricing["prompt"]
         + (completion_tokens / 1000) * pricing["completion"],
@@ -69,8 +77,8 @@ class TelemetryStore:
         rng = random.Random(42)  # deterministic seed
         workspaces = ["ws-oas-act", "ws-ei-juris", "ws-faq"]
         workspace_weights = [0.3, 0.5, 0.2]
-        models = ["gpt-5-mini", "gpt-5.1"]
-        model_weights = [0.7, 0.3]
+        deployments = ["chat-default", "reasoning-premium"]
+        deployment_weights = [0.7, 0.3]
         clients = ["eva-agentic", "eva-portal", "eva-batch"]
         client_weights = [0.6, 0.3, 0.1]
 
@@ -78,7 +86,7 @@ class TelemetryStore:
 
         for i in range(60):
             ws = rng.choices(workspaces, weights=workspace_weights, k=1)[0]
-            model = rng.choices(models, weights=model_weights, k=1)[0]
+            deployment = rng.choices(deployments, weights=deployment_weights, k=1)[0]
             client = rng.choices(clients, weights=client_weights, k=1)[0]
 
             day_offset = rng.randint(0, 13)  # April 1-14
@@ -92,7 +100,7 @@ class TelemetryStore:
             completion_tokens = rng.randint(200, 1200)
             total_tokens = prompt_tokens + completion_tokens
             latency = rng.randint(800, 3000)
-            cost = estimate_cost(model, prompt_tokens, completion_tokens)
+            cost = estimate_cost(deployment, prompt_tokens, completion_tokens)
 
             self._records.append(
                 APIMTelemetryRecord(
@@ -101,7 +109,8 @@ class TelemetryStore:
                     workspace_id=ws,
                     session_id=f"seed-session-{i // 5}",
                     client_id=client,
-                    model=model,
+                    deployment=deployment,
+                    model_name=_DEPLOYMENT_MODEL.get(deployment, deployment),
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
                     total_tokens=total_tokens,
@@ -169,13 +178,13 @@ class TelemetryStore:
 
         cost_by_model: dict[str, dict] = {}
         for r in records:
-            m = r.model
-            if m not in cost_by_model:
-                cost_by_model[m] = {"cost_cad": 0.0, "queries": 0}
-            cost_by_model[m]["cost_cad"] = round(
-                cost_by_model[m]["cost_cad"] + r.cost_cad, 6
+            d = r.deployment
+            if d not in cost_by_model:
+                cost_by_model[d] = {"cost_cad": 0.0, "queries": 0, "model_name": r.model_name}
+            cost_by_model[d]["cost_cad"] = round(
+                cost_by_model[d]["cost_cad"] + r.cost_cad, 6
             )
-            cost_by_model[m]["queries"] += 1
+            cost_by_model[d]["queries"] += 1
 
         cost_by_client: dict[str, dict] = {}
         for r in records:

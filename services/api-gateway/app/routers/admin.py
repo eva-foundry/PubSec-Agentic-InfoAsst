@@ -282,12 +282,20 @@ async def provision_workspace(
     if payload.dry_run:
         plan = WorkspaceProvisionPlan(
             resources=[
-                {"type": "ai_search_index", "name": f"idx-{ws.id}", "sku": "standard"},
-                {"type": "blob_container", "name": f"blob-{ws.id}", "sku": "hot"},
-                {"type": "rbac_assignments", "name": f"rbac-{ws.id}", "count": 3},
+                {"type": "AI Search Index", "name": f"eva-workspace-{ws.id}-index", "service": "msub-eva-dev-search", "action": "create"},
+                {"type": "Blob Container", "name": f"eva-ws-{ws.id}-upload", "service": "msubevasharedaihbyya73s", "action": "create"},
+                {"type": "Blob Container", "name": f"eva-ws-{ws.id}-content", "service": "msubevasharedaihbyya73s", "action": "create"},
+                {"type": "Cosmos DB Container", "name": f"ws-{ws.id}-status", "service": "msub-sandbox-cosmos-free", "action": "create"},
+                {"type": "RBAC Assignment", "name": f"workspace-{ws.id}-contributors", "service": "Entra ID", "action": "create"},
             ],
-            estimated_monthly_cost=f"${ws.monthly_cost:.2f}",
-            deployment_time_estimate="5-10 minutes",
+            estimated_monthly_cost="$45 CAD",
+            deployment_time_estimate="~3 minutes",
+            infrastructure={
+                "resource_group": "EVA-Sandbox-dev",
+                "region": "canadacentral",
+                "openai_service": "msub-eva-dev-openai (canadaeast)",
+                "search_service": "msub-eva-dev-search (canadacentral, Basic SKU)",
+            },
         )
         return {"workspace_id": ws.id, "status": "preview", "plan": plan.model_dump()}
 
@@ -352,25 +360,37 @@ async def get_workspace_resources(
     ws = workspace_store.get(ws_id)
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+    rbac_count = sum(
+        len(team_store.list_by_booking(bk.id))
+        for bk in booking_store.list_by_workspace(ws_id)
+    )
     return {
         "workspace_id": ws_id,
+        "infrastructure": ws.infrastructure,
         "resources": {
             "ai_search_index": {
+                "name": f"eva-workspace-{ws_id}-index",
+                "service": "msub-eva-dev-search",
                 "status": "healthy",
                 "document_count": ws.document_count,
                 "size_mb": ws.document_count * 1.5,
             },
-            "blob_container": {
+            "blob_containers": {
+                "upload": f"eva-ws-{ws_id}-upload",
+                "content": f"eva-ws-{ws_id}-content",
+                "service": "msubevasharedaihbyya73s",
                 "status": "healthy",
                 "blob_count": ws.document_count,
                 "size_gb": round(ws.document_count * 0.005, 2),
             },
+            "cosmos_container": {
+                "name": f"ws-{ws_id}-status",
+                "service": "msub-sandbox-cosmos-free",
+                "status": "healthy",
+            },
             "rbac_assignments": {
                 "status": "healthy",
-                "count": sum(
-                    len(team_store.list_by_booking(bk.id))
-                    for bk in booking_store.list_by_workspace(ws_id)
-                ),
+                "count": rbac_count,
             },
         },
     }

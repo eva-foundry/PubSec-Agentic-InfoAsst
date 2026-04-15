@@ -51,6 +51,26 @@ _BUSINESS_PROMPTS: dict[str, str] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Shared Azure infrastructure config (MarcoSub real resources)
+# ---------------------------------------------------------------------------
+
+_INFRASTRUCTURE: dict[str, str] = {
+    "search_service": "msub-eva-dev-search",
+    "search_endpoint": "https://msub-eva-dev-search.search.windows.net",
+    "storage_account": "msubevasharedaihbyya73s",
+    "cosmos_account": "msub-sandbox-cosmos-free",
+    "openai_service": "msub-eva-dev-openai",
+    "openai_deployment": "chat-default",
+    "embedding_deployment": "embeddings-default",
+    "container_environment": "msub-sandbox-env",
+    "key_vault": "msubsandkv202603031449",
+    "container_registry": "msubsandacr202603031449",
+    "resource_group": "EVA-Sandbox-dev",
+    "location": "canadacentral",
+}
+
+
 class WorkspaceStore:
     """In-memory workspace store with seed data for the 5 workspace archetypes."""
 
@@ -75,6 +95,7 @@ class WorkspaceStore:
                 document_count=4,
                 monthly_cost=4800.00,
                 cost_centre="CC-OAS01",
+                infrastructure=_INFRASTRUCTURE,
                 created_at="2025-06-01T00:00:00Z",
                 updated_at="2026-04-01T00:00:00Z",
             ),
@@ -92,6 +113,7 @@ class WorkspaceStore:
                 document_count=6,
                 monthly_cost=3200.00,
                 cost_centre="CC-EIJ01",
+                infrastructure=_INFRASTRUCTURE,
                 created_at="2025-07-15T00:00:00Z",
                 updated_at="2026-03-20T00:00:00Z",
             ),
@@ -109,6 +131,7 @@ class WorkspaceStore:
                 document_count=12,
                 monthly_cost=2000.00,
                 cost_centre="CC-BDM01",
+                infrastructure=_INFRASTRUCTURE,
                 created_at="2025-08-01T00:00:00Z",
                 updated_at="2026-04-05T00:00:00Z",
             ),
@@ -126,6 +149,7 @@ class WorkspaceStore:
                 document_count=1,
                 monthly_cost=1200.00,
                 cost_centre="CC-FAQ01",
+                infrastructure=_INFRASTRUCTURE,
                 created_at="2025-09-01T00:00:00Z",
                 updated_at="2026-04-10T00:00:00Z",
             ),
@@ -143,6 +167,7 @@ class WorkspaceStore:
                 document_count=3,
                 monthly_cost=0.00,
                 cost_centre="CC-SBX01",
+                infrastructure=_INFRASTRUCTURE,
                 created_at="2025-03-01T00:00:00Z",
                 updated_at="2026-03-15T00:00:00Z",
             ),

@@ -50,7 +50,7 @@ class ModelConfig(BaseModel):
 
     id: str
     model_name: str
-    provider: str = "Azure OpenAI"
+    provider: str = "azure-openai"
     deployment_name: str = ""
     capabilities: list[str] = Field(default_factory=list)
     classification_ceiling: str = Field(
@@ -62,6 +62,20 @@ class ModelConfig(BaseModel):
     access_grants: list[str] = Field(
         default_factory=list,
         description="Entra group IDs or 'all'",
+    )
+    # Azure deployment metadata (populated from real inventory)
+    endpoint: str = ""
+    location: str = ""
+    sku: str = ""
+    capacity: int = 0
+    model_version: str = ""
+    status: str = Field(
+        default="deployed",
+        description="'deployed' (live, callable), 'available' (in catalog, can be deployed), 'provisioned' (reserved capacity, fixed cost)",
+    )
+    cost_model: str = Field(
+        default="pay-as-you-go",
+        description="'pay-as-you-go' (per-token), 'provisioned' (fixed monthly), 'serverless' (per-request MaaS)",
     )
 
 
@@ -91,6 +105,7 @@ class WorkspaceProvisionPlan(BaseModel):
     resources: list[dict] = Field(default_factory=list)
     estimated_monthly_cost: str = ""
     deployment_time_estimate: str = ""
+    infrastructure: dict = Field(default_factory=dict)
 
 
 class WorkspaceDecommissionPlan(BaseModel):

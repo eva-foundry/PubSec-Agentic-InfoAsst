@@ -25,6 +25,12 @@ class Workspace(BaseModel):
     created_at: str = Field(description="ISO timestamp")
     updated_at: str = Field(description="ISO timestamp")
 
+    # Azure infrastructure backing this workspace (real resource references)
+    infrastructure: dict = Field(
+        default_factory=dict,
+        description="Real Azure resource names and endpoints backing this workspace",
+    )
+
     # Per-workspace business prompt (domain-specific context for the LLM)
     business_prompt: str = ""
     business_prompt_version: int = 1

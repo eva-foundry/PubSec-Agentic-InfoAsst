@@ -63,15 +63,17 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
             is_chat = "chat" in path
             prompt_tokens = 800 if is_chat else 50
             completion_tokens = 600 if is_chat else 0
-            model = "gpt-5-mini" if is_chat else "text-embedding-3-large"
-            cost = estimate_cost(model, prompt_tokens, completion_tokens) if is_chat else 0.0
+            deployment = "chat-default" if is_chat else "embeddings-default"
+            model_name = "gpt-5-mini" if is_chat else "text-embedding-3-small"
+            cost = estimate_cost(deployment, prompt_tokens, completion_tokens) if is_chat else 0.0
 
             record = APIMTelemetryRecord(
                 correlation_id=correlation_id,
                 workspace_id=workspace_id,
                 session_id=session_id,
                 client_id="eva-agentic",
-                model=model,
+                deployment=deployment,
+                model_name=model_name,
                 operation=path,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
