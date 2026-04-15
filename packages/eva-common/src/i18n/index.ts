@@ -1,27 +1,51 @@
+// ---------------------------------------------------------------------------
+// i18n — react-i18next initialization backed by EN/FR JSON bundles
+// ---------------------------------------------------------------------------
+//
+// Shared across all three portals. Each app imports this module in its
+// entry point (main.tsx) to ensure i18next is initialised before React renders.
+//
+// Legacy compat: getTranslation() is still exported for any code that hasn't
+// migrated to useTranslation() yet.
+// ---------------------------------------------------------------------------
+
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import fr from './fr.json';
 
 export type Language = 'en' | 'fr';
 export type TranslationKey = string; // dot-notation: "chat.send", "common.cancel"
 
-/**
- * Resolve a dot-notation key (e.g. "chat.placeholder") against the
- * selected language bundle.  Returns the key itself when no match is found
- * so missing translations are visible during development.
- */
+// ---------------------------------------------------------------------------
+// Initialise i18next (idempotent — safe to import from multiple entry points)
+// ---------------------------------------------------------------------------
+
+if (!i18n.isInitialized) {
+  i18n.use(initReactI18next).init({
+    resources: {
+      en: { translation: en },
+      fr: { translation: fr },
+    },
+    lng: localStorage.getItem('eva-language') || 'en',
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false, // React already escapes
+    },
+    react: {
+      useSuspense: false, // avoid flicker — bundles are bundled, not lazy
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Legacy helper — resolves dot-notation key against selected language.
+// Prefer useTranslation() from react-i18next in new code.
+// ---------------------------------------------------------------------------
+
 export function getTranslation(lang: Language, key: string): string {
-  const translations: Record<string, unknown> = lang === 'fr' ? fr : en;
-  const segments = key.split('.');
-  let value: unknown = translations;
-
-  for (const segment of segments) {
-    if (value == null || typeof value !== 'object') {
-      return key; // path broke — return key as fallback
-    }
-    value = (value as Record<string, unknown>)[segment];
-  }
-
-  return typeof value === 'string' ? value : key;
+  return i18n.getFixedT(lang)(key) as string;
 }
 
 export { en, fr };
+export default i18n;

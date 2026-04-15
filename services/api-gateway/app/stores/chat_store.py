@@ -325,6 +325,10 @@ class ChatStore:
         msgs.sort(key=lambda m: m.created_at)
         return msgs
 
+    def get_all_assistant_messages(self) -> list[ChatHistoryRecord]:
+        """Return all assistant messages (for ops metrics computation)."""
+        return [r for r in self._records if r.role == "assistant"]
+
     def get_traces(
         self,
         workspace_id: str | None = None,

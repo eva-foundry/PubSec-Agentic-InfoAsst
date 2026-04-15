@@ -1,8 +1,7 @@
 """Search tool — vector search over workspace documents.
 
-Uses the in-memory VectorStore with cosine similarity locally.
-In production, replaced by Azure AI Search SDK — only the internals
-of ``execute`` change, the interface stays the same.
+Uses the in-memory VectorStore locally or Azure AI Search in production.
+The ``aio()`` wrapper handles both sync and async store backends.
 """
 
 from __future__ import annotations
@@ -10,6 +9,7 @@ from __future__ import annotations
 import logging
 import time
 
+from ..stores.compat import aio
 from ..stores.vector_store import VectorStore
 from .registry import Tool, ToolMetadata
 
@@ -62,12 +62,12 @@ class SearchTool(Tool):
             query_embeddings = await self._embedding_client.embed([query])
             query_embedding = query_embeddings[0]
 
-            # Search the vector store
-            results = self._vector_store.search(
+            # Search the vector store (sync for in-memory, async for Azure AI Search)
+            results = await aio(self._vector_store.search(
                 workspace_id=workspace_id,
                 query_embedding=query_embedding,
                 top_k=top_k,
-            )
+            ))
 
             logger.info(
                 "Vector search: query=%r workspace=%s results=%d",

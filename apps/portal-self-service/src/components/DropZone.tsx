@@ -107,6 +107,7 @@ export default function DropZone({
   );
 
   return (
+    <>
     <motion.div
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -160,21 +161,22 @@ export default function DropZone({
         )}
       </AnimatePresence>
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        className="hidden"
-        accept={accept?.join(",")}
-        onChange={(e) => {
-          handleFiles(e.target.files);
-          e.target.value = "";
-        }}
-        disabled={disabled}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
     </motion.div>
+    <input
+      ref={inputRef}
+      type="file"
+      multiple
+      className="hidden"
+      accept={accept?.join(",")}
+      onChange={(e) => {
+        handleFiles(e.target.files);
+        e.target.value = "";
+      }}
+      disabled={disabled}
+      aria-hidden="true"
+      tabIndex={-1}
+    />
+    </>
   );
 }
 

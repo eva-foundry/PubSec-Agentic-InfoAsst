@@ -1,7 +1,8 @@
-"""EVA Guardrails Engine — confidence, grounding, escalation, freshness, degradation, safety."""
+"""EVA Guardrails Engine — confidence, grounding, escalation, freshness, degradation, safety, conflict resolution."""
 
 from .audit import AuditLogger
 from .confidence import ConfidenceScorer
+from .conflict import ConflictResolver, SourceAuthority, SourceClaim, ConflictDetection, ConflictReport
 from .content_safety import ContentSafetyChecker, ContentSafetyResult
 from .degradation import CircuitBreaker, DegradationManager, DependencyStatus
 from .escalation import EscalationEngine, EscalationTier
@@ -12,6 +13,9 @@ from .prompt_shield import PromptShield, PromptShieldResult
 __all__ = [
     "AuditLogger",
     "CircuitBreaker",
+    "ConflictDetection",
+    "ConflictReport",
+    "ConflictResolver",
     "ConfidenceScorer",
     "ContentSafetyChecker",
     "ContentSafetyResult",
@@ -24,4 +28,6 @@ __all__ = [
     "GroundingResult",
     "PromptShield",
     "PromptShieldResult",
+    "SourceAuthority",
+    "SourceClaim",
 ]

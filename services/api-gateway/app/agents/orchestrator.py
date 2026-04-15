@@ -12,6 +12,7 @@ import uuid
 from typing import AsyncGenerator
 
 from ..guardrails.degradation import DegradationManager, DependencyStatus
+from ..stores.compat import aio
 from ..provenance.correlation import generate_correlation_id
 from ..provenance.models import (
     AgentStep,
@@ -19,6 +20,7 @@ from ..provenance.models import (
     Citation,
     ConfidenceFactors,
     ExplainabilityRecord,
+    ModelSnapshot,
     FreshnessInfo,
 )
 from ..provenance.tracker import ProvenanceTracker
@@ -142,6 +144,7 @@ class AgentOrchestrator:
         prompt_store: PromptStore | None = None,
         degradation_manager: DegradationManager | None = None,
         workspace_store: WorkspaceStore | None = None,
+        model_registry_store=None,
     ) -> None:
         self.tool_registry = tool_registry
         self.model_client = model_client or MockModelClient()
@@ -149,15 +152,43 @@ class AgentOrchestrator:
         self.prompt_store = prompt_store
         self.degradation_manager = degradation_manager
         self.workspace_store = workspace_store
+        self.model_registry_store = model_registry_store
 
     # ------------------------------------------------------------------
     # Prompt resolution helpers
     # ------------------------------------------------------------------
 
-    def _resolve_prompt(self, name: str, fallback: str) -> tuple[str, str]:
+    async def _snapshot_model(self, deployment_name: str) -> ModelSnapshot | None:
+        """Capture point-in-time model config for provenance.
+
+        Six months later, this snapshot tells you exactly which model version,
+        with which parameters, enabled by whom, was used for this response.
+        """
+        if not self.model_registry_store:
+            return None
+        model = await aio(self.model_registry_store.get_model(deployment_name))
+        if not model:
+            return None
+        history = model.change_history
+        last_change = history[-1] if history else {}
+        return ModelSnapshot(
+            deployment_name=model.deployment_name or model.id,
+            model_name=model.model_name,
+            model_version=model.model_version,
+            provider=model.provider,
+            endpoint=model.endpoint,
+            sku=model.sku,
+            cost_model=model.cost_model,
+            parameter_overrides=model.parameter_overrides,
+            config_version=len(history),
+            last_changed_by=last_change.get("author", "system-seed"),
+            last_changed_at=last_change.get("timestamp", model.model_version),
+        )
+
+    async def _resolve_prompt(self, name: str, fallback: str) -> tuple[str, str]:
         """Return (content, version_label) from prompt_store or fallback."""
         if self.prompt_store:
-            pv = self.prompt_store.get_active(name)
+            pv = await aio(self.prompt_store.get_active(name))
             if pv:
                 return pv.content, f"{name}:v{pv.version}"
         return fallback, _PROMPT_VERSION
@@ -289,7 +320,7 @@ class AgentOrchestrator:
                                "Optimizing search query",
                                "Optimisation de la requ\u00eate de recherche")
 
-        query_rewrite_prompt, self._query_rewrite_version = self._resolve_prompt(
+        query_rewrite_prompt, self._query_rewrite_version = await self._resolve_prompt(
             "query-rewrite", _QUERY_REWRITE_SYSTEM,
         )
 
@@ -297,6 +328,9 @@ class AgentOrchestrator:
         optimized_query = await self.model_client.generate_query(
             query_rewrite_prompt, user_message, history,
         )
+        # Fallback: if rewrite returned empty, use original message
+        if not optimized_query or not optimized_query.strip():
+            optimized_query = user_message
         rewrite_ms = int((time.monotonic() - start) * 1000)
 
         tracker.complete_step(step_id, duration_ms=rewrite_ms,
@@ -364,12 +398,12 @@ class AgentOrchestrator:
                                "Generating answer",
                                "G\u00e9n\u00e9ration de la r\u00e9ponse")
 
-        rag_prompt_content, self._rag_prompt_version = self._resolve_prompt(
+        rag_prompt_content, self._rag_prompt_version = await self._resolve_prompt(
             "rag-system", _RAG_SYSTEM,
         )
 
         # Compose: base RAG prompt wraps workspace business prompt
-        workspace = self.workspace_store.get(workspace_id) if self.workspace_store and workspace_id else None
+        workspace = await aio(self.workspace_store.get(workspace_id)) if self.workspace_store and workspace_id else None
         business_prompt = workspace.business_prompt if workspace and workspace.business_prompt else ""
         if business_prompt:
             rag_prompt_content = f"{rag_prompt_content}\n\n## Workspace Context\n\n{business_prompt}"
@@ -405,7 +439,7 @@ class AgentOrchestrator:
                                metadata={"answer_length": len(full_answer)})
 
         # ---- Confidence & provenance ----
-        self._compute_grounded_provenance(tracker, results, citations)
+        await self._compute_grounded_provenance(tracker, results, citations)
 
     # ------------------------------------------------------------------
     # Ungrounded mode
@@ -424,7 +458,7 @@ class AgentOrchestrator:
 
         tracker.add_policy_applied("ungrounded-mode")
 
-        ungrounded_prompt, self._ungrounded_prompt_version = self._resolve_prompt(
+        ungrounded_prompt, self._ungrounded_prompt_version = await self._resolve_prompt(
             "ungrounded-system", _UNGROUNDED_SYSTEM,
         )
 
@@ -459,13 +493,13 @@ class AgentOrchestrator:
                                metadata={"answer_length": len(full_answer)})
 
         # Ungrounded confidence is low by default
-        self._compute_ungrounded_provenance(tracker)
+        await self._compute_ungrounded_provenance(tracker)
 
     # ------------------------------------------------------------------
     # Provenance helpers
     # ------------------------------------------------------------------
 
-    def _compute_grounded_provenance(
+    async def _compute_grounded_provenance(
         self,
         tracker: ProvenanceTracker,
         search_results: list[dict],
@@ -493,10 +527,13 @@ class AgentOrchestrator:
             staleness_warning=False,
         ))
 
-        # Behavioral fingerprint — use resolved prompt version
+        # Behavioral fingerprint — snapshot model config + prompt version at query time
         prompt_ver = getattr(self, "_rag_prompt_version", _PROMPT_VERSION)
+        deployment = getattr(self.model_client, "deployment", _MODEL_ID)
+        model_snap = await self._snapshot_model(deployment)
         tracker.set_behavioral_fingerprint(BehavioralFingerprint(
             model=_MODEL_ID,
+            model_snapshot=model_snap,
             prompt_version=prompt_ver,
             corpus_snapshot=_CORPUS_SNAPSHOT,
             policy_rules_version=_POLICY_RULES_VERSION,
@@ -520,7 +557,7 @@ class AgentOrchestrator:
             cross_language=None,
         ))
 
-    def _compute_ungrounded_provenance(self, tracker: ProvenanceTracker) -> None:
+    async def _compute_ungrounded_provenance(self, tracker: ProvenanceTracker) -> None:
         """Set provenance for ungrounded (no-RAG) mode."""
 
         tracker.set_confidence(ConfidenceFactors(
@@ -534,8 +571,11 @@ class AgentOrchestrator:
             staleness_warning=False,
         ))
         prompt_ver = getattr(self, "_ungrounded_prompt_version", _PROMPT_VERSION)
+        deployment = getattr(self.model_client, "deployment", _MODEL_ID)
+        model_snap = await self._snapshot_model(deployment)
         tracker.set_behavioral_fingerprint(BehavioralFingerprint(
             model=_MODEL_ID,
+            model_snapshot=model_snap,
             prompt_version=prompt_ver,
             corpus_snapshot=_CORPUS_SNAPSHOT,
             policy_rules_version=_POLICY_RULES_VERSION,

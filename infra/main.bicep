@@ -21,6 +21,9 @@ param p75ApimResourceGroup string
 @description('Name of the P75 VNet (for subnet references if needed)')
 param p75VnetName string = ''
 
+@description('P75 VNet apps subnet resource ID (for storage network rules)')
+param p75SubnetId string = ''
+
 var tags = {
   project: 'eva-agentic'
   environment: environmentName
@@ -35,6 +38,7 @@ module storage 'modules/storage/main.bicep' = {
     environmentName: environmentName
     location: location
     tags: tags
+    p75SubnetId: p75SubnetId
   }
 }
 
@@ -77,6 +81,36 @@ module identity 'modules/identity/main.bicep' = {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Diagnostics — Log Analytics, Application Insights, diagnostic settings
+// ---------------------------------------------------------------------------
+module diagnostics 'modules/diagnostics/main.bicep' = {
+  name: 'diagnostics-${environmentName}'
+  params: {
+    environmentName: environmentName
+    location: location
+    tags: tags
+    storageAccountId: storage.outputs.storageAccountId
+    cosmosAccountId: cosmos.outputs.cosmosAccountId
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Key Vault — CMK encryption keys with auto-rotation
+// ---------------------------------------------------------------------------
+module keyvault 'modules/keyvault/main.bicep' = {
+  name: 'keyvault-${environmentName}'
+  params: {
+    environmentName: environmentName
+    location: location
+    tags: tags
+    keyAccessPrincipalIds: [
+      identity.outputs.apiGatewayPrincipalId
+      identity.outputs.docPipelinePrincipalId
+    ]
+  }
+}
+
 // ============================================================================
 // Outputs
 // ============================================================================
@@ -107,3 +141,21 @@ output apiGatewayPrincipalId string = identity.outputs.apiGatewayPrincipalId
 
 @description('Doc Pipeline managed identity principal ID')
 output docPipelinePrincipalId string = identity.outputs.docPipelinePrincipalId
+
+@description('Log Analytics workspace ID')
+output logAnalyticsWorkspaceId string = diagnostics.outputs.logAnalyticsWorkspaceId
+
+@description('Application Insights connection string')
+output appInsightsConnectionString string = diagnostics.outputs.appInsightsConnectionString
+
+@description('Key Vault URI')
+output keyVaultUri string = keyvault.outputs.keyVaultUri
+
+@description('Key Vault name')
+output keyVaultName string = keyvault.outputs.keyVaultName
+
+@description('Storage CMK URI')
+output storageKeyUri string = keyvault.outputs.storageKeyUri
+
+@description('Cosmos CMK URI')
+output cosmosKeyUri string = keyvault.outputs.cosmosKeyUri

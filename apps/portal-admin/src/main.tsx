@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "@eva/common/src/i18n"; // initialise i18next before React renders
 import App from "./App";
 
 class ErrorBoundary extends React.Component<

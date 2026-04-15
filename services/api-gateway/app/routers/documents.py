@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from ..auth import UserContext, get_current_user
 from ..pipeline.document_store import DocumentRecord
+from ..stores.compat import aio
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +75,9 @@ async def list_document_statuses(
     from ..stores import document_store
 
     if workspace_id:
-        docs = document_store.list_by_workspace(workspace_id)
+        docs = await aio(document_store.list_by_workspace(workspace_id))
     else:
-        # Return all documents across all workspaces
-        docs = list(document_store._documents.values())
+        docs = await aio(document_store.list_all())
 
     return [d.model_dump() for d in docs]
 
@@ -98,7 +98,7 @@ async def get_document(
     """Return metadata for a single document."""
     from ..stores import document_store
 
-    record = document_store.get(doc_id)
+    record = await aio(document_store.get(doc_id))
     if record is None:
         return JSONResponse(  # type: ignore[return-value]
             status_code=404,
@@ -115,17 +115,15 @@ async def delete_document(
     """Delete a document from the store and vector index."""
     from ..stores import document_store, vector_store
 
-    record = document_store.get(doc_id)
+    record = await aio(document_store.get(doc_id))
     if record is None:
         return JSONResponse(  # type: ignore[return-value]
             status_code=404,
             content={"detail": f"Document '{doc_id}' not found"},
         )
 
-    # Remove chunks from vector store
-    vector_store.delete_by_file(record.workspace_id, record.file_name)
-    # Remove record
-    document_store.delete(doc_id)
+    await aio(vector_store.delete_by_file(record.workspace_id, record.file_name))
+    await aio(document_store.delete(doc_id))
 
     logger.info("Deleted document %s (%s)", doc_id, record.file_name)
 
@@ -138,7 +136,7 @@ async def resubmit_document(
     """Resubmit a failed document for reprocessing."""
     from ..stores import document_store
 
-    record = document_store.get(doc_id)
+    record = await aio(document_store.get(doc_id))
     if record is None:
         return JSONResponse(  # type: ignore[return-value]
             status_code=404,

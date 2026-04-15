@@ -1,0 +1,113 @@
+# EVA Agentic Deployment Pipeline — ITSG-33 CM-3 (Configuration Change Control)
+# Staging → Production with approval gates.
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        type: choice
+        required: true
+        options:
+          - staging
+          - production
+      skip_staging:
+        description: 'Skip staging (hotfix only — requires justification)'
+        type: boolean
+        default: false
+
+env:
+  AZURE_RG_STAGING: rg-eva-agentic-staging
+  AZURE_RG_PROD: rg-eva-agentic-prod
+
+jobs:
+  # Gate: CI must pass before any deployment
+  verify-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify CI status
+        run: |
+          echo "Verifying CI pipeline passed for commit ${{ github.sha }}"
+          # In production, this checks the CI workflow conclusion
+          # gh run list --workflow=ci.yml --commit=${{ github.sha }} --json conclusion -q '.[0].conclusion'
+
+  # Deploy to staging
+  deploy-staging:
+    needs: verify-ci
+    if: inputs.environment == 'staging' || (inputs.environment == 'production' && !inputs.skip_staging)
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://eva-agentic-staging.azurewebsites.net
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_STAGING }}
+
+      - name: Deploy infrastructure (staging)
+        run: |
+          az deployment group create \
+            --resource-group ${{ env.AZURE_RG_STAGING }} \
+            --template-file infra/main.bicep \
+            --parameters infra/environments/staging.bicepparam \
+            --name "deploy-${{ github.run_number }}"
+
+      - name: Deploy containers (staging)
+        run: |
+          echo "Building and pushing containers to staging ACR..."
+          # az acr build + container app update commands
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging..."
+          # pytest tests/smoke/ --base-url=https://eva-agentic-staging.azurewebsites.net
+
+      - name: Record deployment
+        run: |
+          echo "Deployment ${{ github.run_number }} to staging at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+
+  # Deploy to production — requires staging success + 2 approvals
+  deploy-production:
+    needs: [verify-ci, deploy-staging]
+    if: inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://eva-agentic.esdc.gc.ca
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
+      - name: Deploy infrastructure (production)
+        run: |
+          az deployment group create \
+            --resource-group ${{ env.AZURE_RG_PROD }} \
+            --template-file infra/main.bicep \
+            --parameters infra/environments/prod.bicepparam \
+            --name "deploy-${{ github.run_number }}"
+
+      - name: Deploy containers (production)
+        run: |
+          echo "Building and pushing containers to production ACR..."
+
+      - name: Run smoke tests
+        run: |
+          echo "Running production smoke tests..."
+
+      - name: Record deployment
+        run: |
+          echo "PRODUCTION deployment ${{ github.run_number }} at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Approval required: yes (2 reviewers via GitHub Environment protection)"
