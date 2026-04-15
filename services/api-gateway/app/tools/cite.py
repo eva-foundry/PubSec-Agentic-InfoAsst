@@ -48,7 +48,7 @@ class CitationTool(Tool):
                     f"{result.get('file', 'unknown')}?sv=mock&se=2026-04-15&sig=placeholder"
                 ),
                 last_verified=result.get("last_modified"),
-                source_quality_score=result.get("relevance_score"),
+                source_quality_score=max(result.get("relevance_score") or 0.0, 0.0),
             )
             citations.append(citation)
 

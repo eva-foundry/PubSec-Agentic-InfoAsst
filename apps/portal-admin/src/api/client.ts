@@ -3,12 +3,27 @@
 // ---------------------------------------------------------------------------
 
 const API_BASE = '/v1/eva/admin';
+const AUTH_STORAGE_KEY = 'eva-auth-user';
+
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (raw) {
+      const user = JSON.parse(raw);
+      return { 'x-demo-user-email': user.email };
+    }
+  } catch {
+    // noop
+  }
+  return {};
+}
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...init?.headers,
     },
   });
@@ -210,9 +225,8 @@ export async function listModels(): Promise<ModelConfig[]> {
 }
 
 export async function toggleModel(id: string, active: boolean): Promise<void> {
-  await apiFetch<void>(`/models/${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ active }),
+  await apiFetch<void>(`/models/${encodeURIComponent(id)}/toggle?is_active=${active}`, {
+    method: 'POST',
   });
 }
 
@@ -232,9 +246,8 @@ export async function listPrompts(): Promise<PromptInfo[]> {
 }
 
 export async function rollbackPrompt(name: string, version: number): Promise<void> {
-  await apiFetch<void>(`/prompts/${encodeURIComponent(name)}/rollback`, {
+  await apiFetch<void>(`/prompts/${encodeURIComponent(name)}/rollback?target_version=${version}`, {
     method: 'POST',
-    body: JSON.stringify({ version }),
   });
 }
 
@@ -258,14 +271,13 @@ export async function listAllBookings(): Promise<Booking[]> {
 }
 
 export async function approveBooking(id: string): Promise<void> {
-  await apiFetch<void>(`/bookings/${encodeURIComponent(id)}/approve`, {
-    method: 'POST',
+  await apiFetch<void>(`/bookings/${encodeURIComponent(id)}?action=approve`, {
+    method: 'PATCH',
   });
 }
 
-export async function rejectBooking(id: string, reason: string): Promise<void> {
-  await apiFetch<void>(`/bookings/${encodeURIComponent(id)}/reject`, {
-    method: 'POST',
-    body: JSON.stringify({ reason }),
+export async function rejectBooking(id: string, _reason: string): Promise<void> {
+  await apiFetch<void>(`/bookings/${encodeURIComponent(id)}?action=reject`, {
+    method: 'PATCH',
   });
 }

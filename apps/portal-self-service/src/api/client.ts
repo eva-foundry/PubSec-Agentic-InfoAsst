@@ -5,12 +5,27 @@
 import type { Workspace, Booking, TeamMember } from '@eva/common';
 
 const API_BASE = '/v1/eva';
+const AUTH_STORAGE_KEY = 'eva-auth-user';
+
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (raw) {
+      const user = JSON.parse(raw);
+      return { 'x-demo-user-email': user.email };
+    }
+  } catch {
+    // noop
+  }
+  return {};
+}
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...init?.headers,
     },
   });
@@ -104,11 +119,11 @@ export async function uploadDocuments(
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE}/documents/upload`);
 
-    const token = localStorage.getItem('eva-auth-user');
+    const token = localStorage.getItem(AUTH_STORAGE_KEY);
     if (token) {
       try {
         const user = JSON.parse(token);
-        xhr.setRequestHeader('x-user-id', user.user_id);
+        xhr.setRequestHeader('x-demo-user-email', user.email);
       } catch {
         // noop
       }
@@ -145,6 +160,7 @@ export async function uploadDocument(workspaceId: string, file: File): Promise<v
   const response = await fetch(`${API_BASE}/workspaces/${workspaceId}/documents`, {
     method: 'POST',
     body: formData,
+    headers: { ...getAuthHeaders() },
     // No Content-Type header -- browser sets multipart boundary
   });
 
@@ -167,7 +183,9 @@ export async function getDocumentStatuses(
   if (filters?.timeRange) params.set('time_range', filters.timeRange);
   if (filters?.status && filters.status !== 'all') params.set('status', filters.status);
 
-  const res = await fetch(`${API_BASE}/documents/status?${params.toString()}`);
+  const res = await fetch(`${API_BASE}/documents/status?${params.toString()}`, {
+    headers: { ...getAuthHeaders() },
+  });
   if (!res.ok) {
     throw new Error(`Failed to fetch statuses: ${res.status}`);
   }
@@ -181,6 +199,7 @@ export async function getDocumentStatuses(
 export async function deleteDocument(docId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}`, {
     method: 'DELETE',
+    headers: { ...getAuthHeaders() },
   });
   if (!res.ok) {
     throw new Error(`Delete failed: ${res.status}`);
@@ -194,6 +213,7 @@ export async function deleteDocument(docId: string): Promise<void> {
 export async function resubmitDocument(docId: string): Promise<void> {
   const res = await fetch(`${API_BASE}/documents/${encodeURIComponent(docId)}/resubmit`, {
     method: 'POST',
+    headers: { ...getAuthHeaders() },
   });
   if (!res.ok) {
     throw new Error(`Resubmit failed: ${res.status}`);

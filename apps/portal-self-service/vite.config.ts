@@ -5,5 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    proxy: {
+      '/v1/eva': { target: 'http://localhost:8000', changeOrigin: true },
+    },
   },
 });

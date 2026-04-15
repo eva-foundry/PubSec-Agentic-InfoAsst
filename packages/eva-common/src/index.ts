@@ -1,4 +1,4 @@
-export * from "./types/index.js";
-export * from "./constants.js";
-export { en, fr, getTranslation } from "./i18n/index.js";
-export type { Language, TranslationKey } from "./i18n/index.js";
+export * from "./types/index";
+export * from "./constants";
+export { en, fr, getTranslation } from "./i18n/index";
+export type { Language, TranslationKey } from "./i18n/index";

@@ -3,6 +3,20 @@
 // ---------------------------------------------------------------------------
 
 const API_BASE = '/v1/eva';
+const AUTH_STORAGE_KEY = 'eva-auth-user';
+
+function getAuthHeaders(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (raw) {
+      const user = JSON.parse(raw);
+      return { 'x-demo-user-email': user.email };
+    }
+  } catch {
+    // noop
+  }
+  return {};
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -173,7 +187,7 @@ export interface DeploymentData {
 
 async function fetchJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
   });
   if (!res.ok) {
     throw new Error(`API error ${res.status}: ${res.statusText}`);

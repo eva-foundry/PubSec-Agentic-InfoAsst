@@ -178,13 +178,12 @@ class AgentOrchestrator:
             trace_id=self.trace_id,
         )
 
-        # Emit initial provenance
+        # Emit initial provenance (informational header — frontend ignores)
         yield json.dumps({
-            "type": "provenance",
-            "correlation_id": correlation_id,
-            "trace_id": self.trace_id,
-            "conversation_id": conversation_id,
-            "message_id": message_id,
+            "provenance": {
+                "correlation_id": correlation_id,
+                "trace_id": self.trace_id,
+            },
         }) + "\n"
 
         if mode == "ungrounded":
@@ -203,14 +202,14 @@ class AgentOrchestrator:
         # Final provenance record
         provenance = tracker.build()
         yield json.dumps({
-            "type": "provenance_complete",
-            "provenance": provenance.model_dump(),
-            "explainability": (
-                tracker.explainability.model_dump()
-                if tracker.explainability
-                else None
-            ),
+            "provenance_complete": provenance.model_dump(),
         }) + "\n"
+
+        # Explainability record (separate event)
+        if tracker.explainability:
+            yield json.dumps({
+                "explainability": tracker.explainability.model_dump(),
+            }) + "\n"
 
     # ------------------------------------------------------------------
     # Grounded mode (RAG)
@@ -323,21 +322,12 @@ class AgentOrchestrator:
         async for token in self.model_client.stream_completion(rag_system, messages):
             full_answer += token
             yield json.dumps({
-                "type": "content",
-                "conversation_id": conversation_id,
-                "message_id": message_id,
-                "delta": token,
+                "content": token,
             }) + "\n"
 
         answer_ms = int((time.monotonic() - answer_start) * 1000)
 
-        # Emit citations alongside the final content
-        yield json.dumps({
-            "type": "citations",
-            "conversation_id": conversation_id,
-            "message_id": message_id,
-            "citations": [c.model_dump() for c in citations],
-        }) + "\n"
+        # Citations are included in the provenance_complete event — no separate emit needed
 
         tracker.complete_step(step_id, duration_ms=answer_ms,
                               metadata={"answer_length": len(full_answer)})
@@ -384,10 +374,7 @@ class AgentOrchestrator:
         ):
             full_answer += token
             yield json.dumps({
-                "type": "content",
-                "conversation_id": conversation_id,
-                "message_id": message_id,
-                "delta": token,
+                "content": token,
             }) + "\n"
 
         answer_ms = int((time.monotonic() - answer_start) * 1000)
@@ -523,4 +510,4 @@ class AgentOrchestrator:
             duration_ms=duration_ms,
             metadata=metadata,
         )
-        return json.dumps({"type": "agent_step", **step.model_dump()}) + "\n"
+        return json.dumps({"agent_step": step.model_dump()}) + "\n"

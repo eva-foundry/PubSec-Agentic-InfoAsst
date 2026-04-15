@@ -1,31 +1,36 @@
-"""Search tool — hybrid vector + keyword search over workspace documents.
+"""Search tool — vector search over workspace documents.
 
-Currently returns mock results. When Azure AI Search is wired in,
-only the internals of ``execute`` change — the interface stays the same.
+Uses the in-memory VectorStore with cosine similarity locally.
+In production, replaced by Azure AI Search SDK — only the internals
+of ``execute`` change, the interface stays the same.
 """
 
 from __future__ import annotations
 
+import logging
 import time
-from datetime import datetime, timezone
 
+from ..stores.vector_store import VectorStore
 from .registry import Tool, ToolMetadata
+
+logger = logging.getLogger(__name__)
 
 
 class SearchTool(Tool):
-    """Hybrid vector + keyword search over workspace documents."""
+    """Vector search over workspace documents."""
 
     metadata = ToolMetadata(
         name="search",
-        description="Hybrid vector + keyword search over workspace documents",
+        description="Vector search over workspace documents",
         classification_ceiling="protected_b",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,
     )
 
-    def __init__(self, model_client=None) -> None:
-        self._model_client = model_client
+    def __init__(self, vector_store: VectorStore | None = None, embedding_client=None) -> None:
+        self._vector_store = vector_store
+        self._embedding_client = embedding_client
 
     async def execute(self, **kwargs) -> dict:
         """Search for documents matching the query.
@@ -50,25 +55,24 @@ class SearchTool(Tool):
 
         start = time.monotonic()
 
-        # ----- Mock results (replaced by Azure AI Search SDK later) -----
-        results = [
-            {
-                "id": f"doc-{i}",
-                "file": f"workspace/{workspace_id}/document-{i}.pdf",
-                "title": f"Policy Document {i}",
-                "content": (
-                    f"This is a relevant excerpt from document {i} that addresses "
-                    f"the query: '{query}'. The Old Age Security Act provides benefits "
-                    f"to eligible Canadian residents aged 65 and over. Section {i}.{i} "
-                    f"details the qualifying criteria and payment schedules."
-                ),
-                "page": i * 3,
-                "section": f"Section {i}.{i}",
-                "relevance_score": round(0.95 - (i * 0.08), 4),
-                "last_modified": datetime.now(timezone.utc).isoformat(),
-            }
-            for i in range(1, min(top_k, 5) + 1)
-        ]
+        results: list[dict] = []
+
+        if self._vector_store and self._embedding_client:
+            # Embed the query
+            query_embeddings = await self._embedding_client.embed([query])
+            query_embedding = query_embeddings[0]
+
+            # Search the vector store
+            results = self._vector_store.search(
+                workspace_id=workspace_id,
+                query_embedding=query_embedding,
+                top_k=top_k,
+            )
+
+            logger.info(
+                "Vector search: query=%r workspace=%s results=%d",
+                query[:80], workspace_id, len(results),
+            )
 
         duration_ms = int((time.monotonic() - start) * 1000)
 

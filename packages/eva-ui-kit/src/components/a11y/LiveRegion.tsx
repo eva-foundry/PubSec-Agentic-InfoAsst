@@ -25,7 +25,7 @@ interface LiveRegionProps {
  */
 export function LiveRegion({ message, politeness = 'polite' }: LiveRegionProps) {
   const [announced, setAnnounced] = useState('');
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     // Clear first so repeated identical messages still trigger announcements

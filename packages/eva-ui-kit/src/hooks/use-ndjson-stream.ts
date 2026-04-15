@@ -72,9 +72,21 @@ export function useNdjsonStream(
       setIsStreaming(true);
 
       try {
+        // Read auth user from localStorage for demo auth header
+        const authHeaders: Record<string, string> = {};
+        try {
+          const raw = localStorage.getItem('eva-auth-user');
+          if (raw) {
+            const user = JSON.parse(raw);
+            if (user.email) authHeaders['x-demo-user-email'] = user.email;
+          }
+        } catch {
+          // noop
+        }
+
         const response = await fetch(apiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify(request),
           signal: controller.signal,
         });

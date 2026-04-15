@@ -11,7 +11,9 @@ from .prompt_store import PromptStore
 from .survey_store import SurveyStore
 from .team_store import TeamStore
 from .telemetry_store import TelemetryStore
+from .vector_store import VectorStore
 from .workspace_store import WorkspaceStore
+from ..pipeline.document_store import DocumentStore
 
 workspace_store = WorkspaceStore()
 booking_store = BookingStore()
@@ -21,6 +23,8 @@ client_store = ClientStore()
 model_registry_store = ModelRegistryStore()
 prompt_store = PromptStore()
 telemetry_store = TelemetryStore()
+vector_store = VectorStore()
+document_store = DocumentStore()
 
 __all__ = [
     "workspace_store",
@@ -31,6 +35,8 @@ __all__ = [
     "model_registry_store",
     "prompt_store",
     "telemetry_store",
+    "vector_store",
+    "document_store",
     "WorkspaceStore",
     "BookingStore",
     "TeamStore",
@@ -39,4 +45,6 @@ __all__ = [
     "ModelRegistryStore",
     "PromptStore",
     "TelemetryStore",
+    "VectorStore",
+    "DocumentStore",
 ]

@@ -234,6 +234,32 @@ async def list_client_interviews(
 # Workspace provisioning
 # ---------------------------------------------------------------------------
 
+@router.get("/admin/workspaces")
+async def list_admin_workspaces(
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """List all workspaces with admin-level detail."""
+    _require_admin(user)
+    workspaces = workspace_store.list(["all"])
+    result = []
+    for ws in workspaces:
+        # Find client for this workspace
+        client_name = "unknown"
+        client_id = ""
+        for cl in client_store.list_clients():
+            if ws.id in cl.workspace_ids:
+                client_name = cl.org_name
+                client_id = cl.id
+                break
+        result.append({
+            **ws.model_dump(),
+            "client_id": client_id,
+            "client_name": client_name,
+            "health": "green",
+        })
+    return result
+
+
 @router.post("/admin/workspaces/provision")
 async def provision_workspace(
     payload: WorkspaceProvisionRequest,

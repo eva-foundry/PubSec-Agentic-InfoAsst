@@ -18,6 +18,11 @@ from .routers import (
 )
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="EVA Agentic API Gateway", version="0.1.0")
 
@@ -71,6 +76,39 @@ def create_app() -> FastAPI:
     # Cross-cutting
     app.include_router(citations.router, prefix="/v1/eva", tags=["citations"])
     app.include_router(system.router, prefix="/v1/eva", tags=["system"])
+
+    @app.on_event("startup")
+    async def startup():
+        """Pre-load sample documents into the vector store at startup."""
+        from .agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
+        from .config import get_settings
+        from .pipeline.local_processor import LocalDocumentProcessor
+        from .pipeline.preload import preload_sample_documents
+        from .stores import document_store, vector_store, workspace_store
+
+        settings = get_settings()
+        if settings.azure_openai_endpoint and settings.azure_openai_api_key:
+            embedding_client = AzureEmbeddingClient(
+                endpoint=settings.azure_openai_endpoint,
+                api_key=settings.azure_openai_api_key,
+                deployment=settings.azure_openai_embedding_deployment,
+            )
+        else:
+            embedding_client = MockEmbeddingClient()
+
+        processor = LocalDocumentProcessor(
+            vector_store=vector_store,
+            embedding_client=embedding_client,
+            document_store=document_store,
+        )
+
+        logger.info("Pre-loading sample documents...")
+        await preload_sample_documents(processor, workspace_store)
+        logger.info(
+            "Startup complete. Vector store: %d workspaces with documents.",
+            sum(1 for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
+                if vector_store.document_count(ws_id) > 0),
+        )
 
     return app
 

@@ -10,33 +10,19 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..agents.azure_client import AzureOpenAIModelClient
+from ..agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
 from ..agents.orchestrator import AgentOrchestrator
 from ..auth import UserContext, get_current_user
 from ..config import get_settings
 from ..feedback import FeedbackCapture, FeedbackStore
 from ..models.chat import ChatRequest
-from ..stores import telemetry_store
+from ..stores import telemetry_store, vector_store
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
 from ..tools.search import SearchTool
 from ..tools.translate import TranslationTool
 
 router = APIRouter()
-
-
-def _build_registry() -> ToolRegistry:
-    """Build and populate the tool registry with all available tools."""
-    registry = ToolRegistry()
-    registry.register(SearchTool())
-    registry.register(CitationTool())
-    registry.register(TranslationTool())
-    return registry
-
-
-# Module-level singletons — created once, reused across requests.
-_registry = _build_registry()
-feedback_store = FeedbackStore()
-feedback_capture = FeedbackCapture(store=feedback_store)
 
 # Conditionally create real Azure OpenAI client (falls back to MockModelClient if unset)
 _settings = get_settings()
@@ -48,6 +34,32 @@ if _settings.azure_openai_endpoint and _settings.azure_openai_api_key:
         deployment=_settings.azure_openai_deployment,
         api_version=_settings.azure_openai_api_version,
     )
+
+# Create embedding client for search
+_embedding_client = None
+if _settings.azure_openai_endpoint and _settings.azure_openai_api_key:
+    _embedding_client = AzureEmbeddingClient(
+        endpoint=_settings.azure_openai_endpoint,
+        api_key=_settings.azure_openai_api_key,
+        deployment=_settings.azure_openai_embedding_deployment,
+    )
+else:
+    _embedding_client = MockEmbeddingClient()
+
+
+def _build_registry() -> ToolRegistry:
+    """Build and populate the tool registry with all available tools."""
+    registry = ToolRegistry()
+    registry.register(SearchTool(vector_store=vector_store, embedding_client=_embedding_client))
+    registry.register(CitationTool())
+    registry.register(TranslationTool())
+    return registry
+
+
+# Module-level singletons — created once, reused across requests.
+_registry = _build_registry()
+feedback_store = FeedbackStore()
+feedback_capture = FeedbackCapture(store=feedback_store)
 
 
 class FeedbackPayload(BaseModel):
