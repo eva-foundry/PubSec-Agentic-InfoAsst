@@ -15,6 +15,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from ..stores import telemetry_store
+from ..stores.compat import aio
 from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
 
 
@@ -82,6 +83,6 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
                 cost_cad=cost,
                 status_code=response.status_code,
             )
-            telemetry_store.add(record)
+            await aio(telemetry_store.add(record))
 
         return response

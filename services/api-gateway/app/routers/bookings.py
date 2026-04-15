@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from ..auth import UserContext, get_current_user
 from ..models.workspace import Booking
 from ..stores import booking_store, workspace_store
+from ..stores.compat import aio
 
 router = APIRouter()
 
@@ -63,18 +64,15 @@ async def create_booking(
     user: UserContext = Depends(get_current_user),
 ) -> BookingResponse:
     """Create a new workspace booking request."""
-    # Validate workspace exists
-    ws = workspace_store.get(payload.workspace_id)
+    ws = await aio(workspace_store.get(payload.workspace_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{payload.workspace_id}' not found")
 
-    # Validate user has access
     if "all" not in user.workspace_grants and payload.workspace_id not in user.workspace_grants:
         raise HTTPException(status_code=403, detail="Access denied to this workspace")
 
-    # Calculate cost
     weeks = _weeks_between(payload.start_date, payload.end_date)
-    weekly_cost = ws.monthly_cost / 4  # approximate weekly from monthly
+    weekly_cost = ws.monthly_cost / 4
     total_cost = round(weekly_cost * weeks, 2)
 
     now = _now_iso()
@@ -88,7 +86,7 @@ async def create_booking(
         created_at=now,
         updated_at=now,
     )
-    booking_store.create(booking)
+    await aio(booking_store.create(booking))
 
     return BookingResponse(
         **booking.model_dump(),
@@ -102,7 +100,7 @@ async def list_bookings(
     user: UserContext = Depends(get_current_user),
 ) -> list[Booking]:
     """List current user's bookings."""
-    return booking_store.list_by_user(user.user_id)
+    return await aio(booking_store.list_by_user(user.user_id))
 
 
 @router.patch("/bookings/{booking_id}")
@@ -112,11 +110,10 @@ async def update_booking(
     user: UserContext = Depends(get_current_user),
 ) -> BookingResponse:
     """Update a booking's status or end date."""
-    bk = booking_store.get(booking_id)
+    bk = await aio(booking_store.get(booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
 
-    # Verify ownership
     if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
         raise HTTPException(status_code=403, detail="You do not own this booking")
 
@@ -124,7 +121,6 @@ async def update_booking(
     search_index_id: str | None = None
 
     if payload.status:
-        # Validate transition
         allowed = _VALID_TRANSITIONS.get(bk.status, set())
         if payload.status not in allowed:
             raise HTTPException(
@@ -132,20 +128,17 @@ async def update_booking(
                 detail=f"Cannot transition from '{bk.status}' to '{payload.status}'",
             )
         updates["status"] = payload.status
-
-        # Simulate index provisioning on activation
         if payload.status == "active":
             search_index_id = f"idx-{bk.workspace_id}-{booking_id}"
 
     if payload.end_date:
         updates["end_date"] = payload.end_date
 
-    updated = booking_store.update(booking_id, updates)
+    updated = await aio(booking_store.update(booking_id, updates))
     if updated is None:
         raise HTTPException(status_code=500, detail="Failed to update booking")
 
-    # Calculate cost fields
-    ws = workspace_store.get(updated.workspace_id)
+    ws = await aio(workspace_store.get(updated.workspace_id))
     weekly_cost = (ws.monthly_cost / 4) if ws else 0.0
     weeks = _weeks_between(updated.start_date, updated.end_date)
 
@@ -163,11 +156,11 @@ async def cancel_booking(
     user: UserContext = Depends(get_current_user),
 ) -> None:
     """Cancel a booking (sets status to cancelled)."""
-    bk = booking_store.get(booking_id)
+    bk = await aio(booking_store.get(booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
 
     if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
         raise HTTPException(status_code=403, detail="You do not own this booking")
 
-    booking_store.update(booking_id, {"status": "cancelled", "updated_at": _now_iso()})
+    await aio(booking_store.update(booking_id, {"status": "cancelled", "updated_at": _now_iso()}))

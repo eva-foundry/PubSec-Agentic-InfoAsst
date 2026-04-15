@@ -100,6 +100,20 @@ class VectorStore:
                 result.append(d.file_name)
         return result
 
+    def get_chunks_by_file(self, file_name: str, workspace_id: str | None = None) -> list[VectorDocument]:
+        """Return all chunks for a file, optionally scoped to a workspace."""
+        result: list[VectorDocument] = []
+        workspaces = [workspace_id] if workspace_id else list(self._documents.keys())
+        for ws_id in workspaces:
+            for doc in self._documents.get(ws_id, []):
+                if doc.file_name == file_name or doc.id == file_name or file_name in doc.file_name:
+                    result.append(doc)
+        return sorted(result, key=lambda d: d.chunk_index)
+
+    def get_all_workspace_ids(self) -> list[str]:
+        """Return all workspace IDs that have documents."""
+        return list(self._documents.keys())
+
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:
         """Compute cosine similarity between two vectors."""

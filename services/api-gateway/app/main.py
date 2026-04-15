@@ -83,36 +83,69 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def startup():
-        """Pre-load sample documents into the vector store at startup."""
-        from .agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
         from .config import get_settings
-        from .pipeline.local_processor import LocalDocumentProcessor
-        from .pipeline.preload import preload_sample_documents
-        from .stores import document_store, vector_store, workspace_store
+        from .stores import API_MOCK, initialize_azure_stores
 
         settings = get_settings()
+
+        # ── Azure mode: initialize Cosmos DB + AI Search ──
+        if not API_MOCK:
+            logger.info("Initializing Azure-backed stores...")
+            await initialize_azure_stores()
+
+            # Seed Cosmos if empty (first run)
+            from .stores import workspace_store
+            existing = await workspace_store.list(["all"])
+            if not existing:
+                logger.info("Cosmos containers empty — running seed data...")
+                from .stores.azure.seed import seed_all_containers
+                from .stores import cosmos_manager
+                await seed_all_containers(cosmos_manager)
+                logger.info("Cosmos seed data loaded.")
+            else:
+                logger.info("Cosmos already seeded (%d workspaces found).", len(existing))
+
+        # ── Embedding client (both modes) ──
+        from .agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
+
         if settings.azure_openai_endpoint and settings.azure_openai_api_key:
             embedding_client = AzureEmbeddingClient(
                 endpoint=settings.azure_openai_endpoint,
                 api_key=settings.azure_openai_api_key,
                 deployment=settings.azure_openai_embedding_deployment,
             )
+            logger.info("Using Azure OpenAI embeddings (%s)", settings.azure_openai_embedding_deployment)
         else:
             embedding_client = MockEmbeddingClient()
+            logger.info("Using mock embeddings (no Azure OpenAI credentials)")
 
-        processor = LocalDocumentProcessor(
-            vector_store=vector_store,
-            embedding_client=embedding_client,
-            document_store=document_store,
-        )
+        # ── Document preloading (mock mode only) ──
+        if API_MOCK:
+            from .pipeline.local_processor import LocalDocumentProcessor
+            from .pipeline.preload import preload_sample_documents
+            from .stores import document_store, vector_store, workspace_store as ws_store
 
-        logger.info("Pre-loading sample documents...")
-        await preload_sample_documents(processor, workspace_store)
-        logger.info(
-            "Startup complete. Vector store: %d workspaces with documents.",
-            sum(1 for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
-                if vector_store.document_count(ws_id) > 0),
-        )
+            processor = LocalDocumentProcessor(
+                vector_store=vector_store,
+                embedding_client=embedding_client,
+                document_store=document_store,
+            )
+            logger.info("Pre-loading sample documents...")
+            await preload_sample_documents(processor, ws_store)
+            logger.info(
+                "Startup complete (mock mode). Vector store: %d workspaces with documents.",
+                sum(1 for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
+                    if vector_store.document_count(ws_id) > 0),
+            )
+        else:
+            logger.info("Startup complete (Azure mode). Stores backed by Cosmos DB + AI Search.")
+
+    @app.on_event("shutdown")
+    async def shutdown():
+        from .stores import API_MOCK, cosmos_manager
+        if not API_MOCK and cosmos_manager is not None:
+            await cosmos_manager.close()
+            logger.info("Cosmos DB client closed.")
 
     return app
 

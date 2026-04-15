@@ -1,0 +1,45 @@
+# Weekly automated recovery drill — ITSG-33 CP-9, CP-10
+name: Recovery Drill
+
+on:
+  schedule:
+    - cron: '0 7 * * 0'  # Every Sunday 7am UTC (2am ET)
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+
+jobs:
+  recovery-drill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run recovery drill
+        run: |
+          python scripts/backup/test_recovery.py \
+            --env ${{ inputs.environment || 'staging' }} \
+            --output evidence/backup/
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recovery-drill-results
+          path: evidence/backup/
+          retention-days: 90
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Recovery drill FAILED. Review results in artifacts."
+          exit 1

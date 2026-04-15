@@ -12,6 +12,9 @@ param location string
 @description('Resource tags')
 param tags object
 
+@description('P75 VNet apps subnet resource ID for storage network rules')
+param p75SubnetId string = ''
+
 var uniqueSuffix = uniqueString(resourceGroup().id)
 var storageAccountName = toLower('evaagentic${environmentName}${uniqueSuffix}')
 
@@ -31,9 +34,23 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     supportsHttpsTrafficOnly: true
     minimumTlsVersion: 'TLS1_2'
     allowBlobPublicAccess: false
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: p75SubnetId != '' ? 'Enabled' : 'Disabled'
     networkAcls: {
-      defaultAction: 'Allow'
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+      virtualNetworkRules: p75SubnetId != '' ? [
+        {
+          id: p75SubnetId
+          action: 'Allow'
+        }
+      ] : []
+    }
+    encryption: {
+      services: {
+        blob: { enabled: true, keyType: 'Account' }
+        queue: { enabled: true, keyType: 'Account' }
+      }
+      keySource: 'Microsoft.Storage'
     }
   }
 }
@@ -42,6 +59,17 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 resource queueService 'Microsoft.Storage/storageAccounts/queueServices@2023-05-01' = {
   parent: storageAccount
   name: 'default'
+}
+
+@description('Blob service with versioning and soft delete for recovery')
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+  properties: {
+    deleteRetentionPolicy: { enabled: true, days: 14 }
+    containerDeleteRetentionPolicy: { enabled: true, days: 14 }
+    isVersioningEnabled: true
+  }
 }
 
 // ---------------------------------------------------------------------------

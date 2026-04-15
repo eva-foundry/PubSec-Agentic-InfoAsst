@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from ..auth import UserContext, get_current_user
 from ..models.workspace import EntrySurvey, ExitSurvey
 from ..stores import booking_store, survey_store, workspace_store
+from ..stores.compat import aio
 
 router = APIRouter()
 
@@ -18,8 +19,6 @@ router = APIRouter()
 def _now_iso() -> str:
     return datetime.now(tz=timezone.utc).isoformat()
 
-
-# --- Request schemas (subset of fields; id and completed_at are generated) ---
 
 class EntrySurveyCreate(BaseModel):
     booking_id: str
@@ -48,15 +47,13 @@ async def submit_entry_survey(
     user: UserContext = Depends(get_current_user),
 ) -> EntrySurvey:
     """Submit an entry survey before workspace provisioning."""
-    # Validate booking exists and user owns it
-    bk = booking_store.get(payload.booking_id)
+    bk = await aio(booking_store.get(payload.booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{payload.booking_id}' not found")
     if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
         raise HTTPException(status_code=403, detail="You do not own this booking")
 
-    # Check if entry survey already submitted
-    existing = survey_store.get_entry_by_booking(payload.booking_id)
+    existing = await aio(survey_store.get_entry_by_booking(payload.booking_id))
     if existing is not None:
         raise HTTPException(status_code=409, detail="Entry survey already submitted for this booking")
 
@@ -70,13 +67,12 @@ async def submit_entry_survey(
         business_justification=payload.business_justification,
         completed_at=_now_iso(),
     )
-    survey_store.create_entry(survey)
+    await aio(survey_store.create_entry(survey))
 
-    # Mark booking's entry survey as completed
-    booking_store.update(payload.booking_id, {
+    await aio(booking_store.update(payload.booking_id, {
         "entry_survey_completed": True,
         "updated_at": _now_iso(),
-    })
+    }))
 
     return survey
 
@@ -87,15 +83,13 @@ async def submit_exit_survey(
     user: UserContext = Depends(get_current_user),
 ) -> ExitSurvey:
     """Submit an exit survey when a booking ends."""
-    # Validate booking exists and user owns it
-    bk = booking_store.get(payload.booking_id)
+    bk = await aio(booking_store.get(payload.booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{payload.booking_id}' not found")
     if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
         raise HTTPException(status_code=403, detail="You do not own this booking")
 
-    # Check if exit survey already submitted
-    existing = survey_store.get_exit_by_booking(payload.booking_id)
+    existing = await aio(survey_store.get_exit_by_booking(payload.booking_id))
     if existing is not None:
         raise HTTPException(status_code=409, detail="Exit survey already submitted for this booking")
 
@@ -109,16 +103,12 @@ async def submit_exit_survey(
         would_recommend=payload.would_recommend,
         completed_at=_now_iso(),
     )
-    survey_store.create_exit(survey)
+    await aio(survey_store.create_exit(survey))
 
-    # Mark booking as completed with exit survey done
-    ws = workspace_store.get(bk.workspace_id)
-    weekly_cost = (ws.monthly_cost / 4) if ws else 0.0
-
-    booking_store.update(payload.booking_id, {
+    await aio(booking_store.update(payload.booking_id, {
         "exit_survey_completed": True,
         "status": "completed",
         "updated_at": _now_iso(),
-    })
+    }))
 
     return survey

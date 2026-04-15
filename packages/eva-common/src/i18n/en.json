@@ -1,6 +1,8 @@
 {
   "common": {
     "appName": "EVA",
+    "login": "Login",
+    "logout": "Logout",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "cancel": "Cancel",
@@ -96,6 +98,8 @@
     "dropZone": "Drop files here or click to browse",
     "supportedTypes": "Supported file types",
     "upload": "Upload",
+    "status": "Status",
+    "dragDrop": "Drag and drop files here",
     "processing": "Processing",
     "complete": "Complete",
     "error": "Error",
@@ -112,6 +116,8 @@
     "deleteConfirm": "Are you sure you want to delete this document?"
   },
   "workspace": {
+    "catalog": "Workspace Catalog",
+    "book": "Book Workspace",
     "availableWorkspaces": "Available Workspaces",
     "bookWorkspace": "Book This Workspace",
     "capacity": "Capacity",
@@ -180,6 +186,9 @@
   "admin": {
     "title": "Admin Dashboard",
     "subtitle": "Client overview, booking approvals, and key metrics",
+    "clients": "Clients",
+    "onboard": "Onboard Client",
+    "models": "Model Registry",
     "onboardClient": "Onboard Client",
     "orgName": "Organization Name",
     "billingContact": "Billing Contact",
@@ -222,6 +231,10 @@
     "lastActive": "Last Active"
   },
   "ops": {
+    "finops": "FinOps",
+    "aiops": "AIOps",
+    "liveops": "LiveOps",
+    "devops": "DevOps",
     "serviceHealth": "Service Health",
     "healthy": "Healthy",
     "degraded": "Degraded",
@@ -242,5 +255,24 @@
     "throughput": "Throughput",
     "errorRate": "Error Rate",
     "uptime": "Uptime"
+  },
+  "a11y": {
+    "skipToMain": "Skip to main content",
+    "newMessage": "New message from EVA",
+    "expandSection": "Expand section",
+    "collapseSection": "Collapse section",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "loading": "Content is loading",
+    "resultsCount": "{{count}} results found",
+    "errorAlert": "Error alert",
+    "successAlert": "Success alert",
+    "requiredField": "This field is required",
+    "pagination": "Pagination navigation",
+    "currentPage": "Page {{page}} of {{total}}",
+    "sortAscending": "Sort ascending",
+    "sortDescending": "Sort descending",
+    "dialogTitle": "Dialog",
+    "closeDialog": "Close dialog"
   }
 }

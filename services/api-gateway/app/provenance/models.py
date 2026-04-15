@@ -19,6 +19,26 @@ class FreshnessInfo(BaseModel):
     staleness_warning: bool = Field(default=False, description="True if any cited source may be outdated")
 
 
+class ModelSnapshot(BaseModel):
+    """Point-in-time snapshot of the model config active when a query was served.
+
+    Captured at query time so that 6 months later you can see exactly which model,
+    with which parameters, enabled by whom, was used for this specific response.
+    """
+
+    deployment_name: str = Field(description="Azure deployment name, e.g. 'chat-default'")
+    model_name: str = Field(description="Model name, e.g. 'gpt-5-mini'")
+    model_version: str = Field(default="", description="Model version, e.g. '2025-08-07'")
+    provider: str = Field(default="azure-openai", description="Provider, e.g. 'azure-openai', 'azure-foundry-serverless'")
+    endpoint: str = Field(default="", description="Azure endpoint URL")
+    sku: str = Field(default="", description="SKU at query time, e.g. 'GlobalStandard'")
+    cost_model: str = Field(default="pay-as-you-go", description="Pricing model at query time")
+    parameter_overrides: dict = Field(default_factory=dict, description="Active parameter overrides at query time")
+    config_version: int = Field(default=0, description="Number of changes to this model config at query time")
+    last_changed_by: str = Field(default="", description="Who last modified this model config")
+    last_changed_at: str = Field(default="", description="When the model config was last modified")
+
+
 class BehavioralFingerprint(BaseModel):
     """Snapshot of the exact software versions that produced this answer.
 
@@ -26,8 +46,9 @@ class BehavioralFingerprint(BaseModel):
     the system should produce the same output.
     """
 
-    model: str = Field(description="Model identifier, e.g. 'gpt-5.1-2026-04'")
-    prompt_version: str = Field(description="Prompt template version, e.g. 'v3.2'")
+    model: str = Field(description="Model identifier, e.g. 'gpt-5-mini'")
+    model_snapshot: ModelSnapshot | None = Field(default=None, description="Full model config snapshot at query time")
+    prompt_version: str = Field(description="Prompt template version, e.g. 'rag-system:v1 + ws-oas-act:v1'")
     corpus_snapshot: str = Field(description="ISO date of the corpus snapshot used for retrieval")
     policy_rules_version: str = Field(description="Guardrail / policy rules version, e.g. 'v1.4'")
 

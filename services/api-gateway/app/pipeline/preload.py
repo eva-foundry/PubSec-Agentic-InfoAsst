@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import os
 
+from ..stores.compat import aio
 from .local_processor import LocalDocumentProcessor
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ async def preload_sample_documents(
     """Load sample documents into the vector store for immediate demo use."""
     total = 0
     for workspace_id, files in WORKSPACE_DOCS.items():
-        workspace = workspace_store.get(workspace_id)
+        workspace = await aio(workspace_store.get(workspace_id))
         archetype = workspace.type if workspace else "default"
 
         for filename in files:

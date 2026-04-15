@@ -44,7 +44,13 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     ]
     publicNetworkAccess: 'Disabled'
     networkAclBypass: 'AzureServices'
-    disableLocalAuth: false
+    disableLocalAuth: true
+    backupPolicy: {
+      type: 'Continuous'
+      continuousModeProperties: {
+        tier: 'Continuous7Days'
+      }
+    }
   }
 }
 

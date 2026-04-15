@@ -117,6 +117,7 @@ function ToastContainer({
   return (
     <div
       className="pointer-events-none fixed inset-0 z-[9999] flex flex-col items-end gap-2 p-4 pt-16"
+      role="status"
       aria-live="polite"
       aria-label="Notifications"
     >

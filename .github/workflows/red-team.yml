@@ -1,0 +1,45 @@
+# Weekly automated red-teaming — ITSG-33 SA-11, CA-8
+name: Red Team
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday 6am UTC (1am ET)
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target environment'
+        type: choice
+        options:
+          - staging
+          - local
+        default: staging
+
+jobs:
+  red-team:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install httpx
+
+      - name: Run red-team scenarios
+        env:
+          BASE_URL: ${{ inputs.target == 'local' && 'http://localhost:8000' || 'https://eva-agentic-staging.azurewebsites.net' }}
+          AUTH_TOKEN: ${{ secrets.RED_TEAM_AUTH_TOKEN }}
+        run: |
+          python scripts/red-team/run_red_team.py \
+            --base-url "$BASE_URL" \
+            --auth-token "$AUTH_TOKEN" \
+            --output evidence/red-team/
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: red-team-results
+          path: evidence/red-team/
+          retention-days: 90

@@ -54,6 +54,10 @@ class DocumentStore:
         data.update(kwargs)
         self._documents[doc_id] = DocumentRecord(**data)
 
+    def list_all(self) -> list[DocumentRecord]:
+        """List all documents across all workspaces."""
+        return list(self._documents.values())
+
     def delete(self, doc_id: str) -> bool:
         """Delete a document record. Returns True if it existed."""
         if doc_id in self._documents:

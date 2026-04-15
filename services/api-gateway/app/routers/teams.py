@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from ..auth import UserContext, get_current_user
 from ..models.workspace import TeamMember
 from ..stores import booking_store, team_store
+from ..stores.compat import aio
 
 router = APIRouter()
 
@@ -32,32 +33,28 @@ class UpdateRolePayload(BaseModel):
     role: str = Field(description="'reader', 'contributor', 'admin'")
 
 
-def _verify_booking_access(booking_id: str, user: UserContext):
+async def _verify_booking_access(booking_id: str, user: UserContext):
     """Verify the booking exists and the user has access to it."""
-    bk = booking_store.get(booking_id)
+    bk = await aio(booking_store.get(booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
-    # User must own the booking or be a team member or have admin workspace grants
     if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
-        member = team_store.get(booking_id, user.user_id)
+        member = await aio(team_store.get(booking_id, user.user_id))
         if member is None:
             raise HTTPException(status_code=403, detail="Access denied to this booking")
     return bk
 
 
-def _verify_admin(booking_id: str, user: UserContext):
+async def _verify_admin(booking_id: str, user: UserContext):
     """Verify the user is an admin on this booking's team or the booking owner."""
-    bk = booking_store.get(booking_id)
+    bk = await aio(booking_store.get(booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
-    # Workspace-level admins can always manage teams
     if "all" in user.workspace_grants:
         return bk
-    # Booking owner is implicitly admin
     if bk.requester_id == user.user_id:
         return bk
-    # Check team membership
-    if team_store.is_admin(booking_id, user.user_id):
+    if await aio(team_store.is_admin(booking_id, user.user_id)):
         return bk
     raise HTTPException(status_code=403, detail="Only admins can manage team members")
 
@@ -68,8 +65,8 @@ async def list_members(
     user: UserContext = Depends(get_current_user),
 ) -> list[TeamMember]:
     """List team members for a booking."""
-    _verify_booking_access(booking_id, user)
-    return team_store.list_by_booking(booking_id)
+    await _verify_booking_access(booking_id, user)
+    return await aio(team_store.list_by_booking(booking_id))
 
 
 @router.post("/teams/{booking_id}/members", status_code=201)
@@ -79,7 +76,7 @@ async def add_member(
     user: UserContext = Depends(get_current_user),
 ) -> TeamMember:
     """Add a team member to a booking's workspace."""
-    bk = _verify_admin(booking_id, user)
+    bk = await _verify_admin(booking_id, user)
 
     if payload.role not in _VALID_ROLES:
         raise HTTPException(
@@ -99,7 +96,7 @@ async def add_member(
         added_at=_now_iso(),
         added_by=user.user_id,
     )
-    team_store.add(booking_id, member)
+    await aio(team_store.add(booking_id, member))
     return member
 
 
@@ -111,7 +108,7 @@ async def update_member_role(
     user: UserContext = Depends(get_current_user),
 ) -> TeamMember:
     """Change a member's role."""
-    _verify_admin(booking_id, user)
+    await _verify_admin(booking_id, user)
 
     if payload.role not in _VALID_ROLES:
         raise HTTPException(
@@ -119,7 +116,7 @@ async def update_member_role(
             detail=f"Invalid role '{payload.role}'. Must be one of: {', '.join(sorted(_VALID_ROLES))}",
         )
 
-    updated = team_store.update_role(booking_id, user_id, payload.role)
+    updated = await aio(team_store.update_role(booking_id, user_id, payload.role))
     if updated is None:
         raise HTTPException(status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'")
     return updated
@@ -132,7 +129,8 @@ async def remove_member(
     user: UserContext = Depends(get_current_user),
 ) -> None:
     """Remove a member from a booking's workspace."""
-    _verify_admin(booking_id, user)
+    await _verify_admin(booking_id, user)
 
-    if not team_store.remove(booking_id, user_id):
+    removed = await aio(team_store.remove(booking_id, user_id))
+    if not removed:
         raise HTTPException(status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'")

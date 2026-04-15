@@ -20,8 +20,9 @@ from ..auth import UserContext, get_current_user
 from ..config import get_settings
 from ..feedback import FeedbackCapture, FeedbackStore
 from ..models.chat import ChatOverrides, ChatRequest
-from ..stores import chat_store, degradation_manager, prompt_store, telemetry_store, vector_store, workspace_store
+from ..stores import chat_store, degradation_manager, model_registry_store, prompt_store, telemetry_store, vector_store, workspace_store
 from ..stores.chat_store import ChatHistoryRecord
+from ..stores.compat import aio
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
 from ..tools.search import SearchTool
@@ -94,6 +95,7 @@ async def _orchestrator_stream(
         prompt_store=prompt_store,
         degradation_manager=degradation_manager,
         workspace_store=workspace_store,
+        model_registry_store=model_registry_store,
     )
 
     overrides = req.overrides.model_dump() if req.overrides else None
@@ -101,7 +103,7 @@ async def _orchestrator_stream(
 
     # Record the user message
     user_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-    chat_store.add(ChatHistoryRecord(
+    await aio(chat_store.add(ChatHistoryRecord(
         conversation_id=conversation_id,
         message_id=user_msg_id,
         workspace_id=req.workspace_id,
@@ -116,7 +118,7 @@ async def _orchestrator_stream(
         model="gpt-5.1-2026-04",
         mode=req.mode,
         created_at=now,
-    ))
+    )))
 
     # Collect streamed data for recording the assistant response
     full_content = ""
@@ -169,7 +171,7 @@ async def _orchestrator_stream(
     # Record the assistant message
     assistant_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
     assistant_now = datetime.now(timezone.utc).isoformat()
-    chat_store.add(ChatHistoryRecord(
+    await aio(chat_store.add(ChatHistoryRecord(
         conversation_id=conversation_id,
         message_id=assistant_msg_id,
         workspace_id=req.workspace_id,
@@ -184,7 +186,7 @@ async def _orchestrator_stream(
         model="gpt-5.1-2026-04",
         mode=req.mode,
         created_at=assistant_now,
-    ))
+    )))
 
 
 @router.post("/chat")
@@ -206,9 +208,9 @@ async def list_conversations(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
     """Return conversation summaries (seeded + live)."""
-    summaries = chat_store.list_conversations(
+    summaries = await aio(chat_store.list_conversations(
         workspace_id=workspace_id, user_id=user_id,
-    )
+    ))
     return [s.model_dump() for s in summaries]
 
 
@@ -218,7 +220,7 @@ async def get_conversation(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
     """Return all messages for a specific conversation."""
-    messages = chat_store.get_conversation(conversation_id)
+    messages = await aio(chat_store.get_conversation(conversation_id))
     return [m.model_dump() for m in messages]
 
 
@@ -228,7 +230,7 @@ async def get_session_cost(request: Request) -> dict:
     session_id = request.cookies.get("eva_session_id")
     if not session_id:
         return {"session_id": None, "cost_cad": 0.0, "queries": 0}
-    return telemetry_store.session_cost(session_id)
+    return await aio(telemetry_store.session_cost(session_id))
 
 
 class ChatCompareRequest(BaseModel):
@@ -255,6 +257,7 @@ async def _collect_full_response(
         prompt_store=prompt_store,
         degradation_manager=degradation_manager,
         workspace_store=workspace_store,
+        model_registry_store=model_registry_store,
     )
 
     full_content = ""
@@ -323,31 +326,21 @@ async def get_document_content(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     """Return full text of a document by concatenating all chunks from vector store."""
-    # Search across all workspaces if workspace_id not specified
-    workspaces_to_search = [workspace_id] if workspace_id else list(vector_store._documents.keys())
+    file_chunks = await aio(vector_store.get_chunks_by_file(doc_id, workspace_id))
+    if not file_chunks:
+        raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
 
-    for ws_id in workspaces_to_search:
-        docs = vector_store._documents.get(ws_id, [])
-        file_chunks = [d for d in docs if d.file_name == doc_id or d.id == doc_id]
-        if not file_chunks:
-            # Try partial match on file name
-            file_chunks = [d for d in docs if doc_id in d.file_name]
-        if file_chunks:
-            # Sort by chunk_index to reconstruct document order
-            file_chunks.sort(key=lambda c: c.chunk_index)
-            full_text = "\n\n".join(c.content for c in file_chunks)
-            first = file_chunks[0]
-            return {
-                "file": first.file_name,
-                "workspace_id": ws_id,
-                "chunk_count": len(file_chunks),
-                "content": full_text,
-                "sections": list({c.section for c in file_chunks if c.section}),
-                "pages": sorted({p for c in file_chunks for p in c.pages}),
-                "last_verified": first.last_verified or None,
-            }
-
-    raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
+    full_text = "\n\n".join(c.content for c in file_chunks)
+    first = file_chunks[0]
+    return {
+        "file": first.file_name,
+        "workspace_id": first.workspace_id,
+        "chunk_count": len(file_chunks),
+        "content": full_text,
+        "sections": list({c.section for c in file_chunks if c.section}),
+        "pages": sorted({p for c in file_chunks for p in c.pages}),
+        "last_verified": first.last_verified or None,
+    }
 
 
 @router.post("/chat/feedback", status_code=201)

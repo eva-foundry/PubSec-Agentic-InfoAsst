@@ -1,7 +1,7 @@
 """Business administration endpoints (Portal 2 - Admin).
 
 All endpoints require the ``admin`` role. Data is backed by in-memory stores
-(replaced by Cosmos DB adapters in production).
+(api_mock=true) or Cosmos DB adapters (api_mock=false).
 """
 
 from __future__ import annotations
@@ -31,6 +31,7 @@ from ..stores import (
     team_store,
     workspace_store,
 )
+from ..stores.compat import aio
 
 router = APIRouter()
 
@@ -49,7 +50,6 @@ def _now() -> str:
 
 
 def _recommend_archetype(use_case: str) -> str:
-    """Simple rule-based archetype recommendation from use-case description."""
     lower = use_case.lower()
     if re.search(r"\b(legislation|act|law|statute|regulation)\b", lower):
         return "legislation"
@@ -59,7 +59,7 @@ def _recommend_archetype(use_case: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Request / Response models (local to admin surface)
+# Request / Response models
 # ---------------------------------------------------------------------------
 
 class ClientOnboard(BaseModel):
@@ -128,7 +128,7 @@ async def onboard_client(
         onboarded_at=_now(),
         status="active",
     )
-    return client_store.create_client(client)
+    return await aio(client_store.create_client(client))
 
 
 @router.get("/admin/clients")
@@ -138,28 +138,23 @@ async def list_clients(
     _require_admin(user)
     from .chat import feedback_store
 
-    clients = client_store.list_clients()
+    clients = await aio(client_store.list_clients())
     result = []
     for cl in clients:
-        # Count workspaces
         workspaces_count = len(cl.workspace_ids)
-
-        # Count queries from feedback store question analytics
         query_count = 0
         for ws_id in cl.workspace_ids:
             query_count += len(feedback_store.get_questions_by_workspace(ws_id))
 
-        # Count documents from workspace store
         document_count = 0
         for ws_id in cl.workspace_ids:
-            ws = workspace_store.get(ws_id)
+            ws = await aio(workspace_store.get(ws_id))
             if ws:
                 document_count += ws.document_count
 
-        # Determine last_active from most recent booking activity
         last_active: str | None = None
         for ws_id in cl.workspace_ids:
-            for bk in booking_store.list_by_workspace(ws_id):
+            for bk in await aio(booking_store.list_by_workspace(ws_id)):
                 if last_active is None or bk.updated_at > last_active:
                     last_active = bk.updated_at
 
@@ -179,7 +174,7 @@ async def get_client(
     user: UserContext = Depends(get_current_user),
 ) -> Client:
     _require_admin(user)
-    client = client_store.get_client(client_id)
+    client = await aio(client_store.get_client(client_id))
     if client is None:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
     return client
@@ -193,7 +188,7 @@ async def update_client(
 ) -> Client:
     _require_admin(user)
     updates = payload.model_dump(exclude_none=True)
-    client = client_store.update_client(client_id, updates)
+    client = await aio(client_store.update_client(client_id, updates))
     if client is None:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
     return client
@@ -209,8 +204,7 @@ async def submit_interview(
     user: UserContext = Depends(get_current_user),
 ) -> Interview:
     _require_admin(user)
-    # Verify client exists
-    if client_store.get_client(payload.client_id) is None:
+    if await aio(client_store.get_client(payload.client_id)) is None:
         raise HTTPException(status_code=404, detail=f"Client '{payload.client_id}' not found")
     archetype = _recommend_archetype(payload.use_case_description)
     interview = Interview(
@@ -225,7 +219,7 @@ async def submit_interview(
         archetype_recommendation=archetype,
         created_at=_now(),
     )
-    return client_store.create_interview(interview)
+    return await aio(client_store.create_interview(interview))
 
 
 @router.get("/admin/clients/{client_id}/interviews")
@@ -234,9 +228,9 @@ async def list_client_interviews(
     user: UserContext = Depends(get_current_user),
 ) -> list[Interview]:
     _require_admin(user)
-    if client_store.get_client(client_id) is None:
+    if await aio(client_store.get_client(client_id)) is None:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
-    return client_store.get_interviews_by_client(client_id)
+    return await aio(client_store.get_interviews_by_client(client_id))
 
 
 # ---------------------------------------------------------------------------
@@ -247,25 +241,19 @@ async def list_client_interviews(
 async def list_admin_workspaces(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
-    """List all workspaces with admin-level detail."""
     _require_admin(user)
-    workspaces = workspace_store.list(["all"])
+    workspaces = await aio(workspace_store.list(["all"]))
+    clients = await aio(client_store.list_clients())
     result = []
     for ws in workspaces:
-        # Find client for this workspace
         client_name = "unknown"
         client_id = ""
-        for cl in client_store.list_clients():
+        for cl in clients:
             if ws.id in cl.workspace_ids:
                 client_name = cl.org_name
                 client_id = cl.id
                 break
-        result.append({
-            **ws.model_dump(),
-            "client_id": client_id,
-            "client_name": client_name,
-            "health": "green",
-        })
+        result.append({**ws.model_dump(), "client_id": client_id, "client_name": client_name, "health": "green"})
     return result
 
 
@@ -275,7 +263,7 @@ async def provision_workspace(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(payload.workspace_id)
+    ws = await aio(workspace_store.get(payload.workspace_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{payload.workspace_id}' not found")
 
@@ -299,13 +287,8 @@ async def provision_workspace(
         )
         return {"workspace_id": ws.id, "status": "preview", "plan": plan.model_dump()}
 
-    # Confirm provisioning: transition workspace to active
-    updated = workspace_store.update(ws.id, {"status": "active", "updated_at": _now()})
-    return {
-        "workspace_id": ws.id,
-        "status": "provisioning",
-        "workspace": updated.model_dump() if updated else None,
-    }
+    updated = await aio(workspace_store.update(ws.id, {"status": "active", "updated_at": _now()}))
+    return {"workspace_id": ws.id, "status": "provisioning", "workspace": updated.model_dump() if updated else None}
 
 
 @router.post("/admin/workspaces/{ws_id}/decommission")
@@ -315,40 +298,30 @@ async def decommission_workspace(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
 
-    # Collect members from all bookings associated with this workspace
-    ws_bookings = booking_store.list_by_workspace(ws_id)
+    ws_bookings = await aio(booking_store.list_by_workspace(ws_id))
     member_ids: list[str] = []
     for bk in ws_bookings:
-        for m in team_store.list_by_booking(bk.id):
+        for m in await aio(team_store.list_by_booking(bk.id)):
             if m.user_id not in member_ids:
                 member_ids.append(m.user_id)
 
     plan = WorkspaceDecommissionPlan(
         members_to_remove=member_ids,
         documents_to_delete=ws.document_count,
-        index_entries_to_purge=ws.document_count * 10,  # rough estimate: 10 chunks per doc
-        safety_gates=[
-            "confirm_no_active_bookings",
-            "confirm_data_backup_completed",
-            "confirm_billing_settled",
-        ],
+        index_entries_to_purge=ws.document_count * 10,
+        safety_gates=["confirm_no_active_bookings", "confirm_data_backup_completed", "confirm_billing_settled"],
     )
 
     if dry_run:
         return {"workspace_id": ws_id, "status": "preview", "plan": plan.model_dump()}
 
-    # Execute decommission: archive the workspace
-    updated = workspace_store.update(ws_id, {"status": "archived", "updated_at": _now()})
-    return {
-        "workspace_id": ws_id,
-        "status": "decommissioned",
-        "plan": plan.model_dump(),
-        "workspace": updated.model_dump() if updated else None,
-    }
+    updated = await aio(workspace_store.update(ws_id, {"status": "archived", "updated_at": _now()}))
+    return {"workspace_id": ws_id, "status": "decommissioned", "plan": plan.model_dump(),
+            "workspace": updated.model_dump() if updated else None}
 
 
 @router.get("/admin/workspaces/{ws_id}/resources")
@@ -357,41 +330,21 @@ async def get_workspace_resources(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
-    rbac_count = sum(
-        len(team_store.list_by_booking(bk.id))
-        for bk in booking_store.list_by_workspace(ws_id)
-    )
+    ws_bookings = await aio(booking_store.list_by_workspace(ws_id))
+    rbac_count = 0
+    for bk in ws_bookings:
+        members = await aio(team_store.list_by_booking(bk.id))
+        rbac_count += len(members)
     return {
-        "workspace_id": ws_id,
-        "infrastructure": ws.infrastructure,
+        "workspace_id": ws_id, "infrastructure": ws.infrastructure,
         "resources": {
-            "ai_search_index": {
-                "name": f"eva-workspace-{ws_id}-index",
-                "service": "msub-eva-dev-search",
-                "status": "healthy",
-                "document_count": ws.document_count,
-                "size_mb": ws.document_count * 1.5,
-            },
-            "blob_containers": {
-                "upload": f"eva-ws-{ws_id}-upload",
-                "content": f"eva-ws-{ws_id}-content",
-                "service": "msubevasharedaihbyya73s",
-                "status": "healthy",
-                "blob_count": ws.document_count,
-                "size_gb": round(ws.document_count * 0.005, 2),
-            },
-            "cosmos_container": {
-                "name": f"ws-{ws_id}-status",
-                "service": "msub-sandbox-cosmos-free",
-                "status": "healthy",
-            },
-            "rbac_assignments": {
-                "status": "healthy",
-                "count": rbac_count,
-            },
+            "ai_search_index": {"name": f"eva-workspace-{ws_id}-index", "service": "msub-eva-dev-search", "status": "healthy", "document_count": ws.document_count, "size_mb": ws.document_count * 1.5},
+            "blob_containers": {"upload": f"eva-ws-{ws_id}-upload", "content": f"eva-ws-{ws_id}-content", "service": "msubevasharedaihbyya73s", "status": "healthy", "blob_count": ws.document_count, "size_gb": round(ws.document_count * 0.005, 2)},
+            "cosmos_container": {"name": f"ws-{ws_id}-status", "service": "msub-sandbox-cosmos-free", "status": "healthy"},
+            "rbac_assignments": {"status": "healthy", "count": rbac_count},
         },
     }
 
@@ -405,14 +358,11 @@ async def list_all_bookings(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
     _require_admin(user)
-    bookings = booking_store.list_all()
+    bookings = await aio(booking_store.list_all())
     result = []
     for bk in bookings:
-        ws = workspace_store.get(bk.workspace_id)
-        result.append({
-            **bk.model_dump(),
-            "workspace_name": ws.name if ws else "unknown",
-        })
+        ws = await aio(workspace_store.get(bk.workspace_id))
+        result.append({**bk.model_dump(), "workspace_name": ws.name if ws else "unknown"})
     return result
 
 
@@ -425,18 +375,13 @@ async def approve_or_reject_booking(
     _require_admin(user)
     if action not in ("approve", "reject"):
         raise HTTPException(status_code=400, detail="Action must be 'approve' or 'reject'")
-    bk = booking_store.get(booking_id)
+    bk = await aio(booking_store.get(booking_id))
     if bk is None:
         raise HTTPException(status_code=404, detail=f"Booking '{booking_id}' not found")
     new_status = "active" if action == "approve" else "rejected"
-    updated = booking_store.update(booking_id, {"status": new_status, "updated_at": _now()})
-    return {
-        "booking_id": booking_id,
-        "action": action,
-        "status": new_status,
-        "updated_by": user.user_id,
-        "booking": updated.model_dump() if updated else None,
-    }
+    updated = await aio(booking_store.update(booking_id, {"status": new_status, "updated_at": _now()}))
+    return {"booking_id": booking_id, "action": action, "status": new_status,
+            "updated_by": user.user_id, "booking": updated.model_dump() if updated else None}
 
 
 # ---------------------------------------------------------------------------
@@ -444,64 +389,45 @@ async def approve_or_reject_booking(
 # ---------------------------------------------------------------------------
 
 @router.get("/admin/models")
-async def list_models(
-    user: UserContext = Depends(get_current_user),
-) -> list[ModelConfig]:
+async def list_models(user: UserContext = Depends(get_current_user)) -> list[ModelConfig]:
     _require_admin(user)
-    return model_registry_store.list_models()
+    return await aio(model_registry_store.list_models())
 
 
 @router.get("/admin/models/{model_id}")
-async def get_model(
-    model_id: str,
-    user: UserContext = Depends(get_current_user),
-) -> ModelConfig:
+async def get_model(model_id: str, user: UserContext = Depends(get_current_user)) -> ModelConfig:
     _require_admin(user)
-    model = model_registry_store.get_model(model_id)
+    model = await aio(model_registry_store.get_model(model_id))
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
     return model
 
 
 @router.patch("/admin/models/{model_id}")
-async def update_model(
-    model_id: str,
-    payload: ModelUpdate,
-    user: UserContext = Depends(get_current_user),
-) -> ModelConfig:
+async def update_model(model_id: str, payload: ModelUpdate, user: UserContext = Depends(get_current_user)) -> ModelConfig:
     _require_admin(user)
     updates = payload.model_dump(exclude_none=True)
-    model = model_registry_store.update_model(model_id, updates)
+    model = await aio(model_registry_store.update_model(model_id, updates))
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
     return model
 
 
 @router.post("/admin/models/{model_id}/toggle")
-async def toggle_model(
-    model_id: str,
-    is_active: bool = Query(description="True to enable, False to disable"),
-    user: UserContext = Depends(get_current_user),
-) -> ModelConfig:
+async def toggle_model(model_id: str, is_active: bool = Query(description="True to enable, False to disable"), user: UserContext = Depends(get_current_user)) -> ModelConfig:
     _require_admin(user)
     action = "enabled" if is_active else "disabled"
-    model = model_registry_store.toggle_model(
-        model_id, is_active, author=user.email, rationale=f"Model {action} via admin portal",
-    )
+    model = await aio(model_registry_store.toggle_model(model_id, is_active, author=user.email, rationale=f"Model {action} via admin portal"))
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
     return model
 
 
 @router.get("/admin/models/{model_id}/history")
-async def get_model_history(
-    model_id: str,
-    user: UserContext = Depends(get_current_user),
-) -> list[dict]:
-    """Return full change history for a model — every field change with author, rationale, timestamp."""
+async def get_model_history(model_id: str, user: UserContext = Depends(get_current_user)) -> list[dict]:
     _require_admin(user)
-    history = model_registry_store.get_change_history(model_id)
-    if not history and model_registry_store.get_model(model_id) is None:
+    history = await aio(model_registry_store.get_change_history(model_id))
+    if not history and await aio(model_registry_store.get_model(model_id)) is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
     return history
 
@@ -511,53 +437,32 @@ async def get_model_history(
 # ---------------------------------------------------------------------------
 
 @router.get("/admin/prompts")
-async def list_prompts(
-    user: UserContext = Depends(get_current_user),
-) -> list[dict]:
+async def list_prompts(user: UserContext = Depends(get_current_user)) -> list[dict]:
     _require_admin(user)
-    return prompt_store.list_prompts()
+    return await aio(prompt_store.list_prompts())
 
 
 @router.get("/admin/prompts/{name}/versions")
-async def get_prompt_versions(
-    name: str,
-    user: UserContext = Depends(get_current_user),
-) -> list[PromptVersion]:
+async def get_prompt_versions(name: str, user: UserContext = Depends(get_current_user)) -> list[PromptVersion]:
     _require_admin(user)
-    versions = prompt_store.get_versions(name)
+    versions = await aio(prompt_store.get_versions(name))
     if not versions:
         raise HTTPException(status_code=404, detail=f"Prompt '{name}' not found")
     return versions
 
 
 @router.post("/admin/prompts/{name}/versions", status_code=201)
-async def create_prompt_version(
-    name: str,
-    payload: PromptCreate,
-    user: UserContext = Depends(get_current_user),
-) -> PromptVersion:
+async def create_prompt_version(name: str, payload: PromptCreate, user: UserContext = Depends(get_current_user)) -> PromptVersion:
     _require_admin(user)
-    return prompt_store.create_version(
-        prompt_name=name,
-        content=payload.content,
-        author=user.user_id,
-        rationale=payload.rationale,
-    )
+    return await aio(prompt_store.create_version(prompt_name=name, content=payload.content, author=user.user_id, rationale=payload.rationale))
 
 
 @router.post("/admin/prompts/{name}/rollback")
-async def rollback_prompt(
-    name: str,
-    target_version: int = Query(description="Version number to roll back to"),
-    user: UserContext = Depends(get_current_user),
-) -> PromptVersion:
+async def rollback_prompt(name: str, target_version: int = Query(description="Version number to roll back to"), user: UserContext = Depends(get_current_user)) -> PromptVersion:
     _require_admin(user)
-    result = prompt_store.rollback(name, target_version)
+    result = await aio(prompt_store.rollback(name, target_version))
     if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Prompt '{name}' version {target_version} not found",
-        )
+        raise HTTPException(status_code=404, detail=f"Prompt '{name}' version {target_version} not found")
     return result
 
 
@@ -565,115 +470,50 @@ async def rollback_prompt(
 # Workspace business prompt management
 # ---------------------------------------------------------------------------
 
-
 @router.get("/admin/workspaces/{ws_id}/prompt")
-async def get_workspace_prompt(
-    ws_id: str,
-    user: UserContext = Depends(get_current_user),
-) -> dict:
-    """Get the current business prompt and version history for a workspace."""
+async def get_workspace_prompt(ws_id: str, user: UserContext = Depends(get_current_user)) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
-    return {
-        "workspace_id": ws_id,
-        "business_prompt": ws.business_prompt,
-        "business_prompt_version": ws.business_prompt_version,
-        "business_prompt_history": ws.business_prompt_history,
-    }
+    return {"workspace_id": ws_id, "business_prompt": ws.business_prompt, "business_prompt_version": ws.business_prompt_version, "business_prompt_history": ws.business_prompt_history}
 
 
 @router.put("/admin/workspaces/{ws_id}/prompt")
-async def update_workspace_prompt(
-    ws_id: str,
-    payload: BusinessPromptUpdate,
-    user: UserContext = Depends(get_current_user),
-) -> dict:
-    """Update the workspace business prompt, creating a new version."""
+async def update_workspace_prompt(ws_id: str, payload: BusinessPromptUpdate, user: UserContext = Depends(get_current_user)) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
 
     new_version = ws.business_prompt_version + 1
     history = list(ws.business_prompt_history)
-    history.append({
-        "version": new_version,
-        "content": payload.content,
-        "author": user.user_id,
-        "rationale": payload.rationale,
-        "created_at": _now(),
-    })
+    history.append({"version": new_version, "content": payload.content, "author": user.user_id, "rationale": payload.rationale, "created_at": _now()})
 
-    updated = workspace_store.update(ws_id, {
-        "business_prompt": payload.content,
-        "business_prompt_version": new_version,
-        "business_prompt_history": history,
-        "updated_at": _now(),
-    })
+    updated = await aio(workspace_store.update(ws_id, {"business_prompt": payload.content, "business_prompt_version": new_version, "business_prompt_history": history, "updated_at": _now()}))
     if updated is None:
         raise HTTPException(status_code=500, detail="Failed to update workspace")
-
-    return {
-        "workspace_id": ws_id,
-        "business_prompt": updated.business_prompt,
-        "business_prompt_version": updated.business_prompt_version,
-        "business_prompt_history": updated.business_prompt_history,
-    }
+    return {"workspace_id": ws_id, "business_prompt": updated.business_prompt, "business_prompt_version": updated.business_prompt_version, "business_prompt_history": updated.business_prompt_history}
 
 
 @router.post("/admin/workspaces/{ws_id}/prompt/rollback")
-async def rollback_workspace_prompt(
-    ws_id: str,
-    payload: BusinessPromptRollback,
-    user: UserContext = Depends(get_current_user),
-) -> dict:
-    """Rollback the workspace business prompt to a previous version."""
+async def rollback_workspace_prompt(ws_id: str, payload: BusinessPromptRollback, user: UserContext = Depends(get_current_user)) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
-
-    # Find the target version in history
-    target_entry = None
-    for entry in ws.business_prompt_history:
-        if entry["version"] == payload.version:
-            target_entry = entry
-            break
-
+    target_entry = next((e for e in ws.business_prompt_history if e["version"] == payload.version), None)
     if target_entry is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Version {payload.version} not found in business prompt history",
-        )
+        raise HTTPException(status_code=404, detail=f"Version {payload.version} not found in business prompt history")
 
-    # Rollback creates a new version entry pointing to the old content
     new_version = ws.business_prompt_version + 1
     history = list(ws.business_prompt_history)
-    history.append({
-        "version": new_version,
-        "content": target_entry["content"],
-        "author": user.user_id,
-        "rationale": f"Rollback to v{payload.version}",
-        "created_at": _now(),
-    })
+    history.append({"version": new_version, "content": target_entry["content"], "author": user.user_id, "rationale": f"Rollback to v{payload.version}", "created_at": _now()})
 
-    updated = workspace_store.update(ws_id, {
-        "business_prompt": target_entry["content"],
-        "business_prompt_version": new_version,
-        "business_prompt_history": history,
-        "updated_at": _now(),
-    })
+    updated = await aio(workspace_store.update(ws_id, {"business_prompt": target_entry["content"], "business_prompt_version": new_version, "business_prompt_history": history, "updated_at": _now()}))
     if updated is None:
         raise HTTPException(status_code=500, detail="Failed to rollback workspace prompt")
-
-    return {
-        "workspace_id": ws_id,
-        "business_prompt": updated.business_prompt,
-        "business_prompt_version": updated.business_prompt_version,
-        "business_prompt_history": updated.business_prompt_history,
-    }
+    return {"workspace_id": ws_id, "business_prompt": updated.business_prompt, "business_prompt_version": updated.business_prompt_version, "business_prompt_history": updated.business_prompt_history}
 
 
 # ---------------------------------------------------------------------------
@@ -681,19 +521,9 @@ async def rollback_workspace_prompt(
 # ---------------------------------------------------------------------------
 
 @router.patch("/admin/workspaces/{ws_id}/valves")
-async def update_valves(
-    ws_id: str,
-    payload: ValveUpdate,
-    user: UserContext = Depends(get_current_user),
-) -> dict:
+async def update_valves(ws_id: str, payload: ValveUpdate, user: UserContext = Depends(get_current_user)) -> dict:
     _require_admin(user)
-    ws = workspace_store.get(ws_id)
+    ws = await aio(workspace_store.get(ws_id))
     if ws is None:
         raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
-    # Valves are stored as part of workspace metadata — for now, just acknowledge
-    return {
-        "workspace_id": ws_id,
-        "valves": payload.valves,
-        "status": "updated",
-        "updated_by": user.user_id,
-    }
+    return {"workspace_id": ws_id, "valves": payload.valves, "status": "updated", "updated_by": user.user_id}

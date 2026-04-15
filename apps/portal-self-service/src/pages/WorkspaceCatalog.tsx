@@ -166,8 +166,8 @@ export default function WorkspaceCatalog({ lang }: WorkspaceCatalogProps) {
         {workspaces.map((ws) => {
           const badge = TYPE_BADGES[ws.type] ?? TYPE_BADGES.standard;
           const icon = TYPE_ICONS[ws.type] ?? "\uD83D\uDCE6";
-          const features = lang === "fr" ? ws.features_fr : ws.features;
-          const name = lang === "fr" ? ws.name_fr : ws.name;
+          const features = (lang === "fr" ? ws.features_fr : ws.features) ?? [];
+          const name = lang === "fr" ? (ws.name_fr || ws.name) : ws.name;
           const description = lang === "fr" ? ws.description_fr : ws.description;
 
           return (
@@ -236,13 +236,13 @@ export default function WorkspaceCatalog({ lang }: WorkspaceCatalogProps) {
                   <div>
                     <p className="text-xs text-gray-500">{t.capacity}</p>
                     <p className="text-sm font-semibold text-gray-900">
-                      {ws.capacity} {t.users}
+                      {ws.capacity ?? (ws as any).document_capacity ?? 0} {t.users}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-500">{t.pricePerWeek}</p>
                     <p className="text-sm font-semibold text-gray-900">
-                      ${ws.pricePerWeek.toLocaleString()}
+                      ${(ws.pricePerWeek ?? ((ws as any).monthly_cost ?? 0) / 4).toLocaleString()}
                     </p>
                   </div>
                 </div>

@@ -1,7 +1,8 @@
 """Local document processing pipeline — extract, chunk, embed, index.
 
 Implements the full ingestion flow in-process (no Service Bus, no Azure
-Document Intelligence). Suitable for local dev and demo scenarios.
+Document Intelligence). Works with both in-memory and Azure-backed stores
+via the ``aio()`` wrapper.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 
+from ..stores.compat import aio
 from ..stores.vector_store import VectorDocument, VectorStore
 from .document_store import DocumentRecord, DocumentStore
 
@@ -95,8 +97,8 @@ class LocalDocumentProcessor:
         1. Create DocumentRecord (status: processing)
         2. Extract text from bytes (UTF-8 decode)
         3. Chunk text into paragraphs
-        4. Embed all chunks
-        5. Store VectorDocuments
+        4. Embed all chunks via Azure OpenAI (or mock)
+        5. Store VectorDocuments in AI Search (or in-memory)
         6. Return updated DocumentRecord (status: indexed)
         """
         doc_id = f"doc-{uuid.uuid4().hex[:8]}"
@@ -111,25 +113,25 @@ class LocalDocumentProcessor:
             uploaded_by=uploaded_by,
             uploaded_at=now,
         )
-        self.document_store.add(record)
+        await aio(self.document_store.add(record))
 
         try:
             # 1. Extract text
             text = content_bytes.decode("utf-8", errors="replace").strip()
             if not text:
-                self.document_store.update_status(
+                await aio(self.document_store.update_status(
                     doc_id, "error", error_message="Empty document"
-                )
-                return self.document_store.get(doc_id)  # type: ignore[return-value]
+                ))
+                return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]
 
             # 2. Chunk
-            self.document_store.update_status(doc_id, "chunking")
+            await aio(self.document_store.update_status(doc_id, "chunking"))
             chunks = _paragraph_chunk(text, file_name)
             if not chunks:
-                self.document_store.update_status(
+                await aio(self.document_store.update_status(
                     doc_id, "error", error_message="No chunks produced"
-                )
-                return self.document_store.get(doc_id)  # type: ignore[return-value]
+                ))
+                return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]
 
             logger.info(
                 "Chunked %s into %d chunks for workspace %s",
@@ -137,7 +139,7 @@ class LocalDocumentProcessor:
             )
 
             # 3. Embed
-            self.document_store.update_status(doc_id, "embedding")
+            await aio(self.document_store.update_status(doc_id, "embedding"))
             chunk_texts = [c["content"] for c in chunks]
             embeddings = await self.embedding_client.embed(chunk_texts)
 
@@ -159,15 +161,15 @@ class LocalDocumentProcessor:
                     )
                 )
 
-            # 5. Store
-            self.vector_store.add_documents(workspace_id, vector_docs)
+            # 5. Store in vector index (AI Search or in-memory)
+            await aio(self.vector_store.add_documents(workspace_id, vector_docs))
 
             indexed_at = datetime.now(timezone.utc).isoformat()
-            self.document_store.update_status(
+            await aio(self.document_store.update_status(
                 doc_id, "indexed",
                 chunk_count=len(vector_docs),
                 indexed_at=indexed_at,
-            )
+            ))
 
             logger.info(
                 "Indexed %s: %d chunks stored for workspace %s",
@@ -176,8 +178,8 @@ class LocalDocumentProcessor:
 
         except Exception as exc:
             logger.exception("Failed to process %s", file_name)
-            self.document_store.update_status(
+            await aio(self.document_store.update_status(
                 doc_id, "error", error_message=str(exc)
-            )
+            ))
 
-        return self.document_store.get(doc_id)  # type: ignore[return-value]
+        return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]

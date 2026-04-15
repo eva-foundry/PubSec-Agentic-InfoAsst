@@ -21,10 +21,30 @@ export interface FreshnessInfo {
   staleness_warning: boolean;
 }
 
+/** Point-in-time snapshot of the model config active when a query was served. */
+export interface ModelSnapshot {
+  deployment_name: string;
+  model_name: string;
+  model_version: string;
+  provider: string;
+  endpoint: string;
+  sku: string;
+  cost_model: string;
+  parameter_overrides: Record<string, unknown>;
+  /** Number of changes to this model config at query time. */
+  config_version: number;
+  /** Who last modified this model config. */
+  last_changed_by: string;
+  /** When the model config was last modified (ISO). */
+  last_changed_at: string;
+}
+
 export interface BehavioralFingerprint {
-  /** Model identifier, e.g. "gpt-5.1-2026-04". */
+  /** Model identifier, e.g. "gpt-5-mini". */
   model: string;
-  /** Prompt template version, e.g. "v3.2". */
+  /** Full model config snapshot at query time — who enabled it, what params, what version. */
+  model_snapshot: ModelSnapshot | null;
+  /** Prompt template version, e.g. "rag-system:v1 + ws-oas-act:v1". */
   prompt_version: string;
   /** ISO date of the corpus snapshot used for retrieval. */
   corpus_snapshot: string;
