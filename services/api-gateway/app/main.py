@@ -8,6 +8,7 @@ from .routers import (
     bookings,
     chat,
     citations,
+    debug,
     documents,
     health,
     ops,
@@ -76,6 +77,9 @@ def create_app() -> FastAPI:
     # Cross-cutting
     app.include_router(citations.router, prefix="/v1/eva", tags=["citations"])
     app.include_router(system.router, prefix="/v1/eva", tags=["system"])
+
+    # Debug endpoints — gated by EVA_DEBUG=true
+    app.include_router(debug.router, prefix="/v1/eva", tags=["debug"])
 
     @app.on_event("startup")
     async def startup():

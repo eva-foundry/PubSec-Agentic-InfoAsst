@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EVA Agentic — Documentation Library</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --gc-red: #AF3C43;
+  --gc-red-dark: #942A30;
+  --gc-blue: #26374A;
+  --gc-blue-light: #335075;
+  --gc-link: #2B4380;
+  --gc-link-hover: #0535D2;
+  --gc-green: #1B6C2A;
+  --gc-yellow: #EE7100;
+  --surface-0: #FFFFFF;
+  --surface-1: #F8F9FA;
+  --surface-2: #F1F3F5;
+  --surface-3: #E9ECEF;
+  --border: #DEE2E6;
+  --border-strong: #CED4DA;
+  --text-primary: #212529;
+  --text-secondary: #495057;
+  --text-tertiary: #868E96;
+  --text-inverse: #FFFFFF;
+  --accent: #26374A;
+  --accent-light: #335075;
+  --accent-muted: #E8EDF2;
+  --sidebar-w: 280px;
+  --header-h: 56px;
+  --toc-w: 220px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 2px 8px rgba(0,0,0,.08);
+  --transition: 150ms ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  -webkit-font-smoothing: antialiased;
+}
+code, pre { font-family: 'Source Code Pro', monospace; }
+a { color: var(--gc-link); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--gc-link-hover); }
+
+/* GC Chrome Header */
+.gc-header {
+  background: var(--gc-blue);
+  color: var(--text-inverse);
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  gap: 16px;
+}
+.gc-header-flag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.gc-header-flag svg { flex-shrink: 0; }
+.gc-header-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,.2);
+}
+.gc-header-title {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: .95;
+}
+.gc-header-spacer { flex: 1; }
+.gc-header-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Language toggle */
+.lang-toggle {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: var(--text-inverse);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.lang-toggle:hover { background: rgba(255,255,255,.2); }
+
+/* Search */
+.search-box {
+  position: relative;
+  width: 260px;
+}
+.search-box input {
+  width: 100%;
+  padding: 6px 12px 6px 34px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.1);
+  color: var(--text-inverse);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: all var(--transition);
+}
+.search-box input::placeholder { color: rgba(255,255,255,.5); }
+.search-box input:focus {
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.4);
+}
+.search-box .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: .5;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--surface-0);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 0;
+  z-index: 50;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+.sidebar-section { margin-bottom: 4px; }
+.sidebar-section-title {
+  padding: 6px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-tertiary);
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 20px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+.sidebar-item:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.sidebar-item.active {
+  background: var(--accent-muted);
+  color: var(--accent);
+  font-weight: 500;
+  border-left-color: var(--gc-red);
+}
+.sidebar-item .badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.badge-new { background: #E8F5E9; color: var(--gc-green); }
+.badge-draft { background: #FFF3E0; color: var(--gc-yellow); }
+.badge-fr { background: #E3F2FD; color: #1565C0; }
+.sidebar-sub {
+  padding-left: 40px;
+  font-size: 13px;
+}
+
+/* Main content */
+.main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+  display: flex;
+}
+.content-area {
+  flex: 1;
+  max-width: 900px;
+  padding: 32px 40px 80px;
+}
+.content-area h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gc-blue);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.content-area h2 {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--gc-blue);
+  margin-top: 40px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.content-area h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 28px;
+  margin-bottom: 8px;
+}
+.content-area h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 20px;
+  margin-bottom: 6px;
+}
+.content-area p {
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+.content-area ul, .content-area ol {
+  margin-bottom: 14px;
+  padding-left: 24px;
+}
+.content-area li { margin-bottom: 6px; }
+.content-area pre {
+  background: var(--gc-blue);
+  color: #E8ECEF;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.content-area code {
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  color: var(--gc-red-dark);
+}
+.content-area pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+.content-area table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.content-area th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border-strong);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.content-area td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.content-area tr:hover td { background: var(--surface-1); }
+
+/* Callout boxes */
+.callout {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: 14px;
+  border-left: 4px solid;
+}
+.callout-info { background: #E8EDF2; border-color: var(--gc-blue); }
+.callout-warn { background: #FFF8E1; border-color: var(--gc-yellow); }
+.callout-critical { background: #FFEBEE; border-color: var(--gc-red); }
+.callout-success { background: #E8F5E9; border-color: var(--gc-green); }
+.callout strong { display: block; margin-bottom: 4px; }
+
+/* On-this-page sidebar */
+.toc-sidebar {
+  width: var(--toc-w);
+  padding: 32px 16px;
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.toc-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+.toc-link {
+  display: block;
+  padding: 3px 0;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.toc-link:hover { color: var(--text-primary); }
+.toc-link.depth-3 { padding-left: 12px; }
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+.breadcrumb a { color: var(--text-tertiary); text-decoration: none; }
+.breadcrumb a:hover { color: var(--gc-link); }
+.breadcrumb .sep { font-size: 10px; }
+
+/* Catalog cards (home page) */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.catalog-card {
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.catalog-card:hover {
+  border-color: var(--accent-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.catalog-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+.catalog-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--gc-blue);
+}
+.catalog-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+.catalog-card .card-meta {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Mermaid */
+.mermaid-wrapper {
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.mermaid-wrapper .mermaid { text-align: center; }
+.mermaid-caption {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: center;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Version badge */
+.version-bar {
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 20px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.version-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gc-green);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .toc-sidebar { display: none; }
+}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); transition: transform .2s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .content-area { padding: 24px 20px 60px; }
+}
+
+/* GC Footer */
+.gc-footer {
+  background: var(--gc-blue);
+  color: rgba(255,255,255,.7);
+  padding: 20px 24px;
+  font-size: 12px;
+  margin-left: var(--sidebar-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.gc-footer a { color: rgba(255,255,255,.8); }
+
+/* Print */
+@media print {
+  .gc-header, .sidebar, .toc-sidebar, .gc-footer { display: none; }
+  .main { margin: 0; }
+  .content-area { max-width: 100%; padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo, Fragment } = React;
+
+// ─── i18n ───
+const i18n = {
+  en: {
+    siteTitle: "EVA Agentic",
+    docLibrary: "Documentation Library",
+    search: "Search documentation...",
+    home: "Home",
+    onThisPage: "On this page",
+    lastUpdated: "Last updated",
+    version: "v0.4.0-preview",
+    langSwitch: "FR",
+    guides: "Guides",
+    reference: "Reference",
+    resources: "Resources",
+    frPending: "[FR translation pending]",
+    gcBrand: "Government of Canada",
+    footerNotice: "Employment and Social Development Canada — AI Centre of Enablement",
+  },
+  fr: {
+    siteTitle: "EVA Agentique",
+    docLibrary: "Bibliothèque de documentation",
+    search: "Rechercher dans la documentation...",
+    home: "Accueil",
+    onThisPage: "Sur cette page",
+    lastUpdated: "Dernière mise à jour",
+    version: "v0.4.0-aperçu",
+    langSwitch: "EN",
+    guides: "Guides",
+    reference: "Référence",
+    resources: "Ressources",
+    frPending: "[Traduction FR en attente]",
+    gcBrand: "Gouvernement du Canada",
+    footerNotice: "Emploi et Développement social Canada — Centre de facilitation en IA",
+  }
+};
+
+// ─── Navigation structure ───
+const NAV = [
+  { id: "home", label: { en: "Documentation Home", fr: "Accueil de la documentation" }, icon: "📚", section: "home" },
+  { section: "guides", label: { en: "Guides", fr: "Guides" } },
+  { id: "arch", label: { en: "Architecture & Design", fr: "Architecture et conception" }, icon: "🏗", section: "guides", badge: "new" },
+  { id: "arch-overview", label: { en: "System Overview", fr: "Vue d'ensemble du système" }, parent: "arch" },
+  { id: "arch-six-layers", label: { en: "Six-Layer Model", fr: "Modèle à six couches" }, parent: "arch" },
+  { id: "arch-pipeline", label: { en: "Ingestion Pipeline", fr: "Pipeline d'ingestion" }, parent: "arch" },
+  { id: "arch-orchestrator", label: { en: "Agent Orchestrator", fr: "Orchestrateur d'agents" }, parent: "arch" },
+  { id: "arch-principles", label: { en: "Design Principles", fr: "Principes de conception" }, parent: "arch" },
+  { id: "arch-data-model", label: { en: "Data Model & RAG", fr: "Modèle de données et RAG" }, parent: "arch" },
+  { id: "admin", label: { en: "Admin & Operations", fr: "Administration et opérations" }, icon: "⚙", section: "guides", badge: "new" },
+  { id: "admin-deploy", label: { en: "Deployment", fr: "Déploiement" }, parent: "admin" },
+  { id: "admin-workspaces", label: { en: "Workspace Management", fr: "Gestion des espaces de travail" }, parent: "admin" },
+  { id: "admin-rbac", label: { en: "RBAC & Identity", fr: "RBAC et identité" }, parent: "admin" },
+  { id: "admin-monitoring", label: { en: "Monitoring & AIOps", fr: "Surveillance et AIOps" }, parent: "admin" },
+  { id: "admin-finops", label: { en: "FinOps", fr: "FinOps" }, parent: "admin" },
+  { id: "admin-guardrails", label: { en: "Guardrails Config", fr: "Configuration des garde-fous" }, parent: "admin" },
+  { id: "user", label: { en: "End-User Guide", fr: "Guide de l'utilisateur" }, icon: "👤", section: "guides", badge: "new" },
+  { id: "user-chat", label: { en: "Using EVA Chat", fr: "Utiliser EVA Chat" }, parent: "user" },
+  { id: "user-documents", label: { en: "Document Upload", fr: "Téléversement de documents" }, parent: "user" },
+  { id: "user-workspaces", label: { en: "Workspace Booking", fr: "Réservation d'espaces" }, parent: "user" },
+  { id: "user-teams", label: { en: "Team Management", fr: "Gestion des équipes" }, parent: "user" },
+  { section: "reference", label: { en: "Reference", fr: "Référence" } },
+  { id: "ref-api", label: { en: "API Reference", fr: "Référence API" }, icon: "⟨⟩", section: "reference", badge: "draft" },
+  { id: "ref-tools", label: { en: "Tool Registry", fr: "Registre d'outils" }, icon: "🔧", section: "reference", badge: "draft" },
+  { id: "ref-security", label: { en: "Security Guide", fr: "Guide de sécurité" }, icon: "🔒", section: "reference", badge: "draft" },
+  { section: "resources", label: { en: "Resources", fr: "Ressources" } },
+  { id: "res-glossary", label: { en: "Glossary", fr: "Glossaire" }, icon: "📖", section: "resources" },
+  { id: "res-adr", label: { en: "Decision Records", fr: "Registre de décisions" }, icon: "📋", section: "resources" },
+  { id: "res-release", label: { en: "Release Notes", fr: "Notes de version" }, icon: "🏷", section: "resources" },
+];
+
+// ─── Mermaid component ───
+function Mermaid({ chart, caption }) {
+  const ref = useRef(null);
+  const idRef = useRef('m' + Math.random().toString(36).slice(2, 9));
+  useEffect(() => {
+    if (ref.current && chart) {
+      ref.current.innerHTML = '';
+      try {
+        mermaid.render(idRef.current, chart.trim()).then(({ svg }) => {
+          if (ref.current) ref.current.innerHTML = svg;
+        });
+      } catch(e) {
+        ref.current.innerHTML = '<pre style="color:red">Diagram render error</pre>';
+      }
+    }
+  }, [chart]);
+  return React.createElement('div', { className: 'mermaid-wrapper' },
+    React.createElement('div', { ref, className: 'mermaid' }),
+    caption && React.createElement('div', { className: 'mermaid-caption' }, caption)
+  );
+}
+
+// ─── Callout component ───
+function Callout({ type, title, children }) {
+  return React.createElement('div', { className: `callout callout-${type}` },
+    title && React.createElement('strong', null, type === 'critical' ? '⚠ ' + title : type === 'warn' ? '⚡ ' + title : type === 'success' ? '✓ ' + title : 'ℹ ' + title),
+    children
+  );
+}
+
+// ─── Content Pages ───
+
+function HomePage({ lang, navigate }) {
+  const t = i18n[lang];
+  const catalogItems = [
+    { id: 'arch', icon: '🏗', bg: '#E8EDF2', title: { en: 'Architecture & Design Guide', fr: 'Guide d\'architecture et conception' }, desc: { en: 'Six-layer model, agent orchestration, ingestion pipeline, design principles, data models, and RAG patterns.', fr: t.frPending }, tags: ['19 principles', '6 layers', 'Mermaid diagrams'] },
+    { id: 'admin', icon: '⚙', bg: '#E8F5E9', title: { en: 'Administrator & Operations Guide', fr: 'Guide d\'administration et opérations' }, desc: { en: 'Deployment, workspace management, RBAC, monitoring, FinOps cost attribution, guardrails configuration.', fr: t.frPending }, tags: ['Bicep IaC', 'RBAC', 'FinOps', 'OTEL'] },
+    { id: 'user', icon: '👤', bg: '#E3F2FD', title: { en: 'End-User Guide', fr: 'Guide de l\'utilisateur' }, desc: { en: 'Chat with citations, document upload and tracking, workspace booking, team management, surveys.', fr: t.frPending }, tags: ['Portal 1', 'Chat', 'Documents'] },
+    { id: 'ref-api', icon: '⟨⟩', bg: '#F3E5F5', title: { en: 'API Reference', fr: 'Référence API' }, desc: { en: 'REST endpoint specifications, request/response schemas, NDJSON streaming protocol, authentication.', fr: t.frPending }, tags: ['REST', 'NDJSON', 'Draft'] },
+    { id: 'ref-security', icon: '🔒', bg: '#FFEBEE', title: { en: 'Security Guide', fr: 'Guide de sécurité' }, desc: { en: 'ITSG-33 controls, Protected B compliance, threat model, prompt injection defense, audit trail.', fr: t.frPending }, tags: ['ITSG-33', 'Protected B', 'Draft'] },
+    { id: 'res-release', icon: '🏷', bg: '#FFF8E1', title: { en: 'Release Notes', fr: 'Notes de version' }, desc: { en: 'Version history, changelog, migration notes, known issues.', fr: t.frPending }, tags: ['v0.4.0-preview'] },
+  ];
+
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, t.docLibrary),
+    React.createElement('p', { style: { fontSize: '16px', color: 'var(--text-secondary)', marginBottom: 8 } },
+      lang === 'en'
+        ? 'Enterprise documentation for EVA Agentic — the governed, multi-step AI assistant platform built on Azure AI Foundry for Employment and Social Development Canada.'
+        : t.frPending
+    ),
+    React.createElement('p', { style: { fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: 24 } },
+      lang === 'en'
+        ? 'Aligned to the ESDC AI Reference Architecture (AIRA), the Agentic State 12-layer framework, and the EVA Foundation Technical Design & ConOps v0.4.'
+        : t.frPending
+    ),
+    React.createElement(Callout, { type: 'info', title: 'Preview Release' },
+      lang === 'en'
+        ? 'This documentation covers EVA Agentic v0.4.0-preview. Sections marked "Draft" are under active development. French translations are in progress.'
+        : t.frPending
+    ),
+    React.createElement('h2', { style: { borderBottom: 'none', marginTop: 16 } }, lang === 'en' ? 'Documentation Catalog' : 'Catalogue de documentation'),
+    React.createElement('div', { className: 'catalog-grid' },
+      catalogItems.map(item =>
+        React.createElement('div', {
+          key: item.id,
+          className: 'catalog-card',
+          onClick: () => navigate(item.id),
+          role: 'button',
+          tabIndex: 0,
+          onKeyDown: e => e.key === 'Enter' && navigate(item.id),
+          'aria-label': item.title[lang]
+        },
+          React.createElement('div', { className: 'catalog-card-icon', style: { background: item.bg } }, item.icon),
+          React.createElement('h3', null, item.title[lang]),
+          React.createElement('p', null, item.desc[lang]),
+          React.createElement('div', { className: 'card-meta' },
+            item.tags.map(tag => React.createElement('span', { key: tag, className: 'card-tag' }, tag))
+          )
+        )
+      )
+    ),
+    React.createElement('h2', null, lang === 'en' ? 'Platform at a Glance' : 'Aperçu de la plateforme'),
+    React.createElement(Mermaid, {
+      chart: `graph TB
+  subgraph "EVA Agentic Platform"
+    UI["L1 · EVA UI<br/>WCAG 2.1 AA · EN/FR"]
+    APIM["L2 · APIM Gateway<br/>Entra ID · FinOps Headers"]
+    ORCH["L3 · Agent Orchestrator<br/>ReAct Loop · Tool Registry · Memory"]
+    GUARD["L4 · Guardrails & RAI<br/>Content Safety · HITL · Audit"]
+    LLM["L5 · Azure OpenAI<br/>GPT-4o · Foundry-Managed"]
+    DATA["L6 · Knowledge & Data<br/>AI Search · Blob · Vector"]
+  end
+  UI --> APIM --> ORCH --> GUARD --> LLM
+  ORCH --> DATA
+  style UI fill:#E3F2FD,stroke:#1565C0,color:#0D47A1
+  style APIM fill:#E8EDF2,stroke:#26374A,color:#26374A
+  style ORCH fill:#FFF3E0,stroke:#E65100,color:#BF360C
+  style GUARD fill:#FFEBEE,stroke:#C62828,color:#B71C1C
+  style LLM fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20
+  style DATA fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C`,
+      caption: 'Figure 1 — EVA Agentic Six-Layer Architecture'
+    }),
+    React.createElement('h2', null, lang === 'en' ? 'Quick Links' : 'Liens rapides'),
+    React.createElement('table', null,
+      React.createElement('thead', null,
+        React.createElement('tr', null,
+          React.createElement('th', null, lang === 'en' ? 'I want to...' : 'Je veux...'),
+          React.createElement('th', null, lang === 'en' ? 'Go to' : 'Aller à')
+        )
+      ),
+      React.createElement('tbody', null,
+        [
+          [lang === 'en' ? 'Understand the system architecture' : t.frPending, 'arch', lang === 'en' ? 'Architecture Guide → System Overview' : t.frPending],
+          [lang === 'en' ? 'Deploy EVA Agentic' : t.frPending, 'admin-deploy', lang === 'en' ? 'Admin Guide → Deployment' : t.frPending],
+          [lang === 'en' ? 'Configure workspaces and RBAC' : t.frPending, 'admin-workspaces', lang === 'en' ? 'Admin Guide → Workspace Management' : t.frPending],
+          [lang === 'en' ? 'Chat with EVA and upload documents' : t.frPending, 'user-chat', lang === 'en' ? 'End-User Guide → Using EVA Chat' : t.frPending],
+          [lang === 'en' ? 'Monitor costs and set up FinOps' : t.frPending, 'admin-finops', lang === 'en' ? 'Admin Guide → FinOps' : t.frPending],
+          [lang === 'en' ? 'Review design principles' : t.frPending, 'arch-principles', lang === 'en' ? 'Architecture Guide → Design Principles' : t.frPending],
+        ].map(([task, id, dest], i) =>
+          React.createElement('tr', { key: i },
+            React.createElement('td', null, task),
+            React.createElement('td', null,
+              React.createElement('a', { href: '#', onClick: e => { e.preventDefault(); navigate(id); } }, dest)
+            )
+          )
+        )
+      )
+    ),
+    React.createElement('h2', null, lang === 'en' ? 'Reference Documents' : 'Documents de référence'),
+    React.createElement('table', null,
+      React.createElement('thead', null,
+        React.createElement('tr', null,
+          React.createElement('th', null, 'Document'),
+          React.createElement('th', null, 'Version'),
+          React.createElement('th', null, 'Status')
+        )
+      ),
+      React.createElement('tbody', null,
+        [
+          ['EVA Foundation Technical Design & ConOps', 'v0.4', 'March 2025'],
+          ['ESDC AI Reference Architecture (AIRA)', 'EARB Approved', 'Jan 29, 2025'],
+          ['Agentic State 12-Layer Framework', 'Ilves, Kilian et al.', '2025'],
+          ['EVA Foundation Business Case', 'V1', 'Marco Presta'],
+          ['EVA Foundational Requirements Matrix', 'V1', 'Ayre, Leach'],
+        ].map(([doc, ver, status], i) =>
+          React.createElement('tr', { key: i },
+            React.createElement('td', null, doc),
+            React.createElement('td', null, React.createElement('code', null, ver)),
+            React.createElement('td', null, status)
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── Architecture Guide ───
+function ArchPage({ section, lang }) {
+  const t = i18n[lang];
+  const pages = {
+    'arch': ArchOverviewSection,
+    'arch-overview': ArchOverviewSection,
+    'arch-six-layers': ArchSixLayersSection,
+    'arch-pipeline': ArchPipelineSection,
+    'arch-orchestrator': ArchOrchestratorSection,
+    'arch-principles': ArchPrinciplesSection,
+    'arch-data-model': ArchDataModelSection,
+  };
+  const Page = pages[section] || ArchOverviewSection;
+  return React.createElement(Page, { lang });
+}
+
+function ArchOverviewSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Architecture & Design Guide'),
+    React.createElement('p', null, 'EVA Agentic is a governed, multi-step agentic RAG platform that replaces the monolithic Microsoft PubSec-Info-Assistant (MSIA) with an enterprise-grade, auditable, bilingual assistant service. It runs on Azure AI Foundry within ESDC\'s existing P75 infrastructure chassis.'),
+    React.createElement(Callout, { type: 'info', title: 'Relationship to MSIA' },
+      'MSIA is the functional requirements reference — what needs to work (upload, chunk, embed, search, chat, cite). EVA Agentic reimplements every capability as governed Foundry tools with classification ceilings, data residency declarations, and full OTEL tracing. No MSIA code is ported.'
+    ),
+    React.createElement('h2', null, 'Architecture Philosophy'),
+    React.createElement('p', null, 'The platform is designed around three core tenets:'),
+    React.createElement('ol', null,
+      React.createElement('li', null, React.createElement('strong', null, 'Use cases are instances, not architectures.'), ' Whether it\'s a simple FAQ, OAS Act retrieval, EI Jurisprudence case law, or AI-assisted dashboard interpretation — the same governed pipeline serves all, configured per workspace.'),
+      React.createElement('li', null, React.createElement('strong', null, 'Data modelling drives retrieval quality.'), ' The ingestion pipeline is generic; the data model per document archetype (chunking strategy, metadata schema, entity extraction, relationship mapping) is what makes search work.'),
+      React.createElement('li', null, React.createElement('strong', null, 'Every answer carries provenance.'), ' Confidence score, retrieval path, reasoning chain, source freshness, behavioral fingerprint (model + prompt + corpus + policy versions), and full audit trail — on every single response.')
+    ),
+    React.createElement('h2', null, 'Infrastructure Context'),
+    React.createElement('p', null, 'EVA Agentic does not build parallel infrastructure. It consumes the P75 chassis:'),
+    React.createElement(Mermaid, {
+      chart: `graph LR
+  subgraph "P75 · EVA vNext Infrastructure"
+    APIM["APIM Public Edge"]
+    AOAI["Azure OpenAI<br/>gpt-5-mini · gpt-5.1"]
+    AIS["AI Search"]
+    DI["Document Intelligence"]
+    BUS["Service Bus"]
+    COSMOS["Cosmos DB"]
+    VNET["VNet · Private Endpoints"]
+    APPINS["Application Insights"]
+    ENTRA["Entra ID + JWT/JWKS"]
+  end
+  subgraph "P53 · EVA Agentic"
+    GW["API Gateway"]
+    ORCH["Agent Orchestrator"]
+    PIPE["Doc Pipeline"]
+    UI["Portal UI (×3)"]
+  end
+  subgraph "P77 · FinOps Toolkit"
+    FAPI["/v1/products/aca/*"]
+  end
+  UI --> APIM
+  GW --> APIM
+  GW --> AOAI
+  GW --> AIS
+  GW --> COSMOS
+  PIPE --> DI
+  PIPE --> AIS
+  ORCH --> AOAI
+  GW --> FAPI
+  style APIM fill:#E8EDF2,stroke:#26374A
+  style AOAI fill:#E8F5E9,stroke:#2E7D32
+  style AIS fill:#E3F2FD,stroke:#1565C0
+  style GW fill:#FFF3E0,stroke:#E65100
+  style ORCH fill:#FFF3E0,stroke:#E65100
+  style PIPE fill:#FFF3E0,stroke:#E65100
+  style UI fill:#E3F2FD,stroke:#1565C0
+  style FAPI fill:#FFF8E1,stroke:#F57F17`,
+      caption: 'Figure 2 — P53 consumes P75 infrastructure and P77 FinOps APIs'
+    }),
+    React.createElement('h2', null, 'Use Case Complexity Spectrum'),
+    React.createElement('p', null, 'The platform supports a full complexity range — same governance, audit, and cost-attribution backbone throughout:'),
+    React.createElement('table', null,
+      React.createElement('thead', null,
+        React.createElement('tr', null,
+          React.createElement('th', null, 'Complexity'),
+          React.createElement('th', null, 'Example'),
+          React.createElement('th', null, 'Pattern'),
+        )
+      ),
+      React.createElement('tbody', null,
+        [
+          ['Simplest', 'FAQ', 'Basic RAG over known content'],
+          ['Moderate', 'AssistMe (OAS Act)', 'Legislation retrieval — hierarchical chunking, cross-references'],
+          ['High', 'Jurisprudence (EI cases)', 'Case law — citation graphs, court hierarchy, Act-vs-claim mapping'],
+          ['Agentic', 'Equi\'Vision (Power BI)', 'AI-assisted dashboard interpretation — query, explain, drill down'],
+          ['Most complex', 'GovOps', 'AI-evidenced decisions: Law → Policy → Service → Decision with rule engines'],
+        ].map(([c, ex, pat], i) =>
+          React.createElement('tr', { key: i },
+            React.createElement('td', null, React.createElement('strong', null, c)),
+            React.createElement('td', null, ex),
+            React.createElement('td', null, pat),
+          )
+        )
+      )
+    ),
+    React.createElement('h2', null, 'Three-Portal System'),
+    React.createElement(Mermaid, {
+      chart: `graph TB
+  subgraph "EVA DA Management System"
+    P1["Portal 1 · Self-Service<br/>Workspace catalog, booking,<br/>team RBAC, chat, documents"]
+    P2["Portal 2 · Business Management<br/>Client onboarding, workspace<br/>assignment, interviews, central booking"]
+    P3["Portal 3 · Operations & Support<br/>FinOps · AIOps · LiveOps · DevOps"]
+  end
+  P1 --- GW["API Gateway<br/>Shared backend"]
+  P2 --- GW
+  P3 --- GW
+  style P1 fill:#E3F2FD,stroke:#1565C0
+  style P2 fill:#E8F5E9,stroke:#2E7D32
+  style P3 fill:#FFF3E0,stroke:#E65100
+  style GW fill:#F5F5F5,stroke:#616161`,
+      caption: 'Figure 3 — Three portals, one API gateway'
+    }),
+  );
+}
+
+function ArchSixLayersSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Six-Layer Architecture Model'),
+    React.createElement('p', null, 'EVA Agentic is structured as six distinct layers, each with clear responsibilities, security boundaries, and observability surfaces. Azure AI Foundry governs Layers 3 through 5.'),
+    React.createElement(Mermaid, {
+      chart: `graph TB
+  L1["<b>L1 · EVA UI</b><br/>WCAG 2.1 AA · Bilingual EN/FR<br/>Agentic step indicators · Screen-reader announced<br/>GCDS + shadcn/ui + Tailwind + react-i18next"]
+  L2["<b>L2 · APIM Gateway</b><br/>Entra ID SSO · FinOps headers<br/>x-app-id · x-user-group · x-classification<br/>Rate limits · SCED/VNet only"]
+  L3["<b>L3 · Agent Orchestrator</b><br/>Azure AI Foundry Agent Service<br/>ReAct loop + step reflect<br/>Tool Registry · Memory (Redis/Cosmos/AI Search)"]
+  L4["<b>L4 · Guardrails & Responsible AI</b><br/>Content Safety · Prompt Shield<br/>Grounding Enforcement · Citation Requirement<br/>HITL checkpoints (AICM L2+) · Audit Trail"]
+  L5["<b>L5 · Azure OpenAI</b><br/>GPT-4o default · Managed via Foundry<br/>Model Registry · Deployment catalog"]
+  L6["<b>L6 · Knowledge & Data</b><br/>AI Search (hybrid: keyword + vector + semantic)<br/>Blob Storage · Vector Index<br/>ESDC data sources"]
+  L1 --> L2 --> L3
+  L3 --> L4 --> L5
+  L3 --> L6
+  style L1 fill:#E3F2FD,stroke:#1565C0,color:#0D47A1
+  style L2 fill:#E8EDF2,stroke:#26374A,color:#26374A
+  style L3 fill:#FFF3E0,stroke:#E65100,color:#BF360C
+  style L4 fill:#FFEBEE,stroke:#C62828,color:#B71C1C
+  style L5 fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20
+  style L6 fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C`,
+      caption: 'Figure 4 — Six-Layer Architecture (detailed)'
+    }),
+    React.createElement('h2', null, 'Layer 1 — EVA UI'),
+    React.createElement('p', null, 'The presentation layer serves three portals (self-service, business management, operations) built on React 19 + Vite 6 + TypeScript 5.7. The UI stack combines GC Design System mandatory chrome (header, footer, nav, language toggle) with shadcn/ui + Radix UI for application components, styled with Tailwind CSS v4 using GC design tokens as CSS variables.'),
+    React.createElement('p', null, 'All strings are externalized via react-i18next with EN/FR JSON catalogs. Accessibility is baseline GCDS plus axe-core automated testing and screen reader verification — WCAG 2.1 AA floor, EN 301 549 target. Agentic step indicators are screen-reader-announced via ARIA live regions.'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Layer'), React.createElement('th', null, 'Technology')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['GC mandatory chrome', '@cdssnc/gcds-components-react'],
+          ['Application components', 'shadcn/ui + Radix UI'],
+          ['Styling', 'Tailwind CSS v4 + GC design tokens'],
+          ['Charts', 'Recharts'],
+          ['i18n', 'react-i18next + {en,fr}.json'],
+          ['Auth', '@azure/msal-react (Entra ID SSO)'],
+          ['Framework', 'React 19 + Vite 6 + TypeScript 5.7'],
+        ].map(([k, v], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, k)),
+          React.createElement('td', null, React.createElement('code', null, v)),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Layer 2 — APIM Gateway'),
+    React.createElement('p', null, 'All traffic between UI and backend flows through Azure API Management. APIM enforces Entra ID SSO validation, rate limiting, and mandatory FinOps cost-attribution headers on every request. No direct Azure OpenAI calls are permitted — APIM is the single enforcement point.'),
+    React.createElement('p', null, 'Required headers on every AI call:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Header'), React.createElement('th', null, 'Purpose')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['x-app-id', 'Application/workspace identifier for cost attribution'],
+          ['x-user-group', 'Entra ID group for RBAC enforcement'],
+          ['x-classification', 'Data classification ceiling (Protected B or lower)'],
+          ['x-correlation-id', 'End-to-end request correlation for OTEL tracing'],
+        ].map(([h, p], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, h)),
+          React.createElement('td', null, p),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Layer 3 — Agent Orchestrator'),
+    React.createElement('p', null, 'The orchestration layer runs on Azure AI Agent Service (Foundry-managed). It implements a ReAct (Reason + Act) loop where the agent plans steps, executes tools, reflects on results, and iterates until the query is resolved or escalation is triggered.'),
+    React.createElement('p', null, 'Key sub-components: the Planner (ReAct loop with step reflection), the Tool Registry (every tool declares classification ceiling, data residency, bilingual support, HITL flag), and Memory (Redis for session state, Cosmos DB for conversation history, AI Search vector store for long-term context).'),
+    React.createElement('h2', null, 'Layer 4 — Guardrails & Responsible AI'),
+    React.createElement('p', null, 'Nine guardrail modules enforce responsible AI policies at runtime:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Module'), React.createElement('th', null, 'Function')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['ConfidenceScorer', 'Computes 0–1 confidence from retrieval relevance, source coverage, grounding quality'],
+          ['GroundingEnforcer', 'Ensures answers are grounded in retrieved sources — no unsupported claims'],
+          ['PromptShield', 'Detects and blocks prompt injection, jailbreak, and adversarial inputs'],
+          ['EscalationEngine', 'Routes to auto-resolve / flagged-for-review / requires-human based on confidence'],
+          ['FreshnessChecker', 'Validates source currency; discloses staleness when sources exceed age threshold'],
+          ['DegradationManager', 'Circuit breakers per dependency; graceful fallback hierarchy'],
+          ['AuditLogger', 'Logs tool name, input hash, latency, output hash per agent step'],
+          ['ContentSafety', 'Azure AI Content Safety integration — filters harmful content'],
+          ['CitationRequirement', 'Enforces that every factual claim maps to a retrieved source'],
+        ].map(([m, f], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, m)),
+          React.createElement('td', null, f),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Layer 5 — Azure OpenAI'),
+    React.createElement('p', null, 'Model inference is managed via Azure AI Foundry with a model registry that supports admin enable/disable, parameter overrides, and per-workspace assignment. GPT-4o is the default deployment. All calls route through APIM (Layer 2) for cost attribution and audit.'),
+    React.createElement('h2', null, 'Layer 6 — Knowledge & Data'),
+    React.createElement('p', null, 'The knowledge layer uses Azure AI Search with hybrid retrieval: BM25 keyword search + HNSW vector search + semantic reranking. Each workspace gets a dedicated index with workspace-scoped access control. Document storage uses Azure Blob with workspace-scoped containers.'),
+  );
+}
+
+function ArchPipelineSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Ingestion Pipeline'),
+    React.createElement('p', null, 'The document ingestion pipeline transforms uploaded files into searchable, chunked, embedded content in Azure AI Search. Each stage is a governed Foundry tool with OTEL tracing, classification ceiling declarations, and audit logging.'),
+    React.createElement(Mermaid, {
+      chart: `graph LR
+  UP["📄 Upload<br/>Blob trigger"] --> DET["🔍 Detect<br/>Archetype routing"]
+  DET --> |PDF| PDF["📋 PDF Extract<br/>Document Intelligence"]
+  DET --> |DOCX/TXT/etc| LAY["📐 Layout Parse<br/>Format extraction"]
+  DET --> |Image| IMG["🖼 Image Enrich<br/>Vision + OCR"]
+  PDF --> CHK["✂ Chunk<br/>Strategy per archetype"]
+  LAY --> CHK
+  IMG --> CHK
+  CHK --> ENR["🔬 Enrich<br/>Entities · Key phrases<br/>Language detect · Translate"]
+  ENR --> EMB["📊 Embed<br/>Azure OpenAI via APIM"]
+  EMB --> IDX["🗂 Index<br/>AI Search (hybrid)"]
+  IDX --> RDY["✅ Ready<br/>Queryable"]
+  style UP fill:#E3F2FD,stroke:#1565C0
+  style DET fill:#E8EDF2,stroke:#26374A
+  style PDF fill:#FFF3E0,stroke:#E65100
+  style LAY fill:#FFF3E0,stroke:#E65100
+  style IMG fill:#FFF3E0,stroke:#E65100
+  style CHK fill:#F3E5F5,stroke:#6A1B9A
+  style ENR fill:#E8F5E9,stroke:#2E7D32
+  style EMB fill:#E8F5E9,stroke:#2E7D32
+  style IDX fill:#E3F2FD,stroke:#1565C0
+  style RDY fill:#E8F5E9,stroke:#2E7D32`,
+      caption: 'Figure 5 — Document ingestion pipeline stages'
+    }),
+    React.createElement('h2', null, 'Pipeline Stages'),
+    React.createElement('h3', null, '1. File Detection & Routing'),
+    React.createElement('p', null, 'When a file lands in blob storage, the file_uploaded handler detects the file type and routes it to the appropriate extraction path. Unlike MSIA which routes purely by extension, EVA Agentic performs archetype detection — determining not just file format but document type (legislation, case law, policy, general) to select the optimal processing strategy.'),
+    React.createElement('h3', null, '2. Extraction'),
+    React.createElement('p', null, 'PDF extraction uses Azure Document Intelligence (Form Recognizer) behind a factory abstraction — the extraction engine is configurable per workspace. Non-PDF formats (DOCX, TXT, HTML, CSV, etc.) use layout parsing. Both produce a structured document map with paragraph roles (title, section heading, body text, table), page numbers, and table HTML.'),
+    React.createElement('h3', null, '3. Chunking'),
+    React.createElement('p', null, 'Four pluggable chunking strategies, selected per workspace archetype configuration:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Strategy'), React.createElement('th', null, 'Use Case'), React.createElement('th', null, 'Behavior')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['DefaultChunking', 'General documents', 'Token-based (cl100k_base), section-aware splitting, sentence-boundary fallback, table header preservation across pages'],
+          ['LegislationChunking', 'Acts, regulations', 'Hierarchy-aware: preserves Part → Division → Section → Subsection structure. Cross-reference annotations retained.'],
+          ['CaseLawChunking', 'Tribunal/court decisions', 'Citation-boundary aware. Preserves case header, disposition, reasoning sections. Citation graph metadata extracted.'],
+          ['TableParser', 'Tabular content', 'HTML table extraction with header detection, rowSpan/colSpan support, multi-page header tracking.'],
+        ].map(([s, u, b], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, s)),
+          React.createElement('td', null, u),
+          React.createElement('td', null, b),
+        ))
+      )
+    ),
+    React.createElement('h3', null, '4. Enrichment & Embedding'),
+    React.createElement('p', null, 'Chunks are enriched with language detection, translation (if needed), entity recognition, and key phrase extraction. Enrichment results become part of the chunk metadata and provenance record. Embeddings are generated via Azure OpenAI (through APIM for cost attribution), then batch-uploaded to AI Search (200 per batch).'),
+    React.createElement('h3', null, '5. Indexing'),
+    React.createElement('p', null, 'The final index entry in AI Search contains: content text, content vector (HNSW with cosine similarity), file metadata (name, title, section, pages), workspace_id for scoping, freshness metadata (last_verified, last_updated), and provenance links (trace_id from the ingestion OTEL trace).'),
+    React.createElement(Callout, { type: 'info', title: 'MSIA Comparison' },
+      'MSIA uses a queue-based architecture with separate Azure Functions per stage. EVA Agentic reimplements the same functional pipeline but with OTEL spans on every stage, circuit breakers (Principle 4), archetype-driven chunking, and full provenance artifacts. The retry pattern (exponential backoff with max requeue) is preserved but wrapped in circuit breaker logic.'
+    ),
+  );
+}
+
+function ArchOrchestratorSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Agent Orchestrator'),
+    React.createElement('p', null, 'The orchestrator implements a ReAct (Reason + Act) loop on Azure AI Agent Service. For each user query, the agent plans its approach, executes tools from the registry, evaluates results, and iterates until the answer is grounded, confidence-scored, and citation-backed.'),
+    React.createElement(Mermaid, {
+      chart: `sequenceDiagram
+  participant U as User
+  participant GW as API Gateway
+  participant O as Orchestrator
+  participant TR as Tool Registry
+  participant G as Guardrails
+  participant S as AI Search
+  participant M as Azure OpenAI
+
+  U->>GW: POST /chat (NDJSON stream)
+  GW->>G: PromptShield check
+  G-->>GW: Pass / Block
+  GW->>O: Query + UserContext + Workspace
+
+  loop ReAct Loop
+    O->>M: Plan next step
+    M-->>O: Tool call decision
+    O->>TR: Execute tool (e.g., search)
+    TR->>S: Hybrid retrieval
+    S-->>TR: Ranked results
+    TR-->>O: Tool result + OTEL span
+    O->>O: Reflect on results
+  end
+
+  O->>G: GroundingEnforcer
+  O->>G: ConfidenceScorer
+  O->>G: FreshnessChecker
+  O->>G: EscalationEngine
+  O->>M: Generate grounded answer
+  M-->>O: Streamed response
+  O-->>GW: NDJSON events
+  GW-->>U: Stream (content + steps + provenance)`,
+      caption: 'Figure 6 — ReAct orchestration sequence'
+    }),
+    React.createElement('h2', null, 'NDJSON Streaming Protocol'),
+    React.createElement('p', null, 'Chat responses stream as newline-delimited JSON events. Each event has a type field and event-specific payload:'),
+    React.createElement('pre', null, React.createElement('code', null,
+`{"type":"agent_step","data":{"step":"query_rewrite","input":"...","output":"..."}}
+{"type":"agent_step","data":{"step":"search","tool":"hybrid_retrieval","results":5}}
+{"type":"content","data":{"delta":"The Old Age Security Act provides..."}}
+{"type":"content","data":{"delta":" benefits to individuals who..."}}
+{"type":"citations","data":[{"id":"c1","title":"OAS Act s.3","page":12,"score":0.94}]}
+{"type":"provenance_complete","data":{
+  "correlation_id":"uuid",
+  "confidence":0.87,
+  "sources_consulted":8,
+  "sources_cited":3,
+  "freshness":{"oldest_source":"2025-11-20","status":"current"},
+  "behavioral_fingerprint":{"model":"gpt-4o-2025-01","prompt_version":"v2.3","corpus_snapshot":"2026-04-01"},
+  "delegation_chain":["orchestrator","search_tool","grounding_enforcer"],
+  "trace_id":"otel-span-id"
+}}`
+    )),
+    React.createElement('h2', null, 'Tool Registry'),
+    React.createElement('p', null, 'Every tool must declare at registration:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Field'), React.createElement('th', null, 'Requirement')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['classification_ceiling', 'Protected B or lower — determines what data the tool may access'],
+          ['data_residency', 'Canada Central / Canada East only — hard constraint'],
+          ['bilingual_support', 'Yes/No — non-bilingual tools auto-route through translation'],
+          ['hitl_required', 'Boolean — triggers HITL checkpoint when tool is invoked for AICM L2+ workspaces'],
+        ].map(([f, r], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, f)),
+          React.createElement('td', null, r),
+        ))
+      )
+    ),
+    React.createElement(Callout, { type: 'critical', title: 'No Shadow Tooling' },
+      'New tools go through change advisory before registration. Unregistered tools cannot be invoked by the orchestrator. This is enforced at the Foundry Agent Service level.'
+    ),
+  );
+}
+
+function ArchPrinciplesSection({ lang }) {
+  const principles = [
+    { num: 1, name: 'Forensic-Grade Audit Trail', src: 'Agentic State', desc: 'Every agent action logs: subject, actor, delegation chain, purpose, resource accessed, policy decision. OTEL-compatible.' },
+    { num: 2, name: 'Compliance-as-Code', src: 'Agentic State', desc: 'TBS/ESDC rules as executable policy at runtime, not documentation.' },
+    { num: 3, name: 'Agent Identity & Scoped Authority', src: 'Agentic State', desc: 'Each agent/tool gets distinct identity with ephemeral, auditable permissions. No shared service accounts.' },
+    { num: 4, name: 'Human Escalation Tiers', src: 'Agentic State', desc: 'Auto-resolve → flagged-for-review → requires-human. Confidence-driven, not blanket HITL.' },
+    { num: 5, name: 'Outcome-Based FinOps', src: 'Agentic State', desc: 'Resolution rate, time-to-answer, citation accuracy alongside consumption cost.' },
+    { num: 6, name: 'Data Provenance', src: 'Agentic State', desc: 'Every response correlates to source documents, agent steps, policy decisions, and delegation chain.' },
+    { num: 7, name: 'Proactive over Reactive', src: 'Agentic State', desc: 'Push-based anticipatory workflows, not just query-response.' },
+    { num: 8, name: 'Confidence Scoring & Disclosure', src: 'EVA Addition', desc: '0–1 confidence from retrieval relevance, source coverage, grounding quality. Surfaced to user, feeds escalation, logged in audit.' },
+    { num: 9, name: 'Explainability & Reasoning Transparency', src: 'EVA Addition', desc: 'Retrieval path visibility, reasoning chain, negative evidence, two-layer detail (user + auditor).' },
+    { num: 10, name: 'Temporal Validity & Source Freshness', src: 'EVA Addition', desc: 'Mandatory last-verified dates, freshness-aware ranking, staleness disclosure, corpus health monitoring.' },
+    { num: 11, name: 'Graceful Degradation', src: 'EVA Addition', desc: 'Fallback hierarchy: full RAG → partial + disclosure → cached → "contact us". No silent hallucination.' },
+    { num: 12, name: 'Multi-Agent Conflict Resolution', src: 'EVA Addition', desc: 'Detect conflicting answers, surface with attribution, arbitrate by authority hierarchy.' },
+    { num: 13, name: 'Feedback Loops & Continuous Improvement', src: 'EVA Addition', desc: 'Correction capture, retrieval quality feedback, confidence calibration, source quality scoring.' },
+    { num: 14, name: 'Version Control & Rollback', src: 'EVA Addition', desc: 'Behavioral fingerprint per response. Change tracking. A/B testing. Regression detection.' },
+    { num: 15, name: 'Contextual Adaptation Beyond Language', src: 'EVA Addition', desc: 'Adaptive complexity, cognitive accessibility, channel-appropriate rendering, Indigenous language awareness.' },
+    { num: 16, name: 'Sandbox & Simulation Testing', src: 'EVA Addition', desc: 'Production-like sandbox, red-teaming, scenario-based regression, bias audits, pre-deployment gate.' },
+    { num: 17, name: 'Bilingual, Accessible, Culture-Ready', src: 'Agentic State', desc: 'EN/FR bilingual and WCAG 2.1 AA by default. Design for orchestrators, not processors.' },
+    { num: 18, name: 'Privacy-by-Design with Data Minimization', src: 'Agentic State', desc: 'Agents access only what needed. Purpose limitation enforced programmatically.' },
+    { num: 19, name: 'Security for Autonomy', src: 'Agentic State', desc: 'Agent-specific threat models: prompt injection, impersonation, privilege escalation, cascading failures.' },
+  ];
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Design Principles'),
+    React.createElement('p', null, 'EVA Agentic is governed by 19 design principles drawn from two sources: 10 from the Agentic State 12-layer framework (Ilves, Kilian et al., 2025) adapted for EVA, and 9 additional principles that fill practical gaps discovered when building RAG agents in a government setting.'),
+    React.createElement(Callout, { type: 'info', title: 'Architectural Invariants' },
+      'These are not Phase 5 bolt-ons. They are architectural invariants from Phase 0. Every answer carries: confidence score, explainability, source freshness, behavioral fingerprint, and full provenance chain.'
+    ),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', { style: { width: 30 } }, '#'),
+        React.createElement('th', null, 'Principle'),
+        React.createElement('th', { style: { width: 100 } }, 'Source'),
+        React.createElement('th', null, 'Description'),
+      )),
+      React.createElement('tbody', null,
+        principles.map(p => React.createElement('tr', { key: p.num },
+          React.createElement('td', null, p.num),
+          React.createElement('td', null, React.createElement('strong', null, p.name)),
+          React.createElement('td', null, React.createElement('span', { className: `card-tag`, style: { background: p.src === 'EVA Addition' ? '#E8F5E9' : '#E3F2FD' } }, p.src)),
+          React.createElement('td', null, p.desc),
+        ))
+      )
+    ),
+  );
+}
+
+function ArchDataModelSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Data Model & RAG Architecture'),
+    React.createElement('h2', null, 'Multi-Index Architecture'),
+    React.createElement('p', null, 'EVA Agentic uses one AI Search service with N workspace-scoped indexes. Each workspace gets a dedicated index for content, plus access to shared metadata in Cosmos DB.'),
+    React.createElement('pre', null, React.createElement('code', null,
+`AI Search Service (single instance)
+├── eva-workspace-{workspace_id}-index    # Per-workspace content
+│   Fields: id, content, contentVector, file_name, title,
+│           section, pages, workspace_id, data_classification,
+│           last_verified, source_quality_score, chunk_strategy,
+│           language, enrichment_entities, enrichment_keyphrases
+│   Vector: HNSW (cosine, 1536 dimensions)
+│   Scoring: BM25 + vector + semantic reranker
+└── eva-shared-metadata-index             # Cross-workspace catalog`)),
+    React.createElement('h2', null, 'RAG Retrieval Modes'),
+    React.createElement('p', null, 'Three retrieval modes inherited from MSIA, enhanced with freshness and confidence:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Mode'), React.createElement('th', null, 'Method'), React.createElement('th', null, 'When Used')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Hybrid Semantic', 'BM25 keyword + HNSW vector + semantic reranker', 'Default — best quality for most queries'],
+          ['Pure Vector', 'HNSW vector search only', 'Semantic similarity queries, concept matching'],
+          ['BM25 Keyword', 'Traditional keyword search', 'Fallback when vector index unavailable (degradation)'],
+        ].map(([m, me, w], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, m)),
+          React.createElement('td', null, me),
+          React.createElement('td', null, w),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Provenance Record Schema'),
+    React.createElement('p', null, 'Every response includes a provenance record that enables forensic audit:'),
+    React.createElement('pre', null, React.createElement('code', null,
+`interface ProvenanceRecord {
+  correlation_id: string;          // End-to-end request correlation
+  delegation_chain: string[];      // Ordered list of agents/tools invoked
+  sources_consulted: number;       // Total sources retrieved
+  sources_cited: number;           // Sources actually used in answer
+  sources_excluded: string[];      // Sources retrieved but not used (negative evidence)
+  policies_applied: string[];      // Compliance rules evaluated
+  confidence: number;              // 0–1 composite score
+  confidence_factors: {
+    retrieval_relevance: number;   // How relevant were retrieved sources
+    source_coverage: number;       // How well sources cover the query
+    grounding_quality: number;     // How grounded is the answer in sources
+  };
+  freshness: {
+    oldest_source: string;         // ISO date of oldest cited source
+    status: 'current' | 'aging' | 'stale';
+  };
+  behavioral_fingerprint: {
+    model_version: string;         // e.g., "gpt-4o-2025-01"
+    prompt_version: string;        // e.g., "v2.3"
+    corpus_snapshot: string;       // ISO date of index snapshot
+    active_policies: string[];     // Policy rules in effect
+  };
+  trace_id: string;                // OTEL trace ID for drill-down
+}`)),
+    React.createElement('h2', null, 'Cosmos DB Collections'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Container'), React.createElement('th', null, 'Partition Key'), React.createElement('th', null, 'Purpose')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['workspaces', '/workspace_id', 'Workspace configuration, archetype settings, feature flags'],
+          ['bookings', '/workspace_id', 'Workspace booking lifecycle (requested → active → expired)'],
+          ['documents', '/workspace_id', 'Document metadata, processing status, pipeline trace links'],
+          ['teams', '/workspace_id', 'Team membership, RBAC assignments (reader/contributor/admin)'],
+          ['surveys', '/workspace_id', 'Entry/exit survey responses for workspace engagement'],
+          ['telemetry', '/correlation_id', 'Request-level telemetry, cost attribution, outcome metrics'],
+        ].map(([c, pk, p], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, c)),
+          React.createElement('td', null, React.createElement('code', null, pk)),
+          React.createElement('td', null, p),
+        ))
+      )
+    ),
+  );
+}
+
+// ─── Admin Guide ───
+function AdminPage({ section, lang }) {
+  const pages = {
+    'admin': AdminOverviewSection,
+    'admin-deploy': AdminDeploySection,
+    'admin-workspaces': AdminWorkspacesSection,
+    'admin-rbac': AdminRbacSection,
+    'admin-monitoring': AdminMonitoringSection,
+    'admin-finops': AdminFinopsSection,
+    'admin-guardrails': AdminGuardrailsSection,
+  };
+  const Page = pages[section] || AdminOverviewSection;
+  return React.createElement(Page, { lang });
+}
+
+function AdminOverviewSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Administrator & Operations Guide'),
+    React.createElement('p', null, 'This guide covers deployment, configuration, workspace management, identity and access control, monitoring, FinOps cost attribution, and guardrails configuration for EVA Agentic.'),
+    React.createElement(Callout, { type: 'warn', title: 'Audience' },
+      'This guide is for AICoE administrators (Portal 2 — Business Management) and operations staff (Portal 3 — Operations & Support). End users should refer to the End-User Guide.'
+    ),
+    React.createElement('h2', null, 'Operations Disciplines'),
+    React.createElement('p', null, 'Portal 3 covers four operations disciplines:'),
+    React.createElement(Mermaid, {
+      chart: `graph TB
+  subgraph "Portal 3 · Operations & Support"
+    FO["FinOps<br/>Cost attribution · Chargeback<br/>Budget monitoring · Anomaly detection"]
+    AO["AIOps<br/>Model performance · RAG quality<br/>Agent tracing · Drift detection"]
+    LO["LiveOps<br/>Service health · Incident mgmt<br/>SLA tracking · Capacity planning"]
+    DO["DevOps<br/>CI/CD · IaC provisioning<br/>Deployment mgmt · Env promotion"]
+  end
+  FO --- P75["/v1/products/aca/*<br/>P77 FinOps APIs"]
+  AO --- OTEL["OpenTelemetry<br/>Application Insights"]
+  LO --- AZURE["Azure Monitor<br/>Health probes"]
+  DO --- ADO["Azure DevOps<br/>Pipelines"]
+  style FO fill:#FFF8E1,stroke:#F57F17
+  style AO fill:#F3E5F5,stroke:#6A1B9A
+  style LO fill:#FFEBEE,stroke:#C62828
+  style DO fill:#E3F2FD,stroke:#1565C0`,
+      caption: 'Figure 7 — Four operations disciplines in Portal 3'
+    }),
+  );
+}
+
+function AdminDeploySection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Deployment'),
+    React.createElement('h2', null, 'Prerequisites'),
+    React.createElement('p', null, 'EVA Agentic deploys on the P75 infrastructure chassis. Before deploying P53 components, ensure:'),
+    React.createElement('ul', null,
+      React.createElement('li', null, 'P75 infrastructure is provisioned (APIM, Azure OpenAI, AI Search, Cosmos DB, VNet)'),
+      React.createElement('li', null, 'Entra ID app registrations are configured (or AUTH_MODE=demo for development)'),
+      React.createElement('li', null, 'Azure AI Foundry Hub is created in Canada Central with private endpoint'),
+      React.createElement('li', null, 'P77 FinOps Toolkit is deployed (for FinOps Command Center integration)'),
+    ),
+    React.createElement('h2', null, 'Infrastructure as Code'),
+    React.createElement('p', null, 'P53 Bicep modules are in the infra/ directory:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Module'), React.createElement('th', null, 'Resources Created')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['infra/modules/apim-product/', 'APIM product registration, subscription, rate-limit policies, JWT validation'],
+          ['infra/modules/cosmos/', 'Cosmos DB containers (workspaces, bookings, documents, surveys, teams, telemetry) with TTL and indexing'],
+          ['infra/modules/identity/', 'Managed identities for api-gateway and doc-pipeline services'],
+          ['infra/modules/storage/', 'Blob storage for documents with workspace-scoped containers'],
+        ].map(([m, r], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, m)),
+          React.createElement('td', null, r),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Environment Configuration'),
+    React.createElement('pre', null, React.createElement('code', null,
+`# Core
+AUTH_MODE=demo|production          # demo for dev, production for Entra ID SSO
+AZURE_OPENAI_ENDPOINT=https://...  # Via APIM, never direct
+AZURE_SEARCH_ENDPOINT=https://...
+COSMOS_DB_ENDPOINT=https://...
+
+# FinOps
+APIM_SUBSCRIPTION_KEY=...
+FINOPS_API_BASE=https://.../v1/products/aca
+
+# Observability
+OTEL_EXPORTER_OTLP_ENDPOINT=...
+APPLICATIONINSIGHTS_CONNECTION_STRING=...
+
+# Feature flags (per workspace, not global)
+DEFAULT_CHUNKING_STRATEGY=default|legislation|caselaw
+DEFAULT_RETRIEVAL_MODE=hybrid|vector|keyword`)),
+    React.createElement('h2', null, 'Docker Compose (Development)'),
+    React.createElement('p', null, 'Local development uses docker-compose.yml with Azurite (storage emulator) and Jaeger (OTEL trace viewer):'),
+    React.createElement('pre', null, React.createElement('code', null,
+`make dev     # Start all services + Azurite + Jaeger
+make test    # Run all test suites
+make lint    # Lint Python + TypeScript`)),
+  );
+}
+
+function AdminWorkspacesSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Workspace Management'),
+    React.createElement('p', null, 'Workspaces are the fundamental unit of organization in EVA Agentic. Each workspace represents a distinct EVA DA index with its own document corpus, team membership, RBAC configuration, chunking strategy, and cost attribution.'),
+    React.createElement('h2', null, 'Workspace Types'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Type'), React.createElement('th', null, 'Description'), React.createElement('th', null, 'Use Case')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Standard', 'Default workspace with standard quotas and shared compute', 'Most EVA DA instances'],
+          ['Premium', 'Dedicated compute, higher quotas, priority support', 'High-volume or latency-sensitive workspaces'],
+          ['Sandbox', 'Isolated testing environment, no production data access', 'Development, red-teaming, regression testing'],
+          ['Restricted', 'Enhanced access controls, additional audit logging', 'Sensitive data (e.g., HR, legal)'],
+          ['Shared', 'Read-only content shared across multiple workspaces', 'Common reference materials (legislation, policies)'],
+        ].map(([t, d, u], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, t)),
+          React.createElement('td', null, d),
+          React.createElement('td', null, u),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Workspace Lifecycle'),
+    React.createElement(Mermaid, {
+      chart: `stateDiagram-v2
+  [*] --> Requested: Client submits booking
+  Requested --> Approved: Admin approves
+  Requested --> Rejected: Admin rejects
+  Approved --> Provisioning: Index + storage created
+  Provisioning --> Active: Ready for use
+  Active --> Suspended: Policy violation / non-payment
+  Active --> Decommissioning: Exit survey completed
+  Suspended --> Active: Issue resolved
+  Decommissioning --> Archived: Data retained per policy
+  Archived --> [*]: Retention expired`,
+      caption: 'Figure 8 — Workspace lifecycle state machine'
+    }),
+  );
+}
+
+function AdminRbacSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'RBAC & Identity'),
+    React.createElement('h2', null, 'Role Model'),
+    React.createElement('p', null, 'Access control is enforced at APIM and Foundry Hub level via Entra ID groups:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Role'), React.createElement('th', null, 'Blob Storage'), React.createElement('th', null, 'Vector Index'), React.createElement('th', null, 'Portal Access')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Admin', 'Full control', 'Full control + Foundry Hub config', 'P1, P2, P3'],
+          ['Contributor', 'Upload + manage', 'Manage contributions', 'P1'],
+          ['Reader', 'Read/query only', 'View only (default for end users)', 'P1'],
+        ].map(([r, b, v, p], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, r)),
+          React.createElement('td', null, b),
+          React.createElement('td', null, v),
+          React.createElement('td', null, p),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Authentication Modes'),
+    React.createElement('p', null, 'The API gateway supports two authentication modes, switchable via environment variable:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Mode'), React.createElement('th', null, 'Provider'), React.createElement('th', null, 'Use')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['demo', 'DemoProvider — pre-configured personas, no real auth', 'Development, demos, testing'],
+          ['production', 'EntraProvider — JWT validation, Entra ID group claims', 'Production deployment'],
+        ].map(([m, p, u], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, m)),
+          React.createElement('td', null, p),
+          React.createElement('td', null, u),
+        ))
+      )
+    ),
+    React.createElement(Callout, { type: 'info', title: 'UserContext Interface' },
+      'Both providers produce the same UserContext object (user_id, email, role, groups, workspace_grants, classification). Downstream services are provider-agnostic — only the auth middleware knows which provider is active.'
+    ),
+  );
+}
+
+function AdminMonitoringSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Monitoring & AIOps'),
+    React.createElement('h2', null, 'Observability Stack'),
+    React.createElement('p', null, 'Every agent step generates OTEL spans. The observability stack combines Azure-native tooling with Foundry tracing:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Layer'), React.createElement('th', null, 'Tool'), React.createElement('th', null, 'What It Captures')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Distributed Tracing', 'OpenTelemetry → Application Insights', 'Every tool call, pipeline stage, Azure service call as a span'],
+          ['Agent Tracing', 'Azure AI Foundry Tracing', 'Per-run agent execution: steps, tool calls, token usage, latency'],
+          ['Metrics', 'Application Insights + Cosmos telemetry', 'Request volume, latency p50/p95/p99, error rates, token consumption'],
+          ['Logging', 'Azure Log Analytics', 'Anonymized request/response logs (no PII — AUD02/AUD05)'],
+          ['RAG Quality', 'Foundry Evaluations', 'Groundedness, relevance, coherence, citation accuracy per workspace'],
+        ].map(([l, t, w], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, l)),
+          React.createElement('td', null, t),
+          React.createElement('td', null, w),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Logging Requirements'),
+    React.createElement(Callout, { type: 'critical', title: 'Audit Compliance' },
+      'Every agent step must log: tool name, input hash, latency, output hash. Dual authentication for log access (Entra ID + special permissions). Daily incremental backups. Weekly log review (AUD01). No PII in logs (AUD02/AUD05).'
+    ),
+  );
+}
+
+function AdminFinopsSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'FinOps'),
+    React.createElement('p', null, 'EVA Agentic\'s FinOps model extends beyond consumption tracking to outcome-based cost attribution. The FinOps Command Center in Portal 3 consumes P77 FinOps Toolkit APIs — it does not rebuild them.'),
+    React.createElement('h2', null, 'Cost Attribution Flow'),
+    React.createElement(Mermaid, {
+      chart: `graph LR
+  REQ["Request"] --> APIM["APIM<br/>Injects headers"]
+  APIM --> |"x-app-id<br/>x-user-group<br/>x-classification"| GW["API Gateway"]
+  GW --> AOAI["Azure OpenAI<br/>Metered call"]
+  AOAI --> COST["Azure Cost Export<br/>FOCUS 1.2"]
+  COST --> P77["P77 FinOps Toolkit<br/>/v1/products/aca/*"]
+  P77 --> DASH["FinOps Dashboard<br/>Portal 3"]
+  style APIM fill:#E8EDF2,stroke:#26374A
+  style P77 fill:#FFF8E1,stroke:#F57F17
+  style DASH fill:#FFF3E0,stroke:#E65100`,
+      caption: 'Figure 9 — FinOps cost attribution chain'
+    }),
+    React.createElement('h2', null, 'Chargeback Model'),
+    React.createElement('p', null, 'Costs are attributed at the workspace level via APIM headers. Each AI call carries x-app-id (workspace identifier) enabling per-workspace cost rollup, budget monitoring, and anomaly detection. The P77 toolkit provides the extraction pipeline (FOCUS 1.2-preview format), executive metrics contract, and waste score algorithm.'),
+  );
+}
+
+function AdminGuardrailsSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Guardrails Configuration'),
+    React.createElement('p', null, 'Guardrails are configured per workspace. Each module can be enabled/disabled and has configurable thresholds:'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Guardrail'), React.createElement('th', null, 'Config Parameters'), React.createElement('th', null, 'Default')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['ConfidenceScorer', 'Weights for retrieval_relevance, source_coverage, grounding_quality', '0.35 / 0.30 / 0.35'],
+          ['EscalationEngine', 'Confidence thresholds for auto/review/human tiers', '> 0.7 auto, 0.4–0.7 review, < 0.4 human'],
+          ['FreshnessChecker', 'Max source age before staleness warning (days)', '180 days'],
+          ['DegradationManager', 'Circuit breaker failure threshold, reset timeout', '5 failures, 60s reset'],
+          ['PromptShield', 'Sensitivity level (low/medium/high)', 'high'],
+          ['GroundingEnforcer', 'Minimum grounding score to allow response', '0.6'],
+        ].map(([g, c, d], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('code', null, g)),
+          React.createElement('td', null, c),
+          React.createElement('td', null, React.createElement('code', null, d)),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'AICM Gate Logic'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'AICM Level'), React.createElement('th', null, 'Gate Behavior')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Level 1 (advisory)', 'No HITL gate — human reviews all outputs post-hoc'],
+          ['Level 2+ (decision-informing)', 'Mandatory HITL checkpoint before response surfaces to user'],
+        ].map(([l, g], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, l)),
+          React.createElement('td', null, g),
+        ))
+      )
+    ),
+    React.createElement(Callout, { type: 'info', title: 'Per-Workspace, Not Per-Project' },
+      'AICM level is a property of how the output is consumed, configured per workspace — not hardcoded per use case name. The same EVA Agentic platform can serve advisory (L1) and decision-informing (L2+) workspaces simultaneously.'
+    ),
+  );
+}
+
+// ─── End-User Guide ───
+function UserPage({ section, lang }) {
+  const pages = {
+    'user': UserOverviewSection,
+    'user-chat': UserChatSection,
+    'user-documents': UserDocumentsSection,
+    'user-workspaces': UserWorkspacesSection,
+    'user-teams': UserTeamsSection,
+  };
+  const Page = pages[section] || UserOverviewSection;
+  return React.createElement(Page, { lang });
+}
+
+function UserOverviewSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'End-User Guide'),
+    React.createElement('p', null, 'EVA Agentic helps you find answers from trusted government documents using AI-powered smart assistance. This guide covers everything you need to get started: chatting with EVA, uploading documents, booking workspaces, and managing your team.'),
+    React.createElement(Callout, { type: 'success', title: 'Smart Assistance, Not Automation' },
+      'EVA retrieves information from trusted sources and generates answers with citations. It does not make decisions for you — it provides evidence-based assistance so you can make informed decisions. Always verify critical information with the cited sources.'
+    ),
+    React.createElement('h2', null, 'What You Can Do'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Task'), React.createElement('th', null, 'Where'), React.createElement('th', null, 'Description')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Ask questions', 'Chat page', 'Ask questions in English or French; get answers with source citations'],
+          ['Upload documents', 'Documents page', 'Upload PDFs, Word docs, and other files to your workspace\'s knowledge base'],
+          ['Track processing', 'Documents page', 'Monitor document processing status (uploaded → processing → indexed → ready)'],
+          ['Book a workspace', 'Workspace Catalog', 'Browse available workspace types, book one for your team'],
+          ['Manage your team', 'My Bookings', 'Add/remove team members, assign roles (reader, contributor, admin)'],
+          ['Complete surveys', 'Booking flow', 'Entry and exit surveys to help us improve the service'],
+        ].map(([t, w, d], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, t)),
+          React.createElement('td', null, w),
+          React.createElement('td', null, d),
+        ))
+      )
+    ),
+  );
+}
+
+function UserChatSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Using EVA Chat'),
+    React.createElement('p', null, 'EVA Chat is the primary interface for asking questions. It uses Retrieval-Augmented Generation (RAG) — your question is matched against documents in your workspace, relevant passages are retrieved, and an AI model generates an answer grounded in those sources.'),
+    React.createElement('h2', null, 'How Chat Works'),
+    React.createElement(Mermaid, {
+      chart: `graph LR
+  Q["You ask<br/>a question"] --> R["EVA searches<br/>your workspace"] --> A["AI generates<br/>a grounded answer"] --> C["You see answer<br/>+ source citations"]
+  style Q fill:#E3F2FD,stroke:#1565C0
+  style R fill:#FFF3E0,stroke:#E65100
+  style A fill:#E8F5E9,stroke:#2E7D32
+  style C fill:#F3E5F5,stroke:#6A1B9A`,
+      caption: 'Figure 10 — Chat flow: question → search → generate → cite'
+    }),
+    React.createElement('h2', null, 'What You See in a Response'),
+    React.createElement('p', null, 'Every EVA response includes:'),
+    React.createElement('ul', null,
+      React.createElement('li', null, React.createElement('strong', null, 'The answer'), ' — generated from retrieved documents, in your preferred language'),
+      React.createElement('li', null, React.createElement('strong', null, 'Source citations'), ' — clickable references to the exact documents and sections used'),
+      React.createElement('li', null, React.createElement('strong', null, 'Confidence indicator'), ' — how confident EVA is in the answer (High / Medium / Low)'),
+      React.createElement('li', null, React.createElement('strong', null, 'Agent steps'), ' — expandable trace showing what EVA did: which tools it called, what it searched for, what it found'),
+      React.createElement('li', null, React.createElement('strong', null, 'Freshness notice'), ' — if sources are older than expected, EVA tells you'),
+    ),
+    React.createElement('h2', null, 'Tips for Better Results'),
+    React.createElement('ul', null,
+      React.createElement('li', null, 'Be specific — "What are the eligibility criteria for OAS under section 3?" works better than "Tell me about OAS"'),
+      React.createElement('li', null, 'Ask in either language — EVA is fully bilingual and will respond in the language you ask'),
+      React.createElement('li', null, 'Check the citations — always verify important answers by reviewing the cited source documents'),
+      React.createElement('li', null, 'Use follow-up questions — EVA maintains conversation context within a session'),
+    ),
+    React.createElement('h2', null, 'When EVA Says "I Don\'t Know"'),
+    React.createElement('p', null, 'EVA will not fabricate answers. If it cannot find relevant sources in your workspace, it will tell you — and may suggest alternative approaches or contacts. This is by design: a transparent "I don\'t have enough information" is always better than a confident-sounding wrong answer.'),
+    React.createElement(Callout, { type: 'info', title: 'Providing Feedback' },
+      'You can accept or reject any EVA response using the feedback buttons. If you reject a response, you can optionally explain what was wrong. This feedback helps calibrate EVA\'s confidence scoring and improve retrieval quality over time.'
+    ),
+  );
+}
+
+function UserDocumentsSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Document Upload & Management'),
+    React.createElement('p', null, 'Contributors and Admins can upload documents to their workspace\'s knowledge base. Once processed, documents become searchable via EVA Chat.'),
+    React.createElement('h2', null, 'Supported File Types'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Format'), React.createElement('th', null, 'Extraction Method'), React.createElement('th', null, 'Notes')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['PDF', 'Azure Document Intelligence', 'Best for structured documents with tables and headers'],
+          ['DOCX', 'Layout parsing', 'Word documents with formatting preserved'],
+          ['TXT / CSV / HTML', 'Direct text extraction', 'Plain text and structured data'],
+          ['PNG / JPG', 'Computer Vision + OCR', 'Images with text content'],
+          ['MP4 / WAV', 'Speech-to-text transcription', 'Audio and video files'],
+        ].map(([f, e, n], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, f)),
+          React.createElement('td', null, e),
+          React.createElement('td', null, n),
+        ))
+      )
+    ),
+    React.createElement('h2', null, 'Processing Pipeline'),
+    React.createElement('p', null, 'After upload, documents go through a multi-stage pipeline. You can track progress on the Documents page:'),
+    React.createElement(Mermaid, {
+      chart: `stateDiagram-v2
+  [*] --> Uploaded: File uploaded
+  Uploaded --> Extracting: Text extraction started
+  Extracting --> Chunking: Content structured
+  Chunking --> Enriching: Metadata extraction
+  Enriching --> Embedding: Vector generation
+  Embedding --> Indexing: Added to search index
+  Indexing --> Ready: Searchable via chat
+  Extracting --> Error: Extraction failed
+  Error --> Uploaded: Resubmit`,
+      caption: 'Figure 11 — Document processing status flow'
+    }),
+  );
+}
+
+function UserWorkspacesSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Workspace Booking'),
+    React.createElement('p', null, 'Workspaces are your team\'s dedicated knowledge environment in EVA. Each workspace has its own document collection, search index, and team membership.'),
+    React.createElement('h2', null, 'Booking a Workspace'),
+    React.createElement('ol', null,
+      React.createElement('li', null, 'Navigate to the ', React.createElement('strong', null, 'Workspace Catalog'), ' from the main menu'),
+      React.createElement('li', null, 'Browse available workspace types (Standard, Premium, Sandbox, Restricted, Shared)'),
+      React.createElement('li', null, 'Select a workspace type and click ', React.createElement('strong', null, 'Book Workspace')),
+      React.createElement('li', null, 'Choose your dates and complete the entry survey'),
+      React.createElement('li', null, 'Your booking will be submitted for admin approval'),
+      React.createElement('li', null, 'Once approved, your workspace is provisioned and ready to use'),
+    ),
+    React.createElement('h2', null, 'Managing Bookings'),
+    React.createElement('p', null, 'View and manage your active bookings from the My Bookings page. From there you can add team members, view workspace health, track document counts, and initiate the exit process when your project completes.'),
+  );
+}
+
+function UserTeamsSection({ lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, 'Team Management'),
+    React.createElement('p', null, 'Workspace admins and contributors can manage team membership and role assignments.'),
+    React.createElement('h2', null, 'Roles'),
+    React.createElement('table', null,
+      React.createElement('thead', null, React.createElement('tr', null,
+        React.createElement('th', null, 'Role'), React.createElement('th', null, 'Can Chat'), React.createElement('th', null, 'Can Upload'), React.createElement('th', null, 'Can Manage Team')
+      )),
+      React.createElement('tbody', null,
+        [
+          ['Reader', 'Yes', 'No', 'No'],
+          ['Contributor', 'Yes', 'Yes', 'No'],
+          ['Admin', 'Yes', 'Yes', 'Yes'],
+        ].map(([r, c, u, m], i) => React.createElement('tr', { key: i },
+          React.createElement('td', null, React.createElement('strong', null, r)),
+          React.createElement('td', null, c),
+          React.createElement('td', null, u),
+          React.createElement('td', null, m),
+        ))
+      )
+    ),
+  );
+}
+
+// ─── Placeholder pages for Reference & Resources ───
+function PlaceholderPage({ title, lang }) {
+  return React.createElement(Fragment, null,
+    React.createElement('h1', null, title),
+    React.createElement(Callout, { type: 'warn', title: 'Draft' },
+      'This section is under active development and will be available in a future release.'
+    ),
+  );
+}
+
+// ─── Main App ───
+function App() {
+  const [page, setPage] = useState('home');
+  const [lang, setLang] = useState('en');
+  const [expandedSections, setExpandedSections] = useState({ arch: true, admin: true, user: true });
+  const [searchQuery, setSearchQuery] = useState('');
+  const t = i18n[lang];
+
+  const navigate = useCallback((id) => {
+    setPage(id);
+    window.scrollTo(0, 0);
+    // Auto-expand parent section
+    const item = NAV.find(n => n.id === id);
+    if (item && item.parent) {
+      setExpandedSections(prev => ({ ...prev, [item.parent]: true }));
+    }
+  }, []);
+
+  const toggleSection = useCallback((id) => {
+    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  // Determine active parent for highlighting
+  const activeParent = useMemo(() => {
+    const item = NAV.find(n => n.id === page);
+    if (item && item.parent) return item.parent;
+    return page;
+  }, [page]);
+
+  // Breadcrumb
+  const breadcrumb = useMemo(() => {
+    const item = NAV.find(n => n.id === page);
+    if (!item || page === 'home') return null;
+    const parts = [{ id: 'home', label: t.home }];
+    if (item.parent) {
+      const parent = NAV.find(n => n.id === item.parent);
+      if (parent) parts.push({ id: parent.id, label: parent.label[lang] });
+    }
+    parts.push({ id: page, label: item.label[lang] });
+    return parts;
+  }, [page, lang]);
+
+  // Render content
+  const renderContent = () => {
+    if (page === 'home') return React.createElement(HomePage, { lang, navigate });
+    if (page.startsWith('arch')) return React.createElement(ArchPage, { section: page, lang });
+    if (page.startsWith('admin')) return React.createElement(AdminPage, { section: page, lang });
+    if (page.startsWith('user')) return React.createElement(UserPage, { section: page, lang });
+    if (page === 'ref-api') return React.createElement(PlaceholderPage, { title: 'API Reference', lang });
+    if (page === 'ref-tools') return React.createElement(PlaceholderPage, { title: 'Tool Registry Reference', lang });
+    if (page === 'ref-security') return React.createElement(PlaceholderPage, { title: 'Security Guide', lang });
+    if (page === 'res-glossary') return React.createElement(PlaceholderPage, { title: 'Glossary', lang });
+    if (page === 'res-adr') return React.createElement(PlaceholderPage, { title: 'Architecture Decision Records', lang });
+    if (page === 'res-release') return React.createElement(PlaceholderPage, { title: 'Release Notes', lang });
+    return React.createElement(HomePage, { lang, navigate });
+  };
+
+  // GC Canada flag SVG
+  const canadaFlag = React.createElement('svg', { width: 28, height: 16, viewBox: '0 0 28 16' },
+    React.createElement('rect', { fill: '#FF0000', width: 7, height: 16 }),
+    React.createElement('rect', { fill: '#FFFFFF', x: 7, width: 14, height: 16 }),
+    React.createElement('rect', { fill: '#FF0000', x: 21, width: 7, height: 16 }),
+    React.createElement('path', { fill: '#FF0000', d: 'M14 3l-1 2-2-1 .5 2.5L9 7h2.5L11 9l1.5-1L14 10l1.5-2L17 9l-.5-2H19l-2.5-.5L17 4l-2 1z' })
+  );
+
+  return React.createElement(Fragment, null,
+    // GC Header
+    React.createElement('header', { className: 'gc-header', role: 'banner' },
+      React.createElement('div', { className: 'gc-header-flag' },
+        canadaFlag,
+        React.createElement('span', null, t.gcBrand)
+      ),
+      React.createElement('div', { className: 'gc-header-divider' }),
+      React.createElement('div', { className: 'gc-header-title' },
+        React.createElement('strong', null, t.siteTitle), ' · ', t.docLibrary
+      ),
+      React.createElement('div', { className: 'gc-header-spacer' }),
+      React.createElement('div', { className: 'gc-header-actions' },
+        React.createElement('div', { className: 'search-box' },
+          React.createElement('svg', { className: 'search-icon', width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'white', strokeWidth: 2 },
+            React.createElement('circle', { cx: 11, cy: 11, r: 8 }),
+            React.createElement('path', { d: 'M21 21l-4.35-4.35' })
+          ),
+          React.createElement('input', {
+            type: 'text',
+            placeholder: t.search,
+            value: searchQuery,
+            onChange: e => setSearchQuery(e.target.value),
+            'aria-label': t.search,
+          })
+        ),
+        React.createElement('button', {
+          className: 'lang-toggle',
+          onClick: () => setLang(l => l === 'en' ? 'fr' : 'en'),
+          'aria-label': `Switch to ${lang === 'en' ? 'French' : 'English'}`,
+        }, t.langSwitch),
+      )
+    ),
+    // Version bar
+    React.createElement('div', { className: 'version-bar', style: { marginLeft: 'var(--sidebar-w)', marginTop: 'var(--header-h)', position: 'fixed', left: 0, right: 0, zIndex: 40 } },
+      React.createElement('span', { className: 'version-dot' }),
+      React.createElement('span', null, t.version, ' · ', t.lastUpdated, ': 2026-04-15'),
+      React.createElement('span', { style: { marginLeft: 'auto', display: 'flex', gap: 8 } },
+        React.createElement('span', { className: 'card-tag badge-new' }, 'EN'),
+        React.createElement('span', { className: 'card-tag badge-fr' }, 'FR ', lang === 'en' ? 'partial' : 'partiel'),
+      ),
+    ),
+    // Sidebar
+    React.createElement('nav', { className: 'sidebar', role: 'navigation', 'aria-label': 'Documentation navigation' },
+      // Home
+      React.createElement('div', { className: 'sidebar-section' },
+        React.createElement('a', {
+          className: `sidebar-item ${page === 'home' ? 'active' : ''}`,
+          onClick: () => navigate('home'),
+        }, '📚 ', NAV[0].label[lang])
+      ),
+      // Render sections
+      ['guides', 'reference', 'resources'].map(sectionKey => {
+        const sectionHeader = NAV.find(n => n.section === sectionKey && !n.id);
+        const topItems = NAV.filter(n => n.section === sectionKey && n.id && !n.parent);
+        return React.createElement('div', { key: sectionKey, className: 'sidebar-section' },
+          React.createElement('div', { className: 'sidebar-section-title' }, sectionHeader ? sectionHeader.label[lang] : sectionKey),
+          topItems.map(item => {
+            const children = NAV.filter(n => n.parent === item.id);
+            const isExpanded = expandedSections[item.id];
+            const isActive = activeParent === item.id;
+            return React.createElement(Fragment, { key: item.id },
+              React.createElement('a', {
+                className: `sidebar-item ${isActive ? 'active' : ''}`,
+                onClick: () => { navigate(item.id); if (children.length) toggleSection(item.id); },
+              },
+                item.icon, ' ', item.label[lang],
+                item.badge && React.createElement('span', { className: `badge badge-${item.badge}` }, item.badge),
+                children.length > 0 && React.createElement('span', { style: { marginLeft: 'auto', fontSize: 10, opacity: .5 } }, isExpanded ? '▾' : '▸')
+              ),
+              isExpanded && children.map(child =>
+                React.createElement('a', {
+                  key: child.id,
+                  className: `sidebar-item sidebar-sub ${page === child.id ? 'active' : ''}`,
+                  onClick: () => navigate(child.id),
+                }, child.label[lang])
+              )
+            );
+          })
+        );
+      })
+    ),
+    // Main content
+    React.createElement('main', { className: 'main', role: 'main', style: { marginTop: 'calc(var(--header-h) + 30px)' } },
+      React.createElement('div', { className: 'content-area' },
+        breadcrumb && React.createElement('nav', { className: 'breadcrumb', 'aria-label': 'Breadcrumb' },
+          breadcrumb.map((part, i) => React.createElement(Fragment, { key: part.id },
+            i > 0 && React.createElement('span', { className: 'sep' }, '›'),
+            i < breadcrumb.length - 1
+              ? React.createElement('a', { onClick: () => navigate(part.id) }, part.label)
+              : React.createElement('span', null, part.label)
+          ))
+        ),
+        renderContent()
+      ),
+    ),
+    // Footer
+    React.createElement('footer', { className: 'gc-footer', role: 'contentinfo' },
+      React.createElement('span', null, t.footerNotice),
+      React.createElement('span', null, '© 2026 ', t.gcBrand),
+    ),
+  );
+}
+
+// ─── Init ───
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#E8EDF2',
+    primaryTextColor: '#26374A',
+    primaryBorderColor: '#26374A',
+    lineColor: '#495057',
+    secondaryColor: '#E8F5E9',
+    tertiaryColor: '#FFF3E0',
+    fontFamily: 'Noto Sans, sans-serif',
+    fontSize: '13px',
+  }
+});
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>

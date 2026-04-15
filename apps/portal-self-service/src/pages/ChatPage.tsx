@@ -8,13 +8,19 @@ import { useAuth } from '@eva/ui-kit';
 import {
   ChatInput,
   ChatMessage,
+  CompareView,
   ConversationSidebar,
+  DegradationBanner,
+  DocumentViewer,
   WorkspaceHealthBadge,
   useNdjsonStream,
   useToast,
 } from '@eva/ui-kit';
-import type { ConversationSummary, MessageTelemetry } from '@eva/ui-kit';
+import type { CompareResult, ConversationSummary, DocumentContent, MessageTelemetry } from '@eva/ui-kit';
 import { CHAT_API_URL, fetchWorkspaces, fetchConversations, getConversation, submitFeedback } from '../api/client';
+
+const API_BASE = '/v1/eva';
+const HEALTH_URL = `${API_BASE}/ops/health`;
 
 type Lang = 'en' | 'fr';
 type ChatMode = 'grounded' | 'ungrounded';
@@ -35,6 +41,8 @@ const i18n = {
     example1: 'Summarize the key findings from the latest report',
     example2: 'What are the eligibility criteria for this program?',
     example3: 'Explain the approval process step by step',
+    compare: 'Compare',
+    comparing: 'Comparing...',
     streaming: 'EVA is thinking...',
     errorTitle: 'Something went wrong',
     signIn: 'Sign in to continue',
@@ -56,6 +64,8 @@ const i18n = {
     example1: 'Resumez les conclusions cles du dernier rapport',
     example2: "Quels sont les criteres d'admissibilite a ce programme?",
     example3: "Expliquez le processus d'approbation etape par etape",
+    compare: 'Comparer',
+    comparing: 'Comparaison...',
     streaming: 'EVA reflechit...',
     errorTitle: 'Une erreur est survenue',
     signIn: 'Connectez-vous pour continuer',
@@ -83,6 +93,20 @@ export default function ChatPage() {
 
   // Telemetry per message (keyed by message id)
   const [telemetryMap, setTelemetryMap] = useState<Record<string, MessageTelemetry>>({});
+
+  // Compare mode state
+  const [compareResult, setCompareResult] = useState<{
+    question: string;
+    grounded: CompareResult;
+    ungrounded: CompareResult;
+  } | null>(null);
+  const [isComparing, setIsComparing] = useState(false);
+
+  // Document viewer state
+  const [docViewerOpen, setDocViewerOpen] = useState(false);
+  const [docViewerCitation, setDocViewerCitation] = useState<Citation | null>(null);
+  const [docViewerContent, setDocViewerContent] = useState<DocumentContent | null>(null);
+  const [docViewerLoading, setDocViewerLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatRegionId = useId();
@@ -266,12 +290,81 @@ export default function ChatPage() {
     [conversationId, lang, toast],
   );
 
-  // ---- Citation click ----
-  const handleCitationClick = useCallback((citation: Citation) => {
-    if (citation.sas_url) {
-      window.open(citation.sas_url, '_blank', 'noopener,noreferrer');
+  // ---- Citation click — open DocumentViewer ----
+  const handleCitationClick = useCallback(async (citation: Citation) => {
+    setDocViewerCitation(citation);
+    setDocViewerOpen(true);
+    setDocViewerLoading(true);
+    setDocViewerContent(null);
+
+    try {
+      const params = new URLSearchParams();
+      if (selectedWorkspaceId) params.set('workspace_id', selectedWorkspaceId);
+      const res = await fetch(
+        `${API_BASE}/documents/${encodeURIComponent(citation.file)}/content?${params.toString()}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(() => {
+              try {
+                const raw = localStorage.getItem('eva-auth-user');
+                if (raw) return { 'x-demo-user-email': JSON.parse(raw).email };
+              } catch { /* noop */ }
+              return {};
+            })(),
+          },
+        },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setDocViewerContent(data);
+      }
+    } catch (err) {
+      console.error('[ChatPage] Failed to fetch document content:', err);
+    } finally {
+      setDocViewerLoading(false);
     }
-  }, []);
+  }, [selectedWorkspaceId]);
+
+  // ---- Compare mode ----
+  const handleCompare = useCallback(
+    async (text: string) => {
+      setIsComparing(true);
+      setCompareResult(null);
+
+      try {
+        const authHeaders: Record<string, string> = {};
+        try {
+          const raw = localStorage.getItem('eva-auth-user');
+          if (raw) authHeaders['x-demo-user-email'] = JSON.parse(raw).email;
+        } catch { /* noop */ }
+
+        const res = await fetch(`${API_BASE}/chat/compare`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
+          body: JSON.stringify({
+            message: text,
+            workspace_id: selectedWorkspaceId,
+            conversation_id: conversationId,
+          }),
+        });
+
+        if (!res.ok) throw new Error(`Compare failed: ${res.status}`);
+        const data = await res.json();
+        setCompareResult({
+          question: text,
+          grounded: data.grounded,
+          ungrounded: data.ungrounded,
+        });
+      } catch (err) {
+        console.error('[ChatPage] Compare error:', err);
+        toast.error(lang === 'fr' ? 'Erreur de comparaison' : 'Compare failed');
+      } finally {
+        setIsComparing(false);
+      }
+    },
+    [selectedWorkspaceId, conversationId, lang, toast],
+  );
 
   // ---- Example question click ----
   const handleExampleClick = useCallback(
@@ -300,6 +393,13 @@ export default function ChatPage() {
 
       {/* ---- Main chat column ---- */}
       <div className="flex flex-1 flex-col min-w-0">
+        {/* ---- Degradation banner ---- */}
+        <DegradationBanner
+          healthEndpoint={HEALTH_URL}
+          pollIntervalMs={30_000}
+          language={lang}
+        />
+
         {/* ---- Chat toolbar ---- */}
         <div className="flex-shrink-0 border-b border-gray-200 bg-white">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2">
@@ -356,6 +456,20 @@ export default function ChatPage() {
                   {t.ungrounded}
                 </button>
               </div>
+
+              {/* Compare button */}
+              <button
+                type="button"
+                disabled={isComparing || isStreaming || !isAuthenticated}
+                onClick={() => {
+                  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+                  if (lastUserMsg) handleCompare(lastUserMsg.content);
+                }}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                title={messages.length === 0 ? (lang === 'fr' ? 'Envoyez un message d\'abord' : 'Send a message first') : ''}
+              >
+                {isComparing ? t.comparing : t.compare}
+              </button>
             </div>
           </div>
 
@@ -419,6 +533,18 @@ export default function ChatPage() {
               />
             ))}
 
+            {/* Compare view */}
+            {compareResult && (
+              <CompareView
+                question={compareResult.question}
+                grounded={compareResult.grounded}
+                ungrounded={compareResult.ungrounded}
+                language={lang}
+                onCitationClick={handleCitationClick}
+                onClose={() => setCompareResult(null)}
+              />
+            )}
+
             {/* Streaming message */}
             {streamingMessage && (
               <ChatMessage
@@ -451,6 +577,20 @@ export default function ChatPage() {
           />
         </div>
       </div>
+
+      {/* ---- Document Viewer ---- */}
+      <DocumentViewer
+        open={docViewerOpen}
+        citation={docViewerCitation}
+        documentContent={docViewerContent}
+        loading={docViewerLoading}
+        language={lang}
+        onClose={() => {
+          setDocViewerOpen(false);
+          setDocViewerCitation(null);
+          setDocViewerContent(null);
+        }}
+      />
     </div>
   );
 }

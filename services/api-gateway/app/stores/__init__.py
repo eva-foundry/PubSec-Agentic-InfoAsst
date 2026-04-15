@@ -14,6 +14,7 @@ from .team_store import TeamStore
 from .telemetry_store import TelemetryStore
 from .vector_store import VectorStore
 from .workspace_store import WorkspaceStore
+from ..guardrails.degradation import DegradationManager
 from ..pipeline.document_store import DocumentStore
 
 workspace_store = WorkspaceStore()
@@ -28,6 +29,12 @@ vector_store = VectorStore()
 document_store = DocumentStore()
 chat_store = ChatStore()
 
+# Circuit breaker / degradation manager singleton
+degradation_manager = DegradationManager()
+degradation_manager.register("search", failure_threshold=5, reset_timeout=60)
+degradation_manager.register("openai", failure_threshold=3, reset_timeout=120)
+degradation_manager.register("cosmos", failure_threshold=5, reset_timeout=60)
+
 __all__ = [
     "workspace_store",
     "booking_store",
@@ -40,6 +47,7 @@ __all__ = [
     "vector_store",
     "document_store",
     "chat_store",
+    "degradation_manager",
     "WorkspaceStore",
     "BookingStore",
     "ChatStore",
@@ -51,4 +59,5 @@ __all__ = [
     "TelemetryStore",
     "VectorStore",
     "DocumentStore",
+    "DegradationManager",
 ]

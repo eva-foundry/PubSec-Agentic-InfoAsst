@@ -11,6 +11,7 @@ import time
 import uuid
 from typing import AsyncGenerator
 
+from ..guardrails.degradation import DegradationManager, DependencyStatus
 from ..provenance.correlation import generate_correlation_id
 from ..provenance.models import (
     AgentStep,
@@ -21,6 +22,7 @@ from ..provenance.models import (
     FreshnessInfo,
 )
 from ..provenance.tracker import ProvenanceTracker
+from ..stores.prompt_store import PromptStore
 from ..tools.registry import ToolRegistry
 
 # ---------------------------------------------------------------------------
@@ -136,10 +138,26 @@ class AgentOrchestrator:
         tool_registry: ToolRegistry,
         model_client=None,
         trace_id: str | None = None,
+        prompt_store: PromptStore | None = None,
+        degradation_manager: DegradationManager | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.model_client = model_client or MockModelClient()
         self.trace_id = trace_id or "local"
+        self.prompt_store = prompt_store
+        self.degradation_manager = degradation_manager
+
+    # ------------------------------------------------------------------
+    # Prompt resolution helpers
+    # ------------------------------------------------------------------
+
+    def _resolve_prompt(self, name: str, fallback: str) -> tuple[str, str]:
+        """Return (content, version_label) from prompt_store or fallback."""
+        if self.prompt_store:
+            pv = self.prompt_store.get_active(name)
+            if pv:
+                return pv.content, f"{name}:v{pv.version}"
+        return fallback, _PROMPT_VERSION
 
     async def run(
         self,
@@ -186,7 +204,34 @@ class AgentOrchestrator:
             },
         }) + "\n"
 
-        if mode == "ungrounded":
+        # Check circuit breakers before dispatching
+        dm = self.degradation_manager
+        openai_down = dm and dm.get_status("openai") == DependencyStatus.DOWN
+        search_down = dm and dm.get_status("search") == DependencyStatus.DOWN
+
+        if openai_down:
+            # OpenAI breaker open — cannot generate any response
+            yield json.dumps({
+                "content": "Service temporarily unavailable. Please try again later. / "
+                           "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
+            }) + "\n"
+            yield json.dumps({
+                "degradation": {
+                    "status": "unavailable",
+                    "service": "openai",
+                },
+            }) + "\n"
+        elif mode == "ungrounded" or (mode == "grounded" and search_down):
+            # Ungrounded mode, or grounded but search is down — fall back to ungrounded
+            if search_down and mode == "grounded":
+                yield json.dumps({
+                    "degradation": {
+                        "status": "partial",
+                        "service": "search",
+                        "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
+                        "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
+                    },
+                }) + "\n"
             async for line in self._run_ungrounded(
                 user_message, conversation_history, tracker,
                 conversation_id, message_id, overrides,
@@ -241,9 +286,13 @@ class AgentOrchestrator:
                                "Optimizing search query",
                                "Optimisation de la requ\u00eate de recherche")
 
+        query_rewrite_prompt, self._query_rewrite_version = self._resolve_prompt(
+            "query-rewrite", _QUERY_REWRITE_SYSTEM,
+        )
+
         start = time.monotonic()
         optimized_query = await self.model_client.generate_query(
-            _QUERY_REWRITE_SYSTEM, user_message, history,
+            query_rewrite_prompt, user_message, history,
         )
         rewrite_ms = int((time.monotonic() - start) * 1000)
 
@@ -312,8 +361,15 @@ class AgentOrchestrator:
                                "Generating answer",
                                "G\u00e9n\u00e9ration de la r\u00e9ponse")
 
+        rag_prompt_content, self._rag_prompt_version = self._resolve_prompt(
+            "rag-system", _RAG_SYSTEM,
+        )
         source_block = _build_source_block(results)
-        rag_system = _RAG_SYSTEM.format(sources=source_block)
+        # If the store prompt doesn't contain {sources}, append them
+        if "{sources}" in rag_prompt_content:
+            rag_system = rag_prompt_content.format(sources=source_block)
+        else:
+            rag_system = rag_prompt_content + "\n\nSources:\n" + source_block
 
         messages = self._build_messages(history, user_message)
         answer_start = time.monotonic()
@@ -357,6 +413,10 @@ class AgentOrchestrator:
 
         tracker.add_policy_applied("ungrounded-mode")
 
+        ungrounded_prompt, self._ungrounded_prompt_version = self._resolve_prompt(
+            "ungrounded-system", _UNGROUNDED_SYSTEM,
+        )
+
         step_id = tracker.add_step(
             "answer", "Generating answer (ungrounded)",
             "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)",
@@ -370,7 +430,7 @@ class AgentOrchestrator:
         full_answer = ""
 
         async for token in self.model_client.stream_completion(
-            _UNGROUNDED_SYSTEM, messages,
+            ungrounded_prompt, messages,
         ):
             full_answer += token
             yield json.dumps({
@@ -422,10 +482,11 @@ class AgentOrchestrator:
             staleness_warning=False,
         ))
 
-        # Behavioral fingerprint
+        # Behavioral fingerprint — use resolved prompt version
+        prompt_ver = getattr(self, "_rag_prompt_version", _PROMPT_VERSION)
         tracker.set_behavioral_fingerprint(BehavioralFingerprint(
             model=_MODEL_ID,
-            prompt_version=_PROMPT_VERSION,
+            prompt_version=prompt_ver,
             corpus_snapshot=_CORPUS_SNAPSHOT,
             policy_rules_version=_POLICY_RULES_VERSION,
         ))
@@ -461,9 +522,10 @@ class AgentOrchestrator:
             newest_source=None,
             staleness_warning=False,
         ))
+        prompt_ver = getattr(self, "_ungrounded_prompt_version", _PROMPT_VERSION)
         tracker.set_behavioral_fingerprint(BehavioralFingerprint(
             model=_MODEL_ID,
-            prompt_version=_PROMPT_VERSION,
+            prompt_version=prompt_ver,
             corpus_snapshot=_CORPUS_SNAPSHOT,
             policy_rules_version=_POLICY_RULES_VERSION,
         ))

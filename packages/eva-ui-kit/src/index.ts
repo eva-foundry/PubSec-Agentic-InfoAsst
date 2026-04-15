@@ -51,6 +51,12 @@ export type { ConversationSidebarProps, ConversationSummary } from './components
 export { WorkspaceHealthBadge } from './components/chat/WorkspaceHealthBadge';
 export type { WorkspaceHealthBadgeProps } from './components/chat/WorkspaceHealthBadge';
 
+export { CompareView } from './components/chat/CompareView';
+export type { CompareViewProps, CompareResult } from './components/chat/CompareView';
+
+export { DocumentViewer } from './components/chat/DocumentViewer';
+export type { DocumentViewerProps, DocumentContent } from './components/chat/DocumentViewer';
+
 // Layout components
 export { CostTicker } from './components/layout/CostTicker';
 export type { CostTickerProps } from './components/layout/CostTicker';
@@ -60,3 +66,6 @@ export type { ToastMessage } from './components/layout/Toast';
 
 export { Skeleton, SkeletonText, SkeletonCard } from './components/layout/Skeleton';
 export type { SkeletonProps, SkeletonTextProps } from './components/layout/Skeleton';
+
+export { DegradationBanner } from './components/layout/DegradationBanner';
+export type { DegradationBannerProps, DegradationLevel } from './components/layout/DegradationBanner';

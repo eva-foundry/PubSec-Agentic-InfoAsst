@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import uuid
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -18,8 +19,8 @@ from ..agents.orchestrator import AgentOrchestrator
 from ..auth import UserContext, get_current_user
 from ..config import get_settings
 from ..feedback import FeedbackCapture, FeedbackStore
-from ..models.chat import ChatRequest
-from ..stores import chat_store, telemetry_store, vector_store
+from ..models.chat import ChatOverrides, ChatRequest
+from ..stores import chat_store, degradation_manager, prompt_store, telemetry_store, vector_store
 from ..stores.chat_store import ChatHistoryRecord
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
@@ -90,6 +91,8 @@ async def _orchestrator_stream(
         tool_registry=_registry,
         model_client=_model_client,
         trace_id=trace_id,
+        prompt_store=prompt_store,
+        degradation_manager=degradation_manager,
     )
 
     overrides = req.overrides.model_dump() if req.overrides else None
@@ -225,6 +228,124 @@ async def get_session_cost(request: Request) -> dict:
     if not session_id:
         return {"session_id": None, "cost_cad": 0.0, "queries": 0}
     return telemetry_store.session_cost(session_id)
+
+
+class ChatCompareRequest(BaseModel):
+    """Request body for compare mode — runs grounded + ungrounded in parallel."""
+    message: str
+    workspace_id: str | None = None
+    conversation_id: str | None = None
+    overrides: ChatOverrides | None = None
+
+
+async def _collect_full_response(
+    user: UserContext,
+    message: str,
+    workspace_id: str | None,
+    mode: str,
+    overrides: dict | None = None,
+) -> dict:
+    """Run orchestrator and collect the full response (non-streaming)."""
+    trace_id = f"trace-{uuid.uuid4()}"
+    orchestrator = AgentOrchestrator(
+        tool_registry=_registry,
+        model_client=_model_client,
+        trace_id=trace_id,
+        prompt_store=prompt_store,
+        degradation_manager=degradation_manager,
+    )
+
+    full_content = ""
+    agent_steps: list[dict] = []
+    citations: list[dict] = []
+    provenance: dict | None = None
+    degradation: dict | None = None
+
+    async for line in orchestrator.run(
+        user_message=message,
+        conversation_history=[],
+        workspace_id=workspace_id,
+        mode=mode,
+        overrides=overrides,
+    ):
+        try:
+            event = json.loads(line.strip())
+        except (json.JSONDecodeError, ValueError):
+            continue
+
+        if "content" in event:
+            full_content += event["content"]
+        elif "agent_step" in event:
+            step = event["agent_step"]
+            if step.get("status") == "complete":
+                agent_steps.append(step)
+        elif "provenance_complete" in event:
+            provenance = event["provenance_complete"]
+        elif "degradation" in event:
+            degradation = event["degradation"]
+
+    return {
+        "mode": mode,
+        "content": full_content,
+        "agent_steps": agent_steps,
+        "provenance": provenance,
+        "degradation": degradation,
+    }
+
+
+@router.post("/chat/compare")
+async def compare_chat(
+    req: ChatCompareRequest,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Run both grounded and ungrounded modes, return results side-by-side."""
+    overrides = req.overrides.model_dump() if req.overrides else None
+
+    grounded_task = _collect_full_response(
+        user, req.message, req.workspace_id, "grounded", overrides,
+    )
+    ungrounded_task = _collect_full_response(
+        user, req.message, req.workspace_id, "ungrounded", overrides,
+    )
+
+    grounded_result, ungrounded_result = await asyncio.gather(
+        grounded_task, ungrounded_task,
+    )
+    return {"grounded": grounded_result, "ungrounded": ungrounded_result}
+
+
+@router.get("/documents/{doc_id}/content")
+async def get_document_content(
+    doc_id: str,
+    workspace_id: str | None = None,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Return full text of a document by concatenating all chunks from vector store."""
+    # Search across all workspaces if workspace_id not specified
+    workspaces_to_search = [workspace_id] if workspace_id else list(vector_store._documents.keys())
+
+    for ws_id in workspaces_to_search:
+        docs = vector_store._documents.get(ws_id, [])
+        file_chunks = [d for d in docs if d.file_name == doc_id or d.id == doc_id]
+        if not file_chunks:
+            # Try partial match on file name
+            file_chunks = [d for d in docs if doc_id in d.file_name]
+        if file_chunks:
+            # Sort by chunk_index to reconstruct document order
+            file_chunks.sort(key=lambda c: c.chunk_index)
+            full_text = "\n\n".join(c.content for c in file_chunks)
+            first = file_chunks[0]
+            return {
+                "file": first.file_name,
+                "workspace_id": ws_id,
+                "chunk_count": len(file_chunks),
+                "content": full_text,
+                "sections": list({c.section for c in file_chunks if c.section}),
+                "pages": sorted({p for c in file_chunks for p in c.pages}),
+                "last_verified": first.last_verified or None,
+            }
+
+    raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
 
 
 @router.post("/chat/feedback", status_code=201)

@@ -18,10 +18,32 @@ def _require_ops(user: UserContext) -> None:
 async def service_health(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """Service health grid across all components."""
+    """Service health grid across all components, including circuit breaker status."""
     _require_ops(user)
+
+    from ..stores import degradation_manager
+
+    breaker_statuses = degradation_manager.get_all_statuses()
+    breaker_section = {
+        name: {"status": status.value}
+        for name, status in breaker_statuses.items()
+    }
+
+    # Determine overall health from breakers
+    from ..guardrails.degradation import DependencyStatus
+    any_down = any(s == DependencyStatus.DOWN for s in breaker_statuses.values())
+    any_degraded = any(s == DependencyStatus.DEGRADED for s in breaker_statuses.values())
+
+    if any_down:
+        overall = "degraded"
+    elif any_degraded:
+        overall = "partial"
+    else:
+        overall = "healthy"
+
+    from datetime import datetime, timezone
     return {
-        "overall": "healthy",
+        "overall": overall,
         "services": {
             "api_gateway": {"status": "healthy", "latency_p99_ms": 45},
             "agent_orchestrator": {"status": "healthy", "latency_p99_ms": 1200},
@@ -32,7 +54,10 @@ async def service_health(
             "redis_cache": {"status": "healthy", "latency_p99_ms": 2},
             "service_bus": {"status": "degraded", "latency_p99_ms": 450, "note": "Queue depth elevated"},
         },
-        "checked_at": "2026-04-14T12:00:00Z",
+        "circuit_breakers": breaker_section,
+        "fallback_tier": degradation_manager.get_fallback_tier(),
+        "degradation_notice": degradation_manager.get_degradation_notice(),
+        "checked_at": datetime.now(timezone.utc).isoformat(),
     }
 
 

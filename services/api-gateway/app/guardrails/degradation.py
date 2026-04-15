@@ -121,7 +121,10 @@ class DegradationManager:
             return "full-rag"
 
         search_down = statuses.get("search") == DependencyStatus.DOWN
-        model_down = statuses.get("model") == DependencyStatus.DOWN
+        model_down = (
+            statuses.get("model") == DependencyStatus.DOWN
+            or statuses.get("openai") == DependencyStatus.DOWN
+        )
 
         if search_down and model_down:
             return "cannot-answer"
