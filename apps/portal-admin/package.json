@@ -16,7 +16,7 @@
     "@eva/common": "*",
     "@eva/ui-kit": "*",
     "framer-motion": "^11.0.0",
-    "i18next": "^24.0.0",
+    "i18next": "^26.0.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.0.0",
