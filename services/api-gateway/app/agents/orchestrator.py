@@ -23,6 +23,7 @@ from ..provenance.models import (
 )
 from ..provenance.tracker import ProvenanceTracker
 from ..stores.prompt_store import PromptStore
+from ..stores.workspace_store import WorkspaceStore
 from ..tools.registry import ToolRegistry
 
 # ---------------------------------------------------------------------------
@@ -140,12 +141,14 @@ class AgentOrchestrator:
         trace_id: str | None = None,
         prompt_store: PromptStore | None = None,
         degradation_manager: DegradationManager | None = None,
+        workspace_store: WorkspaceStore | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.model_client = model_client or MockModelClient()
         self.trace_id = trace_id or "local"
         self.prompt_store = prompt_store
         self.degradation_manager = degradation_manager
+        self.workspace_store = workspace_store
 
     # ------------------------------------------------------------------
     # Prompt resolution helpers
@@ -364,6 +367,14 @@ class AgentOrchestrator:
         rag_prompt_content, self._rag_prompt_version = self._resolve_prompt(
             "rag-system", _RAG_SYSTEM,
         )
+
+        # Compose: base RAG prompt wraps workspace business prompt
+        workspace = self.workspace_store.get(workspace_id) if self.workspace_store and workspace_id else None
+        business_prompt = workspace.business_prompt if workspace and workspace.business_prompt else ""
+        if business_prompt:
+            rag_prompt_content = f"{rag_prompt_content}\n\n## Workspace Context\n\n{business_prompt}"
+            self._rag_prompt_version += f" + {workspace_id}:v{workspace.business_prompt_version}"
+
         source_block = _build_source_block(results)
         # If the store prompt doesn't contain {sources}, append them
         if "{sources}" in rag_prompt_content:

@@ -25,6 +25,14 @@ class Workspace(BaseModel):
     created_at: str = Field(description="ISO timestamp")
     updated_at: str = Field(description="ISO timestamp")
 
+    # Per-workspace business prompt (domain-specific context for the LLM)
+    business_prompt: str = ""
+    business_prompt_version: int = 1
+    business_prompt_history: list[dict] = Field(
+        default_factory=list,
+        description="Version history: [{version, content, author, rationale, created_at}]",
+    )
+
 
 class Booking(BaseModel):
     """A workspace booking request with survey lifecycle."""

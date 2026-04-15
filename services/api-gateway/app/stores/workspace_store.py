@@ -5,6 +5,52 @@ from __future__ import annotations
 from ..models.workspace import Workspace
 
 
+# ---------------------------------------------------------------------------
+# Per-workspace business prompts (seed data)
+# ---------------------------------------------------------------------------
+
+_BUSINESS_PROMPTS: dict[str, str] = {
+    "ws-oas-act": (
+        "You are assisting policy analysts navigating the Old Age Security Act "
+        "(R.S.C., 1985, c. O-9) and its regulations. Users need precise section "
+        "references. When citing eligibility criteria, always reference the specific "
+        "subsection (e.g., s. 3(1), s. 3(2)). Distinguish between full pension "
+        "(40+ years residency) and partial pension (10-39 years, pro-rata "
+        "calculation). When discussing residency, specify \"after age 18\" as "
+        "required by the Act. Cross-reference the OAS Regulations (C.R.C., c. 1246) "
+        "for evidence requirements."
+    ),
+    "ws-ei-juris": (
+        "You are assisting Employment Insurance officers finding tribunal decisions "
+        "relevant to specific claim scenarios. Prioritize the highest court level "
+        "when multiple decisions address the same issue. Map each case to the "
+        "relevant Employment Insurance Act provision (e.g., s. 7 qualifying period, "
+        "s. 14 benefit rate). When multiple decisions conflict, surface the most "
+        "recent from the highest authority. Use proper citation format: [YYYY] SST "
+        "docket number for Social Security Tribunal decisions. Identify the ratio "
+        "decidendi (key legal reasoning) in each case."
+    ),
+    "ws-bdm-km": (
+        "You are assisting the Benefits Delivery Modernization team with knowledge "
+        "management. Help users find relevant policies, procedures, and guidelines "
+        "across the BDM document repository. Summarize key points concisely. Flag "
+        "any documents that reference outdated processes or superseded policies."
+    ),
+    "ws-faq": (
+        "You are a general FAQ assistant for EVA Domain Assistant. Answer common "
+        "questions about workspace features, supported file types, booking "
+        "processes, and team management. Keep answers clear and concise. Direct "
+        "users to appropriate help resources when needed."
+    ),
+    "ws-sandbox": (
+        "You are a training assistant in the EVA sandbox environment. Help users "
+        "learn how to use the platform by answering questions about features, best "
+        "practices, and workflows. This is a safe space for experimentation — "
+        "encourage exploration."
+    ),
+}
+
+
 class WorkspaceStore:
     """In-memory workspace store with seed data for the 5 workspace archetypes."""
 
@@ -102,7 +148,21 @@ class WorkspaceStore:
             ),
         ]
         for ws in seed:
-            self._workspaces[ws.id] = ws
+            # Attach business prompt and initial history entry
+            bp = _BUSINESS_PROMPTS.get(ws.id, "")
+            ws_data = ws.model_dump()
+            ws_data["business_prompt"] = bp
+            ws_data["business_prompt_version"] = 1
+            ws_data["business_prompt_history"] = [
+                {
+                    "version": 1,
+                    "content": bp,
+                    "author": "system",
+                    "rationale": "Initial workspace business prompt",
+                    "created_at": ws.created_at,
+                },
+            ] if bp else []
+            self._workspaces[ws.id] = Workspace(**ws_data)
 
     def list(self, workspace_grants: list[str]) -> list[Workspace]:
         """List workspaces filtered by user grants. 'all' returns everything."""

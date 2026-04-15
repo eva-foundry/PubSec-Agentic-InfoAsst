@@ -20,7 +20,7 @@ from ..auth import UserContext, get_current_user
 from ..config import get_settings
 from ..feedback import FeedbackCapture, FeedbackStore
 from ..models.chat import ChatOverrides, ChatRequest
-from ..stores import chat_store, degradation_manager, prompt_store, telemetry_store, vector_store
+from ..stores import chat_store, degradation_manager, prompt_store, telemetry_store, vector_store, workspace_store
 from ..stores.chat_store import ChatHistoryRecord
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
@@ -93,6 +93,7 @@ async def _orchestrator_stream(
         trace_id=trace_id,
         prompt_store=prompt_store,
         degradation_manager=degradation_manager,
+        workspace_store=workspace_store,
     )
 
     overrides = req.overrides.model_dump() if req.overrides else None
@@ -253,6 +254,7 @@ async def _collect_full_response(
         trace_id=trace_id,
         prompt_store=prompt_store,
         degradation_manager=degradation_manager,
+        workspace_store=workspace_store,
     )
 
     full_content = ""

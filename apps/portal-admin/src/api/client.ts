@@ -281,3 +281,47 @@ export async function rejectBooking(id: string, _reason: string): Promise<void> 
     method: 'PATCH',
   });
 }
+
+// ---------------------------------------------------------------------------
+// Workspace Business Prompts
+// ---------------------------------------------------------------------------
+
+export interface BusinessPromptHistoryEntry {
+  version: number;
+  content: string;
+  author: string;
+  rationale: string;
+  created_at: string;
+}
+
+export interface WorkspacePromptData {
+  workspace_id: string;
+  business_prompt: string;
+  business_prompt_version: number;
+  business_prompt_history: BusinessPromptHistoryEntry[];
+}
+
+export async function getWorkspacePrompt(wsId: string): Promise<WorkspacePromptData> {
+  return apiFetch<WorkspacePromptData>(`/workspaces/${encodeURIComponent(wsId)}/prompt`);
+}
+
+export async function updateWorkspacePrompt(
+  wsId: string,
+  content: string,
+  rationale: string,
+): Promise<WorkspacePromptData> {
+  return apiFetch<WorkspacePromptData>(`/workspaces/${encodeURIComponent(wsId)}/prompt`, {
+    method: 'PUT',
+    body: JSON.stringify({ content, rationale }),
+  });
+}
+
+export async function rollbackWorkspacePrompt(
+  wsId: string,
+  version: number,
+): Promise<WorkspacePromptData> {
+  return apiFetch<WorkspacePromptData>(`/workspaces/${encodeURIComponent(wsId)}/prompt/rollback`, {
+    method: 'POST',
+    body: JSON.stringify({ version }),
+  });
+}

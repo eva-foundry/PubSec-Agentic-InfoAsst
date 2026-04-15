@@ -96,6 +96,15 @@ class ModelUpdate(BaseModel):
     classification_ceiling: str | None = None
 
 
+class BusinessPromptUpdate(BaseModel):
+    content: str
+    rationale: str = ""
+
+
+class BusinessPromptRollback(BaseModel):
+    version: int
+
+
 class ValveUpdate(BaseModel):
     valves: dict = Field(description="Key-value map of valve settings to update")
 
@@ -514,6 +523,121 @@ async def rollback_prompt(
             detail=f"Prompt '{name}' version {target_version} not found",
         )
     return result
+
+
+# ---------------------------------------------------------------------------
+# Workspace business prompt management
+# ---------------------------------------------------------------------------
+
+
+@router.get("/admin/workspaces/{ws_id}/prompt")
+async def get_workspace_prompt(
+    ws_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Get the current business prompt and version history for a workspace."""
+    _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+    return {
+        "workspace_id": ws_id,
+        "business_prompt": ws.business_prompt,
+        "business_prompt_version": ws.business_prompt_version,
+        "business_prompt_history": ws.business_prompt_history,
+    }
+
+
+@router.put("/admin/workspaces/{ws_id}/prompt")
+async def update_workspace_prompt(
+    ws_id: str,
+    payload: BusinessPromptUpdate,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Update the workspace business prompt, creating a new version."""
+    _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+
+    new_version = ws.business_prompt_version + 1
+    history = list(ws.business_prompt_history)
+    history.append({
+        "version": new_version,
+        "content": payload.content,
+        "author": user.user_id,
+        "rationale": payload.rationale,
+        "created_at": _now(),
+    })
+
+    updated = workspace_store.update(ws_id, {
+        "business_prompt": payload.content,
+        "business_prompt_version": new_version,
+        "business_prompt_history": history,
+        "updated_at": _now(),
+    })
+    if updated is None:
+        raise HTTPException(status_code=500, detail="Failed to update workspace")
+
+    return {
+        "workspace_id": ws_id,
+        "business_prompt": updated.business_prompt,
+        "business_prompt_version": updated.business_prompt_version,
+        "business_prompt_history": updated.business_prompt_history,
+    }
+
+
+@router.post("/admin/workspaces/{ws_id}/prompt/rollback")
+async def rollback_workspace_prompt(
+    ws_id: str,
+    payload: BusinessPromptRollback,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Rollback the workspace business prompt to a previous version."""
+    _require_admin(user)
+    ws = workspace_store.get(ws_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+
+    # Find the target version in history
+    target_entry = None
+    for entry in ws.business_prompt_history:
+        if entry["version"] == payload.version:
+            target_entry = entry
+            break
+
+    if target_entry is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Version {payload.version} not found in business prompt history",
+        )
+
+    # Rollback creates a new version entry pointing to the old content
+    new_version = ws.business_prompt_version + 1
+    history = list(ws.business_prompt_history)
+    history.append({
+        "version": new_version,
+        "content": target_entry["content"],
+        "author": user.user_id,
+        "rationale": f"Rollback to v{payload.version}",
+        "created_at": _now(),
+    })
+
+    updated = workspace_store.update(ws_id, {
+        "business_prompt": target_entry["content"],
+        "business_prompt_version": new_version,
+        "business_prompt_history": history,
+        "updated_at": _now(),
+    })
+    if updated is None:
+        raise HTTPException(status_code=500, detail="Failed to rollback workspace prompt")
+
+    return {
+        "workspace_id": ws_id,
+        "business_prompt": updated.business_prompt,
+        "business_prompt_version": updated.business_prompt_version,
+        "business_prompt_history": updated.business_prompt_history,
+    }
 
 
 # ---------------------------------------------------------------------------

@@ -9,11 +9,16 @@ import {
   listModels,
   provisionWorkspace,
   decommissionWorkspace,
+  getWorkspacePrompt,
+  updateWorkspacePrompt,
+  rollbackWorkspacePrompt,
   type AdminWorkspace,
   type ModelConfig,
   type ProvisionPlan,
   type DecommissionPlan,
   type ProvisionRequest,
+  type WorkspacePromptData,
+  type BusinessPromptHistoryEntry,
 } from '../api/client';
 
 type Lang = 'en' | 'fr';
@@ -86,6 +91,21 @@ const S = {
     typeSandbox: 'Sandbox',
     typeRestricted: 'Restricted',
     typeShared: 'Shared',
+    // Prompt management
+    promptTitle: 'Business Prompt',
+    promptCurrent: 'Current Prompt',
+    promptVersion: 'Version',
+    promptHistory: 'Version History',
+    promptSave: 'Save New Version',
+    promptRollback: 'Rollback',
+    promptRationale: 'Rationale for change',
+    promptAuthor: 'Author',
+    promptDate: 'Date',
+    promptNoHistory: 'No version history available.',
+    promptSaving: 'Saving...',
+    promptRollingBack: 'Rolling back...',
+    promptClose: 'Close',
+    promptManage: 'Prompt',
   },
   fr: {
     title: 'Gestion des espaces de travail',
@@ -144,6 +164,20 @@ const S = {
     typeSandbox: 'Bac a sable',
     typeRestricted: 'Restreint',
     typeShared: 'Partage',
+    promptTitle: 'Invite metier',
+    promptCurrent: 'Invite actuelle',
+    promptVersion: 'Version',
+    promptHistory: 'Historique des versions',
+    promptSave: 'Enregistrer nouvelle version',
+    promptRollback: 'Restaurer',
+    promptRationale: 'Justification du changement',
+    promptAuthor: 'Auteur',
+    promptDate: 'Date',
+    promptNoHistory: 'Aucun historique de version disponible.',
+    promptSaving: 'Enregistrement...',
+    promptRollingBack: 'Restauration...',
+    promptClose: 'Fermer',
+    promptManage: 'Invite',
   },
 };
 
@@ -235,6 +269,13 @@ export default function WorkspaceManagement({ lang }: Props) {
   const [decommNameConfirm, setDecommNameConfirm] = useState('');
   const [decommSubmitting, setDecommSubmitting] = useState(false);
 
+  // Prompt dialog state
+  const [promptTarget, setPromptTarget] = useState<AdminWorkspace | null>(null);
+  const [promptData, setPromptData] = useState<WorkspacePromptData | null>(null);
+  const [promptDraft, setPromptDraft] = useState('');
+  const [promptRationale, setPromptRationale] = useState('');
+  const [promptSubmitting, setPromptSubmitting] = useState(false);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -305,6 +346,50 @@ export default function WorkspaceManagement({ lang }: Props) {
       setError(err instanceof Error ? err.message : t.error);
     } finally {
       setDecommSubmitting(false);
+    }
+  };
+
+  // Prompt handlers
+  const openPromptDialog = async (ws: AdminWorkspace) => {
+    setPromptTarget(ws);
+    setPromptRationale('');
+    setPromptSubmitting(false);
+    try {
+      const data = await getWorkspacePrompt(ws.id);
+      setPromptData(data);
+      setPromptDraft(data.business_prompt);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.error);
+    }
+  };
+
+  const handlePromptSave = async () => {
+    if (!promptTarget || !promptDraft.trim()) return;
+    setPromptSubmitting(true);
+    try {
+      const data = await updateWorkspacePrompt(promptTarget.id, promptDraft, promptRationale);
+      setPromptData(data);
+      setPromptDraft(data.business_prompt);
+      setPromptRationale('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.error);
+    } finally {
+      setPromptSubmitting(false);
+    }
+  };
+
+  const handlePromptRollback = async (version: number) => {
+    if (!promptTarget) return;
+    setPromptSubmitting(true);
+    try {
+      const data = await rollbackWorkspacePrompt(promptTarget.id, version);
+      setPromptData(data);
+      setPromptDraft(data.business_prompt);
+      setPromptRationale('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.error);
+    } finally {
+      setPromptSubmitting(false);
     }
   };
 
@@ -427,15 +512,24 @@ export default function WorkspaceManagement({ lang }: Props) {
                     {new Date(ws.created_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {ws.status !== 'archived' && (
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => openDecommission(ws)}
-                        className="rounded border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
+                        onClick={() => openPromptDialog(ws)}
+                        className="rounded border border-blue-200 px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1"
                       >
-                        {t.decommission}
+                        {t.promptManage}
                       </button>
-                    )}
+                      {ws.status !== 'archived' && (
+                        <button
+                          type="button"
+                          onClick={() => openDecommission(ws)}
+                          className="rounded border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
+                        >
+                          {t.decommission}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </motion.tr>
               ))}
@@ -587,6 +681,121 @@ export default function WorkspaceManagement({ lang }: Props) {
                     {provisionSubmitting ? t.deploying : t.confirmDeploy}
                   </button>
                 )}
+              </div>
+            </div>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Prompt Dialog */}
+      <AnimatePresence>
+        {promptTarget && promptData && (
+          <Dialog
+            open={!!promptTarget}
+            onClose={() => { setPromptTarget(null); setPromptData(null); }}
+            title={`${t.promptTitle} — ${promptTarget.name}`}
+          >
+            <div className="space-y-4">
+              {/* Current prompt editor */}
+              <div>
+                <label htmlFor="prompt-content" className="mb-1 block text-sm font-medium text-gray-700">
+                  {t.promptCurrent} ({t.promptVersion} {promptData.business_prompt_version})
+                </label>
+                <textarea
+                  id="prompt-content"
+                  rows={8}
+                  value={promptDraft}
+                  onChange={(e) => setPromptDraft(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Rationale input */}
+              <div>
+                <label htmlFor="prompt-rationale" className="mb-1 block text-sm font-medium text-gray-700">
+                  {t.promptRationale}
+                </label>
+                <input
+                  id="prompt-rationale"
+                  type="text"
+                  value={promptRationale}
+                  onChange={(e) => setPromptRationale(e.target.value)}
+                  placeholder="e.g., Added OAS Regulation cross-references"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Save button */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handlePromptSave}
+                  disabled={promptSubmitting || promptDraft === promptData.business_prompt || !promptDraft.trim()}
+                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {promptSubmitting ? t.promptSaving : t.promptSave}
+                </button>
+              </div>
+
+              {/* Version history */}
+              <div>
+                <h4 className="mb-2 text-sm font-semibold text-gray-700">{t.promptHistory}</h4>
+                {promptData.business_prompt_history.length === 0 ? (
+                  <p className="text-xs text-gray-400">{t.promptNoHistory}</p>
+                ) : (
+                  <div className="max-h-48 space-y-2 overflow-y-auto">
+                    {[...promptData.business_prompt_history].reverse().map((entry) => (
+                      <div
+                        key={entry.version}
+                        className={`rounded border p-2 text-xs ${
+                          entry.version === promptData.business_prompt_version
+                            ? 'border-blue-300 bg-blue-50'
+                            : 'border-gray-200 bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-800">
+                            v{entry.version}
+                            {entry.version === promptData.business_prompt_version && (
+                              <span className="ml-1.5 rounded-full bg-blue-200 px-1.5 py-0.5 text-[10px] font-semibold text-blue-800">
+                                current
+                              </span>
+                            )}
+                          </span>
+                          {entry.version !== promptData.business_prompt_version && (
+                            <button
+                              type="button"
+                              onClick={() => handlePromptRollback(entry.version)}
+                              disabled={promptSubmitting}
+                              className="rounded border border-amber-200 px-2 py-0.5 text-[10px] font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                            >
+                              {t.promptRollback}
+                            </button>
+                          )}
+                        </div>
+                        <div className="mt-1 text-gray-500">
+                          <span>{t.promptAuthor}: {entry.author}</span>
+                          <span className="mx-1.5">|</span>
+                          <span>{t.promptDate}: {new Date(entry.created_at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}</span>
+                        </div>
+                        {entry.rationale && (
+                          <p className="mt-1 text-gray-600 italic">{entry.rationale}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Close */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setPromptTarget(null); setPromptData(null); }}
+                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  {t.promptClose}
+                </button>
               </div>
             </div>
           </Dialog>
