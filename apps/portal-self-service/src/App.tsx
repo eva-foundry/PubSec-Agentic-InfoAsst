@@ -6,16 +6,20 @@ import { lazy, Suspense, useState, useMemo } from "react";
 import { useAuth } from "@eva/ui-kit";
 import DemoLogin from "./pages/DemoLogin";
 import DocumentsPage from "./pages/DocumentsPage";
+import WorkspaceCatalog from "./pages/WorkspaceCatalog";
+import MyBookings from "./pages/MyBookings";
 
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 
 type Lang = "en" | "fr";
-type Page = "chat" | "documents" | "login";
+type Page = "chat" | "documents" | "workspaces" | "bookings" | "login";
 
 const NAV_LABELS: Record<Lang, Record<string, string>> = {
   en: {
     chat: "Chat",
     documents: "Documents",
+    workspaces: "Workspaces",
+    bookings: "My Bookings",
     login: "Login",
     signedInAs: "Signed in as",
     signOut: "Sign Out",
@@ -25,6 +29,8 @@ const NAV_LABELS: Record<Lang, Record<string, string>> = {
   fr: {
     chat: "Clavardage",
     documents: "Documents",
+    workspaces: "Espaces de travail",
+    bookings: "Mes reservations",
     login: "Connexion",
     signedInAs: "Connecte(e) en tant que",
     signOut: "Se deconnecter",
@@ -43,7 +49,7 @@ function App() {
   // Available pages based on auth
   const pages = useMemo<Page[]>(() => {
     if (!isAuthenticated) return ["login"];
-    return ["chat", "documents"];
+    return ["chat", "documents", "workspaces", "bookings"];
   }, [isAuthenticated]);
 
   // If not authenticated, show login
@@ -117,6 +123,8 @@ function App() {
           </Suspense>
         )}
         {activePage === "documents" && <DocumentsPage />}
+        {activePage === "workspaces" && <WorkspaceCatalog lang={lang} />}
+        {activePage === "bookings" && <MyBookings lang={lang} />}
       </main>
     </div>
   );

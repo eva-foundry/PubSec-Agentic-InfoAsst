@@ -3,38 +3,122 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from ..auth import UserContext, get_current_user
 from ..models.workspace import EntrySurvey, ExitSurvey
+from ..stores import booking_store, survey_store, workspace_store
 
 router = APIRouter()
 
 
+def _now_iso() -> str:
+    return datetime.now(tz=timezone.utc).isoformat()
+
+
+# --- Request schemas (subset of fields; id and completed_at are generated) ---
+
+class EntrySurveyCreate(BaseModel):
+    booking_id: str
+    use_case: str
+    expected_users: int = Field(ge=0)
+    expected_data_volume_gb: float = Field(ge=0)
+    data_classification: str = Field(
+        default="unclassified",
+        description="'unclassified', 'protected_a', 'protected_b'",
+    )
+    business_justification: str
+
+
+class ExitSurveyCreate(BaseModel):
+    booking_id: str
+    satisfaction_rating: int = Field(ge=1, le=5)
+    objectives_met: bool
+    data_disposition: str = Field(description="'keep', 'archive', 'delete'")
+    feedback: str = ""
+    would_recommend: bool = True
+
+
 @router.post("/surveys/entry", status_code=201)
 async def submit_entry_survey(
-    payload: EntrySurvey,
+    payload: EntrySurveyCreate,
     user: UserContext = Depends(get_current_user),
-) -> dict:
+) -> EntrySurvey:
     """Submit an entry survey before workspace provisioning."""
-    return {
-        "id": payload.id or str(uuid.uuid4()),
-        "booking_id": payload.booking_id,
-        "status": "submitted",
-        "submitted_by": user.user_id,
-    }
+    # Validate booking exists and user owns it
+    bk = booking_store.get(payload.booking_id)
+    if bk is None:
+        raise HTTPException(status_code=404, detail=f"Booking '{payload.booking_id}' not found")
+    if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
+        raise HTTPException(status_code=403, detail="You do not own this booking")
+
+    # Check if entry survey already submitted
+    existing = survey_store.get_entry_by_booking(payload.booking_id)
+    if existing is not None:
+        raise HTTPException(status_code=409, detail="Entry survey already submitted for this booking")
+
+    survey = EntrySurvey(
+        id=f"es-{uuid.uuid4().hex[:8]}",
+        booking_id=payload.booking_id,
+        use_case=payload.use_case,
+        expected_users=payload.expected_users,
+        expected_data_volume_gb=payload.expected_data_volume_gb,
+        data_classification=payload.data_classification,
+        business_justification=payload.business_justification,
+        completed_at=_now_iso(),
+    )
+    survey_store.create_entry(survey)
+
+    # Mark booking's entry survey as completed
+    booking_store.update(payload.booking_id, {
+        "entry_survey_completed": True,
+        "updated_at": _now_iso(),
+    })
+
+    return survey
 
 
 @router.post("/surveys/exit", status_code=201)
 async def submit_exit_survey(
-    payload: ExitSurvey,
+    payload: ExitSurveyCreate,
     user: UserContext = Depends(get_current_user),
-) -> dict:
+) -> ExitSurvey:
     """Submit an exit survey when a booking ends."""
-    return {
-        "id": payload.id or str(uuid.uuid4()),
-        "booking_id": payload.booking_id,
-        "status": "submitted",
-        "submitted_by": user.user_id,
-    }
+    # Validate booking exists and user owns it
+    bk = booking_store.get(payload.booking_id)
+    if bk is None:
+        raise HTTPException(status_code=404, detail=f"Booking '{payload.booking_id}' not found")
+    if bk.requester_id != user.user_id and "all" not in user.workspace_grants:
+        raise HTTPException(status_code=403, detail="You do not own this booking")
+
+    # Check if exit survey already submitted
+    existing = survey_store.get_exit_by_booking(payload.booking_id)
+    if existing is not None:
+        raise HTTPException(status_code=409, detail="Exit survey already submitted for this booking")
+
+    survey = ExitSurvey(
+        id=f"xs-{uuid.uuid4().hex[:8]}",
+        booking_id=payload.booking_id,
+        satisfaction_rating=payload.satisfaction_rating,
+        objectives_met=payload.objectives_met,
+        data_disposition=payload.data_disposition,
+        feedback=payload.feedback,
+        would_recommend=payload.would_recommend,
+        completed_at=_now_iso(),
+    )
+    survey_store.create_exit(survey)
+
+    # Mark booking as completed with exit survey done
+    ws = workspace_store.get(bk.workspace_id)
+    weekly_cost = (ws.monthly_cost / 4) if ws else 0.0
+
+    booking_store.update(payload.booking_id, {
+        "exit_survey_completed": True,
+        "status": "completed",
+        "updated_at": _now_iso(),
+    })
+
+    return survey

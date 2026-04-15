@@ -153,23 +153,25 @@ async def corpus_health(
 
 @router.get("/ops/feedback-analytics")
 async def feedback_analytics(
+    workspace_id: str | None = None,
+    days: int = 30,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """Correction patterns and feedback analysis."""
+    """Correction patterns, content gaps, and source quality analysis."""
     _require_ops(user)
+
+    from .chat import feedback_store
+
+    summary = feedback_store.get_feedback_summary(
+        workspace_id=workspace_id, days=days
+    )
+    content_gaps = feedback_store.get_content_gaps(workspace_id=workspace_id)
+    source_quality = feedback_store.get_source_quality(workspace_id=workspace_id)
+
     return {
-        "period": "2026-04",
-        "total_feedback": 245,
-        "positive": 198,
-        "negative": 47,
-        "corrections_submitted": 18,
-        "top_correction_categories": [
-            {"category": "citation_incorrect", "count": 7},
-            {"category": "answer_incomplete", "count": 6},
-            {"category": "wrong_jurisdiction", "count": 3},
-            {"category": "language_issue", "count": 2},
-        ],
-        "satisfaction_rate_pct": 80.8,
+        "summary": summary.model_dump(),
+        "content_gaps": content_gaps,
+        "source_quality": source_quality,
     }
 
 

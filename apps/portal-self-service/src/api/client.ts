@@ -2,7 +2,7 @@
 // Portal 1 API client — typed fetch wrappers for EVA backend
 // ---------------------------------------------------------------------------
 
-import type { Workspace } from '@eva/common';
+import type { Workspace, Booking, TeamMember } from '@eva/common';
 
 const API_BASE = '/v1/eva';
 
@@ -198,4 +198,139 @@ export async function resubmitDocument(docId: string): Promise<void> {
   if (!res.ok) {
     throw new Error(`Resubmit failed: ${res.status}`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Workspace Catalog
+// ---------------------------------------------------------------------------
+
+/** Catalog workspace representation with display-specific fields. */
+export interface CatalogWorkspace {
+  id: string;
+  name: string;
+  name_fr: string;
+  description: string;
+  description_fr: string;
+  type: string;
+  features: string[];
+  features_fr: string[];
+  capacity: number;
+  pricePerWeek: number;
+  data_classification: string;
+}
+
+/** Fetch workspace catalog for browsing and booking. */
+export async function fetchWorkspaceCatalog(): Promise<CatalogWorkspace[]> {
+  return apiFetch<CatalogWorkspace[]>('/workspaces');
+}
+
+// ---------------------------------------------------------------------------
+// Bookings
+// ---------------------------------------------------------------------------
+
+export interface CreateBookingRequest {
+  workspace_id: string;
+  start_date: string;
+  end_date: string;
+}
+
+/** Create a new workspace booking. */
+export async function createBooking(data: CreateBookingRequest): Promise<Booking> {
+  return apiFetch<Booking>('/bookings', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/** Fetch all bookings for the current user. */
+export async function getBookings(): Promise<Booking[]> {
+  return apiFetch<Booking[]>('/bookings');
+}
+
+/** Update a booking's fields. */
+export async function updateBooking(id: string, updates: Partial<Booking>): Promise<Booking> {
+  return apiFetch<Booking>(`/bookings/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+/** Cancel a booking. */
+export async function cancelBooking(id: string): Promise<void> {
+  await apiFetch<void>(`/bookings/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Team Members
+// ---------------------------------------------------------------------------
+
+/** Fetch team members for a booking. */
+export async function getTeamMembers(bookingId: string): Promise<TeamMember[]> {
+  return apiFetch<TeamMember[]>(`/bookings/${encodeURIComponent(bookingId)}/team`);
+}
+
+/** Add a team member to a booking. */
+export async function addTeamMember(
+  bookingId: string,
+  member: { name: string; email: string; role: string },
+): Promise<TeamMember> {
+  return apiFetch<TeamMember>(`/bookings/${encodeURIComponent(bookingId)}/team`, {
+    method: 'POST',
+    body: JSON.stringify(member),
+  });
+}
+
+/** Remove a team member from a booking. */
+export async function removeTeamMember(bookingId: string, userId: string): Promise<void> {
+  await apiFetch<void>(
+    `/bookings/${encodeURIComponent(bookingId)}/team/${encodeURIComponent(userId)}`,
+    { method: 'DELETE' },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Surveys
+// ---------------------------------------------------------------------------
+
+export interface EntrySurveyPayload {
+  booking_id: string;
+  use_case: string;
+  expected_benefits: string;
+  target_metrics: string;
+  team_size: number;
+  document_types: string[];
+  ai_features: string[];
+  data_classification: string;
+}
+
+export interface ExitSurveyPayload {
+  booking_id: string;
+  actual_results: string;
+  goals_achieved: 'yes' | 'partial' | 'no';
+  lessons_learned: string;
+  blockers?: string;
+  suggestions?: string;
+  rating: number;
+  department: string;
+  cost_center: string;
+  approver_name: string;
+  approver_email: string;
+}
+
+/** Submit an entry survey for a booking. */
+export async function submitEntrySurvey(data: EntrySurveyPayload): Promise<void> {
+  await apiFetch<void>('/surveys/entry', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/** Submit an exit survey for a booking. */
+export async function submitExitSurvey(data: ExitSurveyPayload): Promise<void> {
+  await apiFetch<void>('/surveys/exit', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

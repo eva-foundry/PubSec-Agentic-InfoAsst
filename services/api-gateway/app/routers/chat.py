@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from ..agents.orchestrator import AgentOrchestrator
 from ..auth import UserContext, get_current_user
+from ..feedback import FeedbackCapture, FeedbackStore
 from ..models.chat import ChatRequest
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
@@ -29,16 +30,24 @@ def _build_registry() -> ToolRegistry:
     return registry
 
 
-# Module-level singleton — created once, reused across requests.
+# Module-level singletons — created once, reused across requests.
 _registry = _build_registry()
+feedback_store = FeedbackStore()
+feedback_capture = FeedbackCapture(store=feedback_store)
 
 
 class FeedbackPayload(BaseModel):
     conversation_id: str
     message_id: str
-    rating: str = Field(description="'positive' | 'negative'")
-    correction: str | None = None
-    comment: str | None = None
+    signal: str = Field(description="'accept' | 'reject'")
+    correction_text: str | None = None
+    reason: str | None = None
+    original_answer: str = ""
+    cited_sources: list[str] = Field(default_factory=list)
+    confidence_score: float = 0.0
+    model_version: str = "unknown"
+    prompt_version: str = "unknown"
+    workspace_id: str | None = None
 
 
 async def _orchestrator_stream(
@@ -82,11 +91,25 @@ async def submit_feedback(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     """Record user feedback (thumbs up/down, correction) for a message."""
+    record = feedback_capture.capture_feedback(
+        conversation_id=payload.conversation_id,
+        message_id=payload.message_id,
+        workspace_id=payload.workspace_id,
+        user_id=user.user_id,
+        signal=payload.signal,
+        correction_text=payload.correction_text,
+        reason=payload.reason,
+        original_answer=payload.original_answer,
+        cited_sources=payload.cited_sources,
+        confidence_score=payload.confidence_score,
+        model_version=payload.model_version,
+        prompt_version=payload.prompt_version,
+    )
     return {
-        "id": str(uuid.uuid4()),
-        "conversation_id": payload.conversation_id,
-        "message_id": payload.message_id,
-        "rating": payload.rating,
+        "id": record.id,
+        "conversation_id": record.conversation_id,
+        "message_id": record.message_id,
+        "signal": record.signal,
         "submitted_by": user.user_id,
         "status": "recorded",
     }
