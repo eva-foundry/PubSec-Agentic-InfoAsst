@@ -62,9 +62,16 @@ export async function submitFeedback(
 /** Fetch conversation history. */
 export async function fetchConversations(
   workspaceId?: string,
-): Promise<{ id: string; title: string; created_at: string }[]> {
+): Promise<{ id: string; title: string; created_at: string; workspace_id?: string; workspace_name?: string; confidence?: number }[]> {
   const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : '';
   return apiFetch(`/conversations${query}`);
+}
+
+/** Fetch messages for a specific conversation. */
+export async function getConversation(
+  conversationId: string,
+): Promise<{ id: string; messages: import('@eva/common').ChatMessage[] }> {
+  return apiFetch(`/conversations/${encodeURIComponent(conversationId)}`);
 }
 
 /** The chat endpoint URL (used by the NDJSON stream hook, not this client). */

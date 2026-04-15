@@ -3,16 +3,19 @@
 // ---------------------------------------------------------------------------
 
 import { useMemo } from 'react';
-import type { ChatMessage as ChatMessageType, Citation } from '@eva/common';
+import type { ChatMessage as ChatMessageType, Citation, TelemetryEvent } from '@eva/common';
 import { AgentStepTrace } from './AgentStepTrace';
 import { ProvenanceBadge } from './ProvenanceBadge';
 import { CitationViewer } from './CitationViewer';
 import { FeedbackCapture } from './FeedbackCapture';
+import { RequestDetailsDrawer } from './RequestDetailsDrawer';
+import type { MessageTelemetry } from './RequestDetailsDrawer';
 
 export interface ChatMessageProps {
   message: ChatMessageType;
   isStreaming?: boolean;
   language: 'en' | 'fr';
+  telemetry?: MessageTelemetry | null;
   onFeedback?: (signal: 'accept' | 'reject', correction?: string) => void;
   onCitationClick?: (citation: Citation) => void;
 }
@@ -87,6 +90,7 @@ export function ChatMessage({
   message,
   isStreaming = false,
   language,
+  telemetry,
   onFeedback,
   onCitationClick,
 }: ChatMessageProps) {
@@ -154,6 +158,16 @@ export function ChatMessage({
             {/* Feedback */}
             {!isStreaming && onFeedback && (
               <FeedbackCapture onFeedback={onFeedback} />
+            )}
+
+            {/* Request details drawer */}
+            {!isStreaming && (message.provenance || telemetry) && (
+              <RequestDetailsDrawer
+                provenance={message.provenance}
+                telemetry={telemetry}
+                workspaceId={message.workspace_id}
+                language={language}
+              />
             )}
           </div>
         )}

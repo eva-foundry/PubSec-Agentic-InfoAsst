@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { FocusTrap } from "@eva/ui-kit";
+import { FocusTrap, useToast } from "@eva/ui-kit";
 import type { TeamMember, TeamRole } from "@eva/common";
 import { getTeamMembers, addTeamMember, removeTeamMember } from "../api/client";
 
@@ -129,6 +129,7 @@ export default function TeamManagementDialog({
   lang,
 }: TeamManagementDialogProps) {
   const t = strings[lang];
+  const { toast } = useToast();
   const prefersReducedMotion = useReducedMotion();
 
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -174,8 +175,10 @@ export default function TeamManagementDialog({
       setMemberName("");
       setMemberEmail("");
       setMemberRole("reader");
+      toast.success(lang === 'fr' ? 'Membre ajoute' : 'Member added');
     } catch {
       setErrorMsg(t.addError);
+      toast.error(t.addError);
       setShakeKey((k) => k + 1);
     }
   }, [bookingId, memberName, memberEmail, memberRole, t]);
@@ -185,11 +188,13 @@ export default function TeamManagementDialog({
       try {
         await removeTeamMember(bookingId, userId);
         setMembers((prev) => prev.filter((m) => m.user_id !== userId));
+        toast.success(lang === 'fr' ? 'Membre retire' : 'Member removed');
       } catch {
         setErrorMsg(t.removeError);
+        toast.error(t.removeError);
       }
     },
-    [bookingId, t],
+    [bookingId, t, toast, lang],
   );
 
   const roleLabel = (role: string) => {

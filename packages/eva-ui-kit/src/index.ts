@@ -41,3 +41,22 @@ export type { ChatMessageProps } from './components/chat/ChatMessage';
 
 export { FeedbackCapture } from './components/chat/FeedbackCapture';
 export type { FeedbackCaptureProps } from './components/chat/FeedbackCapture';
+
+export { RequestDetailsDrawer } from './components/chat/RequestDetailsDrawer';
+export type { RequestDetailsDrawerProps, MessageTelemetry } from './components/chat/RequestDetailsDrawer';
+
+export { ConversationSidebar } from './components/chat/ConversationSidebar';
+export type { ConversationSidebarProps, ConversationSummary } from './components/chat/ConversationSidebar';
+
+export { WorkspaceHealthBadge } from './components/chat/WorkspaceHealthBadge';
+export type { WorkspaceHealthBadgeProps } from './components/chat/WorkspaceHealthBadge';
+
+// Layout components
+export { CostTicker } from './components/layout/CostTicker';
+export type { CostTickerProps } from './components/layout/CostTicker';
+
+export { ToastProvider, useToast } from './components/layout/Toast';
+export type { ToastMessage } from './components/layout/Toast';
+
+export { Skeleton, SkeletonText, SkeletonCard } from './components/layout/Skeleton';
+export type { SkeletonProps, SkeletonTextProps } from './components/layout/Skeleton';

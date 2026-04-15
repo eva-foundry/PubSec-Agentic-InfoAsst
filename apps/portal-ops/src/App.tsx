@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { useEffect, useState } from 'react';
-import { useAuth, SkipLink } from '@eva/ui-kit';
+import { useAuth, SkipLink, CostTicker, ToastProvider } from '@eva/ui-kit';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import FinOpsDashboard from './pages/FinOpsDashboard';
@@ -224,83 +224,86 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <SkipLink targetId="main-content" language={lang} />
-      {/* GC Header bar */}
-      <div className="border-b border-red-700 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1.5">
-          <span className="text-xs font-medium text-gray-700">{t.gcHeader}</span>
-          <button
-            type="button"
-            onClick={toggleLang}
-            className="text-xs font-medium text-blue-700 underline hover:text-blue-900"
-            aria-label={t.language}
-          >
-            {lang === 'en' ? 'Francais' : 'English'}
-          </button>
-        </div>
-      </div>
-
-      {/* Main navigation bar */}
-      <header className="border-b border-gray-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-6">
-            <h1 className="text-lg font-semibold text-gray-900">{t.title}</h1>
-            <nav className="flex gap-1" role="navigation" aria-label="Main">
-              {PAGES.map((page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setActivePage(page)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    activePage === page
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                  aria-current={activePage === page ? 'page' : undefined}
-                >
-                  {t[page]}
-                </button>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
-              {t.signedInAs} <strong>{user!.name}</strong>
-            </span>
-            <span className="inline-flex rounded-full bg-indigo-100 border border-indigo-300 px-2 py-0.5 text-xs font-medium text-indigo-800">
-              {user!.role}
-            </span>
+    <ToastProvider>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <SkipLink targetId="main-content" language={lang} />
+        {/* GC Header bar */}
+        <div className="border-b border-red-700 bg-white">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1.5">
+            <span className="text-xs font-medium text-gray-700">{t.gcHeader}</span>
             <button
               type="button"
-              onClick={logout}
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              onClick={toggleLang}
+              className="text-xs font-medium text-blue-700 underline hover:text-blue-900"
+              aria-label={t.language}
             >
-              {t.signOut}
+              {lang === 'en' ? 'Francais' : 'English'}
             </button>
           </div>
         </div>
-      </header>
 
-      {/* Page content */}
-      <main id="main-content" className="flex-1">
-        <AnimatePresence mode="wait">
-          <motion.div key={activePage} {...pageTransition}>
-            {activePage === 'finops' && <FinOpsDashboard lang={lang} />}
-            {activePage === 'aiops' && <AIOpsMonitor lang={lang} />}
-            {activePage === 'liveops' && <LiveOpsHealth lang={lang} />}
-            {activePage === 'devops' && <DevOpsPipelines lang={lang} />}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+        {/* Main navigation bar */}
+        <header className="border-b border-gray-200 bg-white shadow-sm">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-6">
+              <h1 className="text-lg font-semibold text-gray-900">{t.title}</h1>
+              <nav className="flex gap-1" role="navigation" aria-label="Main">
+                {PAGES.map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setActivePage(page)}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      activePage === page
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                    aria-current={activePage === page ? 'page' : undefined}
+                  >
+                    {t[page]}
+                  </button>
+                ))}
+              </nav>
+            </div>
+            <div className="flex items-center gap-3">
+              <CostTicker language={lang} />
+              <span className="text-sm text-gray-600">
+                {t.signedInAs} <strong>{user!.name}</strong>
+              </span>
+              <span className="inline-flex rounded-full bg-indigo-100 border border-indigo-300 px-2 py-0.5 text-xs font-medium text-indigo-800">
+                {user!.role}
+              </span>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {t.signOut}
+              </button>
+            </div>
+          </div>
+        </header>
 
-      {/* GC Footer */}
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-4">
-          <p className="text-xs text-gray-500">{t.gcFooter}</p>
-        </div>
-      </footer>
-    </div>
+        {/* Page content */}
+        <main id="main-content" className="flex-1">
+          <AnimatePresence mode="wait">
+            <motion.div key={activePage} {...pageTransition}>
+              {activePage === 'finops' && <FinOpsDashboard lang={lang} />}
+              {activePage === 'aiops' && <AIOpsMonitor lang={lang} />}
+              {activePage === 'liveops' && <LiveOpsHealth lang={lang} />}
+              {activePage === 'devops' && <DevOpsPipelines lang={lang} />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        {/* GC Footer */}
+        <footer className="border-t border-gray-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-4">
+            <p className="text-xs text-gray-500">{t.gcFooter}</p>
+          </div>
+        </footer>
+      </div>
+    </ToastProvider>
   );
 }
 

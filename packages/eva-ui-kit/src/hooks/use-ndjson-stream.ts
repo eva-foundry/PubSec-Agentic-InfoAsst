@@ -9,6 +9,7 @@ import type {
   ExplainabilityRecord,
   ProvenanceRecord,
   StreamEvent,
+  TelemetryEvent,
 } from '@eva/common';
 
 export interface UseNdjsonStreamOptions {
@@ -16,6 +17,7 @@ export interface UseNdjsonStreamOptions {
   onContent?: (content: string) => void;
   onProvenance?: (provenance: Partial<ProvenanceRecord>) => void;
   onExplainability?: (record: ExplainabilityRecord) => void;
+  onTelemetry?: (telemetry: TelemetryEvent) => void;
   onError?: (error: { code: string; message: string }) => void;
 }
 
@@ -26,6 +28,7 @@ export interface UseNdjsonStreamReturn {
   content: string;
   steps: AgentStep[];
   provenance: Partial<ProvenanceRecord> | null;
+  telemetry: TelemetryEvent | null;
   error: string | null;
 }
 
@@ -44,6 +47,7 @@ export function useNdjsonStream(
   const [content, setContent] = useState('');
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [provenance, setProvenance] = useState<Partial<ProvenanceRecord> | null>(null);
+  const [telemetry, setTelemetry] = useState<TelemetryEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
@@ -68,6 +72,7 @@ export function useNdjsonStream(
       setContent('');
       setSteps([]);
       setProvenance(null);
+      setTelemetry(null);
       setError(null);
       setIsStreaming(true);
 
@@ -181,6 +186,9 @@ export function useNdjsonStream(
       optionsRef.current?.onProvenance?.(event.provenance_complete);
     } else if ('explainability' in event) {
       optionsRef.current?.onExplainability?.(event.explainability);
+    } else if ('telemetry' in event) {
+      setTelemetry(event.telemetry);
+      optionsRef.current?.onTelemetry?.(event.telemetry);
     } else if ('error' in event) {
       setError(event.error.message);
       optionsRef.current?.onError?.(event.error);
@@ -188,5 +196,5 @@ export function useNdjsonStream(
     // 'provenance' (initial trace header) is informational — no state update needed
   }
 
-  return { send, cancel, isStreaming, content, steps, provenance, error };
+  return { send, cancel, isStreaming, content, steps, provenance, telemetry, error };
 }

@@ -17,6 +17,7 @@ export type {
   ChatRequest,
   ChatOverrides,
   StreamEvent,
+  TelemetryEvent,
 } from './chat';
 
 export type {

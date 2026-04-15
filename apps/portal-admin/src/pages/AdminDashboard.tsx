@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SkeletonCard } from '@eva/ui-kit';
 import {
   listClients,
   listAllBookings,
@@ -272,14 +273,14 @@ export default function AdminDashboard({ lang }: Props) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6 h-8 w-64 animate-pulse rounded bg-gray-200" />
-        <div className="mb-8 grid grid-cols-4 gap-4">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-100" />
+            <SkeletonCard key={i} />
           ))}
         </div>
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 animate-pulse rounded bg-gray-100" />
+            <SkeletonCard key={i} />
           ))}
         </div>
       </div>

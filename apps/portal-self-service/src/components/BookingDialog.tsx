@@ -4,7 +4,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useAuth, FocusTrap } from "@eva/ui-kit";
+import { useAuth, FocusTrap, useToast } from "@eva/ui-kit";
 import {
   createBooking,
   submitEntrySurvey,
@@ -186,6 +186,7 @@ export default function BookingDialog({
 }: BookingDialogProps) {
   const t = strings[lang];
   const { user } = useAuth();
+  const { toast } = useToast();
   const prefersReducedMotion = useReducedMotion();
 
   const [step, setStep] = useState<1 | 2>(1);
@@ -281,6 +282,7 @@ export default function BookingDialog({
         data_classification: dataClassification,
       });
 
+      toast.success(t.success);
       handleClose();
     } catch {
       setErrorMsg(t.errorSubmit);

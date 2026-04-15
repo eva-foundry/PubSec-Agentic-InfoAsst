@@ -61,10 +61,20 @@ export interface ChatOverrides {
 // NDJSON stream event types
 // ---------------------------------------------------------------------------
 
+export interface TelemetryEvent {
+  model?: string;
+  tokens_prompt?: number;
+  tokens_completion?: number;
+  tokens_total?: number;
+  latency_ms?: number;
+  estimated_cost_cad?: number;
+}
+
 export type StreamEvent =
   | { provenance: { correlation_id: string; trace_id: string } }
   | { agent_step: AgentStep }
   | { content: string }
   | { provenance_complete: Partial<ProvenanceRecord> }
   | { explainability: ExplainabilityRecord }
+  | { telemetry: TelemetryEvent }
   | { error: { code: string; message: string } };

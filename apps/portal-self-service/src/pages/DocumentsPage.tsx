@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@eva/ui-kit";
+import { useAuth, useToast } from "@eva/ui-kit";
 import DropZone from "../components/DropZone";
 import PipelineStatusBar from "../components/PipelineStatusBar";
 import { FileTypeIcon, SUPPORTED_EXTENSIONS, getExtension } from "../components/FileTypeIcons";
@@ -263,6 +263,7 @@ function UploadPanel({
   lang: Lang;
   t: Record<string, string>;
 }) {
+  const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -290,12 +291,12 @@ function UploadPanel({
     try {
       await uploadDocuments(workspaceId, files, setProgress);
       setMessage({ type: "success", text: t.uploadSuccess });
+      toast.success(t.uploadSuccess);
       setFiles([]);
     } catch (err) {
-      setMessage({
-        type: "error",
-        text: `${t.uploadError}: ${err instanceof Error ? err.message : String(err)}`,
-      });
+      const errText = `${t.uploadError}: ${err instanceof Error ? err.message : String(err)}`;
+      setMessage({ type: "error", text: errText });
+      toast.error(t.uploadError);
     } finally {
       setUploading(false);
       setProgress(0);

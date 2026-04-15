@@ -69,21 +69,44 @@ async def finops_metrics(
 async def aiops_metrics(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """RAG quality and model performance metrics."""
+    """RAG quality and model performance metrics — computed from chat_store."""
     _require_ops(user)
+
+    from ..stores import chat_store
+
+    conversations = chat_store.list_conversations()
+    all_msgs = chat_store._records
+    assistant_msgs = [m for m in all_msgs if m.role == "assistant"]
+
+    conversation_count = len(conversations)
+    avg_confidence = (
+        sum(m.confidence_score for m in assistant_msgs) / len(assistant_msgs)
+        if assistant_msgs else 0.0
+    )
+
+    # Groundedness: % of assistant messages that have at least one citation
+    with_citations = sum(1 for m in assistant_msgs if m.citations)
+    groundedness = with_citations / len(assistant_msgs) if assistant_msgs else 0.0
+
+    # Escalation rate: messages where provenance indicates escalation
+    escalated = sum(
+        1 for m in assistant_msgs
+        if m.provenance and isinstance(m.provenance, dict)
+        and m.provenance.get("escalation_triggered")
+    )
+    escalation_rate = escalated / len(assistant_msgs) * 100 if assistant_msgs else 0.0
+
+    calibration = chat_store.confidence_calibration()
+
     return {
         "period": "2026-04-14",
-        "groundedness": 0.91,
-        "relevance": 0.88,
-        "coherence": 0.94,
-        "citation_accuracy": 0.96,
-        "avg_confidence": 0.85,
-        "escalation_rate_pct": 4.2,
+        "conversation_count": conversation_count,
+        "total_responses": len(assistant_msgs),
+        "avg_confidence": round(avg_confidence, 4),
+        "groundedness": round(groundedness, 4),
+        "escalation_rate_pct": round(escalation_rate, 2),
+        "confidence_calibration": calibration,
         "drift_detected": False,
-        "model_performance": {
-            "gpt-5.1": {"avg_latency_ms": 780, "error_rate_pct": 0.1},
-            "gpt-5-mini": {"avg_latency_ms": 320, "error_rate_pct": 0.05},
-        },
     }
 
 
@@ -91,19 +114,42 @@ async def aiops_metrics(
 async def liveops_metrics(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """Queue depths, capacity, and SLA tracking."""
+    """Queue depths, capacity, and SLA tracking — computed from stores."""
     _require_ops(user)
+
+    from ..stores import document_store, vector_store, workspace_store
+
+    all_workspaces = workspace_store.list(workspace_grants=["all"])
+    active_workspaces = len(all_workspaces)
+
+    total_documents = 0
+    total_chunks = 0
+    ingestion_queue_depth = 0
+    embedding_queue_depth = 0
+
+    for ws in all_workspaces:
+        ws_id = ws.id
+        total_chunks += vector_store.document_count(ws_id)
+        docs = document_store.list_by_workspace(ws_id)
+        total_documents += len(docs)
+        # Queue depth = docs not yet fully indexed
+        for d in docs:
+            if d.status in ("uploaded", "processing", "chunking"):
+                ingestion_queue_depth += 1
+            elif d.status == "embedding":
+                embedding_queue_depth += 1
+
     return {
         "queues": {
-            "document_ingestion": {"depth": 12, "max_depth": 1000, "avg_processing_ms": 45_000},
-            "embedding_generation": {"depth": 3, "max_depth": 500, "avg_processing_ms": 8_000},
+            "document_ingestion": {"depth": ingestion_queue_depth, "max_depth": 1000, "avg_processing_ms": 45_000},
+            "embedding_generation": {"depth": embedding_queue_depth, "max_depth": 500, "avg_processing_ms": 8_000},
             "chat_requests": {"depth": 0, "max_depth": 100, "avg_processing_ms": 2_500},
         },
         "capacity": {
-            "active_workspaces": 3,
+            "active_workspaces": active_workspaces,
             "max_workspaces": 50,
-            "total_documents": 1555,
-            "total_chunks": 42_300,
+            "total_documents": total_documents,
+            "total_chunks": total_chunks,
         },
         "sla": {
             "uptime_pct": 99.95,
@@ -118,19 +164,48 @@ async def get_agent_trace(
     conversation_id: str,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """Return the full agent execution trace for a conversation."""
+    """Return the full agent execution trace for a conversation from chat_store."""
     _require_ops(user)
+
+    from ..stores import chat_store
+
+    messages = chat_store.get_conversation(conversation_id)
+    if not messages:
+        raise HTTPException(status_code=404, detail=f"Conversation {conversation_id} not found")
+
+    # Build trace from assistant messages' agent steps
+    all_steps: list[dict] = []
+    total_duration_ms = 0
+    model_used = "unknown"
+    provenance_records: list[dict] = []
+
+    for msg in messages:
+        if msg.role == "assistant":
+            model_used = msg.model
+            for step in msg.agent_steps:
+                all_steps.append(step)
+                total_duration_ms += step.get("duration_ms", 0)
+            if msg.provenance:
+                provenance_records.append(msg.provenance)
+
     return {
         "conversation_id": conversation_id,
-        "trace_id": "otel-abc123def456",
-        "steps": [
-            {"id": 1, "tool": "planner", "status": "complete", "duration_ms": 120, "input_hash": "a1b2", "output_hash": "c3d4"},
-            {"id": 2, "tool": "search", "status": "complete", "duration_ms": 320, "input_hash": "e5f6", "output_hash": "g7h8", "metadata": {"sources_found": 5}},
-            {"id": 3, "tool": "reranker", "status": "complete", "duration_ms": 85, "input_hash": "i9j0", "output_hash": "k1l2", "metadata": {"sources_kept": 3}},
-            {"id": 4, "tool": "answer", "status": "complete", "duration_ms": 780, "input_hash": "m3n4", "output_hash": "o5p6"},
+        "message_count": len(messages),
+        "steps": all_steps,
+        "total_duration_ms": total_duration_ms,
+        "model_used": model_used,
+        "provenance": provenance_records,
+        "messages": [
+            {
+                "message_id": m.message_id,
+                "role": m.role,
+                "content_preview": m.content_preview,
+                "confidence_score": m.confidence_score,
+                "citations_count": len(m.citations),
+                "created_at": m.created_at,
+            }
+            for m in messages
         ],
-        "total_duration_ms": 1305,
-        "model_used": "gpt-5.1-2026-04",
     }
 
 
@@ -138,26 +213,45 @@ async def get_agent_trace(
 async def corpus_health(
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """Index freshness and corpus integrity metrics."""
+    """Index freshness and corpus integrity metrics — from vector_store and document_store."""
     _require_ops(user)
-    return {
-        "indexes": {
-            "ws-oas-act": {
-                "document_count": 87,
-                "chunk_count": 2_450,
-                "last_indexed_at": "2026-04-10T14:35:00Z",
-                "stale_documents": 2,
-                "freshness_score": 0.94,
-            },
-            "ws-ei-juris": {
-                "document_count": 1423,
-                "chunk_count": 38_200,
-                "last_indexed_at": "2026-04-12T09:45:00Z",
-                "stale_documents": 0,
-                "freshness_score": 0.99,
-            },
-        },
-    }
+
+    from ..stores import document_store, vector_store, workspace_store
+
+    indexes: dict[str, dict] = {}
+
+    # Iterate over all known workspaces
+    for ws in workspace_store.list(workspace_grants=["all"]):
+        ws_id = ws.id
+        chunk_count = vector_store.document_count(ws_id)
+        file_names = vector_store.list_files(ws_id)
+        doc_records = document_store.list_by_workspace(ws_id)
+
+        # Find last indexed timestamp from document records
+        indexed_dates = [
+            d.indexed_at for d in doc_records
+            if d.indexed_at is not None
+        ]
+        last_indexed_at = max(indexed_dates) if indexed_dates else None
+
+        # Stale = documents not in "indexed" status
+        stale = sum(1 for d in doc_records if d.status not in ("indexed",))
+
+        # Freshness score: proportion of documents that are indexed
+        total_docs = len(doc_records) if doc_records else len(file_names)
+        indexed_count = sum(1 for d in doc_records if d.status == "indexed")
+        freshness_score = indexed_count / total_docs if total_docs else 1.0
+
+        if chunk_count > 0 or doc_records:
+            indexes[ws_id] = {
+                "document_count": len(file_names) or len(doc_records),
+                "chunk_count": chunk_count,
+                "last_indexed_at": last_indexed_at,
+                "stale_documents": stale,
+                "freshness_score": round(freshness_score, 4),
+            }
+
+    return {"indexes": indexes}
 
 
 @router.get("/ops/feedback-analytics")

@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { SkeletonCard } from "@eva/ui-kit";
 import {
   fetchWorkspaceCatalog,
   type CatalogWorkspace,
@@ -109,8 +110,14 @@ export default function WorkspaceCatalog({ lang }: WorkspaceCatalogProps) {
   if (loading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-12">
-        <div className="flex items-center justify-center py-20">
-          <p className="text-gray-500">{t.loading}</p>
+        <div className="mb-8">
+          <div className="mb-2 h-8 w-64 animate-pulse rounded bg-gray-200" />
+          <div className="h-4 w-96 animate-pulse rounded bg-gray-100" />
+        </div>
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       </div>
     );

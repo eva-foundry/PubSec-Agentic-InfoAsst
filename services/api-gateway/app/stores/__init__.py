@@ -5,6 +5,7 @@ with the same interface.
 """
 
 from .booking_store import BookingStore
+from .chat_store import ChatStore
 from .client_store import ClientStore
 from .model_registry_store import ModelRegistryStore
 from .prompt_store import PromptStore
@@ -25,6 +26,7 @@ prompt_store = PromptStore()
 telemetry_store = TelemetryStore()
 vector_store = VectorStore()
 document_store = DocumentStore()
+chat_store = ChatStore()
 
 __all__ = [
     "workspace_store",
@@ -37,8 +39,10 @@ __all__ = [
     "telemetry_store",
     "vector_store",
     "document_store",
+    "chat_store",
     "WorkspaceStore",
     "BookingStore",
+    "ChatStore",
     "TeamStore",
     "SurveyStore",
     "ClientStore",
