@@ -12,12 +12,13 @@ Reference: Agentic State Vision principle #3 (Agent Identity),
 EVA Design Principles (forensic audit trail).
 """
 
+import os
 import sys
 import uuid
 
 import pytest
 
-sys.path.insert(0, "services/api-gateway")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "services", "api-gateway"))
 from app.provenance.correlation import (  # noqa: E402
     generate_correlation_id,
     get_correlation_id_from_headers,

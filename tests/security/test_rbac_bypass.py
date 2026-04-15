@@ -13,12 +13,13 @@ Reference: ESDC RBAC model (Reader / Contributor / Admin) + portal_access grants
 """
 
 import io
+import os
 import sys
 
 import pytest
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, "services/api-gateway")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "services", "api-gateway"))
 from app.main import app  # noqa: E402
 
 client = TestClient(app)

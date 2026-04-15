@@ -8,11 +8,12 @@ and false-positive resilience on benign inputs.
 Reference: OWASP Top 10 for LLM Applications (2025), MITRE ATLAS.
 """
 
+import os
 import sys
 
 import pytest
 
-sys.path.insert(0, "services/api-gateway")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "services", "api-gateway"))
 from app.guardrails.prompt_shield import PromptShield  # noqa: E402
 
 shield = PromptShield()
