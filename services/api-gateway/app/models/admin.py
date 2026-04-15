@@ -21,6 +21,7 @@ class Client(BaseModel):
         default="active",
         description="'active', 'suspended', 'offboarded'",
     )
+    workspace_ids: list[str] = Field(default_factory=list)
 
 
 class Interview(BaseModel):

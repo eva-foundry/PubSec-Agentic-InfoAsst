@@ -10,6 +10,7 @@ from .model_registry_store import ModelRegistryStore
 from .prompt_store import PromptStore
 from .survey_store import SurveyStore
 from .team_store import TeamStore
+from .telemetry_store import TelemetryStore
 from .workspace_store import WorkspaceStore
 
 workspace_store = WorkspaceStore()
@@ -19,6 +20,7 @@ survey_store = SurveyStore()
 client_store = ClientStore()
 model_registry_store = ModelRegistryStore()
 prompt_store = PromptStore()
+telemetry_store = TelemetryStore()
 
 __all__ = [
     "workspace_store",
@@ -28,6 +30,7 @@ __all__ = [
     "client_store",
     "model_registry_store",
     "prompt_store",
+    "telemetry_store",
     "WorkspaceStore",
     "BookingStore",
     "TeamStore",
@@ -35,4 +38,5 @@ __all__ = [
     "ClientStore",
     "ModelRegistryStore",
     "PromptStore",
+    "TelemetryStore",
 ]

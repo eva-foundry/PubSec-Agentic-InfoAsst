@@ -125,9 +125,43 @@ async def onboard_client(
 @router.get("/admin/clients")
 async def list_clients(
     user: UserContext = Depends(get_current_user),
-) -> list[Client]:
+) -> list[dict]:
     _require_admin(user)
-    return client_store.list_clients()
+    from .chat import feedback_store
+
+    clients = client_store.list_clients()
+    result = []
+    for cl in clients:
+        # Count workspaces
+        workspaces_count = len(cl.workspace_ids)
+
+        # Count queries from feedback store question analytics
+        query_count = 0
+        for ws_id in cl.workspace_ids:
+            query_count += len(feedback_store.get_questions_by_workspace(ws_id))
+
+        # Count documents from workspace store
+        document_count = 0
+        for ws_id in cl.workspace_ids:
+            ws = workspace_store.get(ws_id)
+            if ws:
+                document_count += ws.document_count
+
+        # Determine last_active from most recent booking activity
+        last_active: str | None = None
+        for ws_id in cl.workspace_ids:
+            for bk in booking_store.list_by_workspace(ws_id):
+                if last_active is None or bk.updated_at > last_active:
+                    last_active = bk.updated_at
+
+        result.append({
+            **cl.model_dump(),
+            "workspaces_count": workspaces_count,
+            "query_count": query_count,
+            "document_count": document_count,
+            "last_active": last_active,
+        })
+    return result
 
 
 @router.get("/admin/clients/{client_id}")

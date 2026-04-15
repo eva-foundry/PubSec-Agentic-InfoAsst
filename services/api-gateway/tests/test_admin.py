@@ -11,6 +11,7 @@ from app.stores import (
     client_store,
     model_registry_store,
     prompt_store,
+    team_store,
     workspace_store,
 )
 
@@ -29,6 +30,7 @@ def _reset_stores():
     prompt_store.__init__()  # type: ignore[misc]
     workspace_store.__init__()  # type: ignore[misc]
     booking_store.__init__()  # type: ignore[misc]
+    team_store.__init__()  # type: ignore[misc]
     yield
 
 
@@ -56,8 +58,22 @@ class TestClients:
         clients = resp.json()
         assert len(clients) == 2
         ids = {c["id"] for c in clients}
-        assert "cl-001" in ids
-        assert "cl-002" in ids
+        assert "client-bdm" in ids
+        assert "client-sco" in ids
+
+    def test_list_clients_includes_computed_metrics(self):
+        resp = client.get("/v1/eva/admin/clients", headers=CAROL)
+        assert resp.status_code == 200
+        clients = resp.json()
+
+        bdm = next(c for c in clients if c["id"] == "client-bdm")
+        assert bdm["workspaces_count"] == 3
+        assert bdm["query_count"] > 0
+        assert bdm["document_count"] > 0
+        assert bdm["last_active"] is not None
+
+        sco = next(c for c in clients if c["id"] == "client-sco")
+        assert sco["workspaces_count"] == 1
 
     def test_onboard_client_creates_client(self):
         resp = client.post(
@@ -80,7 +96,7 @@ class TestClients:
         assert len(resp2.json()) == 3
 
     def test_get_client_by_id(self):
-        resp = client.get("/v1/eva/admin/clients/cl-001", headers=CAROL)
+        resp = client.get("/v1/eva/admin/clients/client-bdm", headers=CAROL)
         assert resp.status_code == 200
         assert resp.json()["org_name"] == "Benefits Delivery Modernization"
 
@@ -90,7 +106,7 @@ class TestClients:
 
     def test_update_client(self):
         resp = client.patch(
-            "/v1/eva/admin/clients/cl-001",
+            "/v1/eva/admin/clients/client-bdm",
             json={"status": "suspended"},
             headers=CAROL,
         )
@@ -98,7 +114,7 @@ class TestClients:
         assert resp.json()["status"] == "suspended"
 
         # Verify persisted
-        resp2 = client.get("/v1/eva/admin/clients/cl-001", headers=CAROL)
+        resp2 = client.get("/v1/eva/admin/clients/client-bdm", headers=CAROL)
         assert resp2.json()["status"] == "suspended"
 
 
@@ -110,7 +126,7 @@ class TestInterviews:
         resp = client.post(
             "/v1/eva/admin/interviews",
             json={
-                "client_id": "cl-001",
+                "client_id": "client-bdm",
                 "use_case_description": "Analyze the Employment Insurance Act and related regulations",
                 "data_sources": ["legislation-db", "gazette"],
                 "expected_volume": "500 documents",
@@ -121,14 +137,14 @@ class TestInterviews:
         assert resp.status_code == 201
         data = resp.json()
         assert data["archetype_recommendation"] == "legislation"
-        assert data["client_id"] == "cl-001"
+        assert data["client_id"] == "client-bdm"
         assert data["id"].startswith("iv-")
 
     def test_interview_creates_with_archetype_case_law(self):
         resp = client.post(
             "/v1/eva/admin/interviews",
             json={
-                "client_id": "cl-001",
+                "client_id": "client-bdm",
                 "use_case_description": "Search tribunal decisions and court rulings for EI appeals",
                 "data_sources": ["canlii"],
             },
@@ -141,7 +157,7 @@ class TestInterviews:
         resp = client.post(
             "/v1/eva/admin/interviews",
             json={
-                "client_id": "cl-001",
+                "client_id": "client-bdm",
                 "use_case_description": "General document search and summarization",
                 "data_sources": ["sharepoint"],
             },
@@ -166,12 +182,12 @@ class TestInterviews:
         client.post(
             "/v1/eva/admin/interviews",
             json={
-                "client_id": "cl-001",
+                "client_id": "client-bdm",
                 "use_case_description": "Test use case",
             },
             headers=CAROL,
         )
-        resp = client.get("/v1/eva/admin/clients/cl-001/interviews", headers=CAROL)
+        resp = client.get("/v1/eva/admin/clients/client-bdm/interviews", headers=CAROL)
         assert resp.status_code == 200
         assert len(resp.json()) == 1
 
@@ -183,7 +199,7 @@ class TestWorkspaceProvisioning:
     def test_provision_dry_run_returns_plan(self):
         resp = client.post(
             "/v1/eva/admin/workspaces/provision",
-            json={"workspace_id": "ws-protb", "dry_run": True},
+            json={"workspace_id": "ws-oas-act", "dry_run": True},
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -196,11 +212,11 @@ class TestWorkspaceProvisioning:
 
     def test_provision_confirm_changes_status(self):
         # Set workspace to draft first
-        workspace_store.update("ws-protb", {"status": "draft"})
+        workspace_store.update("ws-oas-act", {"status": "draft"})
 
         resp = client.post(
             "/v1/eva/admin/workspaces/provision",
-            json={"workspace_id": "ws-protb", "dry_run": False},
+            json={"workspace_id": "ws-oas-act", "dry_run": False},
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -218,7 +234,7 @@ class TestWorkspaceProvisioning:
 
     def test_decommission_dry_run_returns_plan(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/ws-protb/decommission?dry_run=true",
+            "/v1/eva/admin/workspaces/ws-oas-act/decommission?dry_run=true",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -227,11 +243,11 @@ class TestWorkspaceProvisioning:
         plan = data["plan"]
         assert "safety_gates" in plan
         assert len(plan["safety_gates"]) > 0
-        assert plan["documents_to_delete"] == 234  # matches seed data
+        assert plan["documents_to_delete"] == 4  # matches seed data
 
     def test_decommission_confirm_archives(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/ws-protb/decommission?dry_run=false",
+            "/v1/eva/admin/workspaces/ws-oas-act/decommission?dry_run=false",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -240,10 +256,10 @@ class TestWorkspaceProvisioning:
         assert data["workspace"]["status"] == "archived"
 
     def test_workspace_resources(self):
-        resp = client.get("/v1/eva/admin/workspaces/ws-protb/resources", headers=CAROL)
+        resp = client.get("/v1/eva/admin/workspaces/ws-oas-act/resources", headers=CAROL)
         assert resp.status_code == 200
         data = resp.json()
-        assert data["workspace_id"] == "ws-protb"
+        assert data["workspace_id"] == "ws-oas-act"
         assert "ai_search_index" in data["resources"]
 
 
@@ -401,7 +417,7 @@ class TestBookingManagement:
 
         bk = Booking(
             id="bk-test-001",
-            workspace_id="ws-protb",
+            workspace_id="ws-oas-act",
             requester_id="demo-alice",
             status="pending",
             start_date="2026-05-01",
@@ -413,13 +429,15 @@ class TestBookingManagement:
         return bk.id
 
     def test_list_all_bookings(self):
+        # Seeded bookings exist + create one more
         self._create_booking()
         resp = client.get("/v1/eva/admin/bookings", headers=CAROL)
         assert resp.status_code == 200
         bookings = resp.json()
-        assert len(bookings) == 1
-        assert bookings[0]["id"] == "bk-test-001"
-        assert "workspace_name" in bookings[0]
+        # 3 seeded + 1 created = 4
+        assert len(bookings) == 4
+        test_bk = next(b for b in bookings if b["id"] == "bk-test-001")
+        assert "workspace_name" in test_bk
 
     def test_approve_booking_changes_status(self):
         bk_id = self._create_booking()
@@ -464,7 +482,7 @@ class TestBookingManagement:
 class TestValves:
     def test_update_valves(self):
         resp = client.patch(
-            "/v1/eva/admin/workspaces/ws-protb/valves",
+            "/v1/eva/admin/workspaces/ws-oas-act/valves",
             json={"valves": {"temperature": 0.2, "top_k": 10}},
             headers=CAROL,
         )

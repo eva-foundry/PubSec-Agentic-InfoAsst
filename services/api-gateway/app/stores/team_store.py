@@ -11,6 +11,64 @@ class TeamStore:
     def __init__(self) -> None:
         # booking_id -> list of members
         self._members: dict[str, list[TeamMember]] = {}
+        self._seed()
+
+    def _seed(self) -> None:
+        """Pre-populate with team members matching the demo walkthrough story."""
+        self._members["bk-alice-oas"] = [
+            TeamMember(
+                id="tm-alice-1",
+                workspace_id="ws-oas-act",
+                user_id="demo-alice",
+                email="alice@demo.gc.ca",
+                name="Alice Chen",
+                role="admin",
+                added_at="2026-02-01T00:00:00Z",
+                added_by="demo-alice",
+            ),
+            TeamMember(
+                id="tm-bob-1",
+                workspace_id="ws-oas-act",
+                user_id="demo-bob",
+                email="bob@demo.gc.ca",
+                name="Bob Wilson",
+                role="reader",
+                added_at="2026-02-01T00:00:00Z",
+                added_by="demo-alice",
+            ),
+            TeamMember(
+                id="tm-eve-1",
+                workspace_id="ws-oas-act",
+                user_id="demo-eve",
+                email="eve@demo.gc.ca",
+                name="Eve Tremblay",
+                role="contributor",
+                added_at="2026-02-05T00:00:00Z",
+                added_by="demo-alice",
+            ),
+        ]
+        self._members["bk-eve-ei"] = [
+            TeamMember(
+                id="tm-eve-2",
+                workspace_id="ws-ei-juris",
+                user_id="demo-eve",
+                email="eve@demo.gc.ca",
+                name="Eve Tremblay",
+                role="admin",
+                added_at="2026-03-15T00:00:00Z",
+                added_by="demo-eve",
+            ),
+            TeamMember(
+                id="tm-alice-2",
+                workspace_id="ws-ei-juris",
+                user_id="demo-alice",
+                email="alice@demo.gc.ca",
+                name="Alice Chen",
+                role="reader",
+                added_at="2026-03-16T00:00:00Z",
+                added_by="demo-eve",
+            ),
+        ]
 
     def list_by_booking(self, booking_id: str) -> list[TeamMember]:
         """List all members for a booking."""

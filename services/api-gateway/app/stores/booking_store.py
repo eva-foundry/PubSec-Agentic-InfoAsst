@@ -10,6 +10,50 @@ class BookingStore:
 
     def __init__(self) -> None:
         self._bookings: dict[str, Booking] = {}
+        self._seed()
+
+    def _seed(self) -> None:
+        """Pre-populate with bookings matching the demo walkthrough story."""
+        seed = [
+            Booking(
+                id="bk-alice-oas",
+                workspace_id="ws-oas-act",
+                requester_id="demo-alice",
+                status="active",
+                start_date="2026-02-01",
+                end_date="2026-06-30",
+                entry_survey_completed=True,
+                exit_survey_completed=False,
+                created_at="2026-01-20T00:00:00Z",
+                updated_at="2026-02-01T00:00:00Z",
+            ),
+            Booking(
+                id="bk-alice-faq",
+                workspace_id="ws-faq",
+                requester_id="demo-alice",
+                status="completed",
+                start_date="2026-03-01",
+                end_date="2026-03-31",
+                entry_survey_completed=True,
+                exit_survey_completed=True,
+                created_at="2026-02-25T00:00:00Z",
+                updated_at="2026-03-31T00:00:00Z",
+            ),
+            Booking(
+                id="bk-eve-ei",
+                workspace_id="ws-ei-juris",
+                requester_id="demo-eve",
+                status="active",
+                start_date="2026-03-15",
+                end_date="2026-07-31",
+                entry_survey_completed=True,
+                exit_survey_completed=False,
+                created_at="2026-03-10T00:00:00Z",
+                updated_at="2026-03-15T00:00:00Z",
+            ),
+        ]
+        for bk in seed:
+            self._bookings[bk.id] = bk
 
     def create(self, booking: Booking) -> Booking:
         """Store a new booking."""

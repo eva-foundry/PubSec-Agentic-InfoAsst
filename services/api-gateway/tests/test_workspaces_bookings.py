@@ -29,21 +29,6 @@ CAROL = {"x-demo-user-email": "carol@demo.gc.ca"}  # admin, grants: all
 DAVE = {"x-demo-user-email": "dave@demo.gc.ca"}  # admin, grants: all
 
 
-def _create_booking(headers: dict = ALICE, workspace_id: str = "ws-protb") -> dict:
-    """Helper to create a booking and return the response JSON."""
-    # Alice doesn't have ws-protb in her grants — use Carol for that
-    resp = client.post(
-        "/v1/eva/bookings",
-        json={
-            "workspace_id": workspace_id,
-            "start_date": "2026-05-01",
-            "end_date": "2026-08-01",
-        },
-        headers=headers,
-    )
-    return resp.json(), resp.status_code
-
-
 # ==================== WORKSPACE TESTS ====================
 
 
@@ -54,22 +39,24 @@ class TestWorkspaces:
         workspaces = resp.json()
         assert len(workspaces) == 5
         ids = {ws["id"] for ws in workspaces}
-        assert ids == {"ws-protb", "ws-ocr", "ws-translation", "ws-summarization", "ws-general"}
+        assert ids == {"ws-oas-act", "ws-ei-juris", "ws-bdm-km", "ws-faq", "ws-sandbox"}
 
     def test_list_filtered_by_grants(self):
-        """Alice only has grants for ws-oas-act and ws-ei-juris, neither of which
-        are in the new seed data, so she should see zero workspaces."""
+        """Alice has grants for ws-oas-act and ws-ei-juris."""
         resp = client.get("/v1/eva/workspaces", headers=ALICE)
         assert resp.status_code == 200
         workspaces = resp.json()
-        # Alice's grants (ws-oas-act, ws-ei-juris) don't match seed IDs
-        assert len(workspaces) == 0
+        assert len(workspaces) == 2
+        ids = {ws["id"] for ws in workspaces}
+        assert ids == {"ws-oas-act", "ws-ei-juris"}
 
     def test_list_filtered_bob_sees_subset(self):
-        """Bob has grant for ws-oas-act only, which is not in new seeds."""
+        """Bob has grant for ws-oas-act only."""
         resp = client.get("/v1/eva/workspaces", headers=BOB)
         assert resp.status_code == 200
-        assert len(resp.json()) == 0
+        workspaces = resp.json()
+        assert len(workspaces) == 1
+        assert workspaces[0]["id"] == "ws-oas-act"
 
     def test_admin_sees_all(self):
         resp = client.get("/v1/eva/workspaces", headers=CAROL)
@@ -77,11 +64,11 @@ class TestWorkspaces:
         assert len(resp.json()) == 5
 
     def test_get_workspace_detail(self):
-        resp = client.get("/v1/eva/workspaces/ws-protb", headers=CAROL)
+        resp = client.get("/v1/eva/workspaces/ws-oas-act", headers=CAROL)
         assert resp.status_code == 200
         data = resp.json()
-        assert data["id"] == "ws-protb"
-        assert data["name"] == "Protected B Environment"
+        assert data["id"] == "ws-oas-act"
+        assert data["name"] == "OAS Act Legislation"
         assert data["data_classification"] == "protected_b"
 
     def test_workspace_not_found(self):
@@ -89,8 +76,8 @@ class TestWorkspaces:
         assert resp.status_code == 404
 
     def test_workspace_access_denied(self):
-        """Alice doesn't have ws-protb in her grants."""
-        resp = client.get("/v1/eva/workspaces/ws-protb", headers=ALICE)
+        """Alice doesn't have ws-sandbox in her grants."""
+        resp = client.get("/v1/eva/workspaces/ws-sandbox", headers=ALICE)
         assert resp.status_code == 403
 
 
@@ -102,7 +89,7 @@ class TestBookings:
         resp = client.post(
             "/v1/eva/bookings",
             json={
-                "workspace_id": "ws-ocr",
+                "workspace_id": "ws-bdm-km",
                 "start_date": "2026-05-01",
                 "end_date": "2026-07-01",
             },
@@ -110,11 +97,11 @@ class TestBookings:
         )
         assert resp.status_code == 201
         data = resp.json()
-        assert data["workspace_id"] == "ws-ocr"
+        assert data["workspace_id"] == "ws-bdm-km"
         assert data["status"] == "pending"
         assert data["requester_id"] == "demo-carol"
-        # ws-ocr monthly_cost=3500, weekly=875, ~8.7 weeks -> 9 weeks -> 7875
-        assert data["weekly_cost"] == 875.0
+        # ws-bdm-km monthly_cost=2000, weekly=500, ~8.7 weeks -> 9 weeks -> 4500
+        assert data["weekly_cost"] == 500.0
         assert data["total_cost"] > 0
 
     def test_create_booking_workspace_not_found(self):
@@ -130,11 +117,11 @@ class TestBookings:
         assert resp.status_code == 404
 
     def test_create_booking_access_denied(self):
-        """Alice doesn't have access to ws-protb."""
+        """Alice doesn't have access to ws-sandbox."""
         resp = client.post(
             "/v1/eva/bookings",
             json={
-                "workspace_id": "ws-protb",
+                "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
                 "end_date": "2026-08-01",
             },
@@ -143,20 +130,15 @@ class TestBookings:
         assert resp.status_code == 403
 
     def test_list_bookings_by_user(self):
-        # Carol creates a booking
-        client.post(
-            "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-06-01"},
-            headers=CAROL,
-        )
-        # Carol sees it
-        resp = client.get("/v1/eva/bookings", headers=CAROL)
-        assert resp.status_code == 200
-        assert len(resp.json()) == 1
-        assert resp.json()[0]["requester_id"] == "demo-carol"
-
-        # Alice sees nothing (her bookings are empty)
+        # Alice already has seeded bookings (bk-alice-oas, bk-alice-faq)
         resp = client.get("/v1/eva/bookings", headers=ALICE)
+        assert resp.status_code == 200
+        bookings = resp.json()
+        assert len(bookings) == 2
+        assert all(b["requester_id"] == "demo-alice" for b in bookings)
+
+        # Bob sees nothing
+        resp = client.get("/v1/eva/bookings", headers=BOB)
         assert resp.status_code == 200
         assert len(resp.json()) == 0
 
@@ -164,7 +146,7 @@ class TestBookings:
         # Create
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
             headers=CAROL,
         )
         assert create_resp.status_code == 201
@@ -195,7 +177,7 @@ class TestBookings:
     def test_booking_invalid_transition(self):
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -211,7 +193,7 @@ class TestBookings:
     def test_booking_cancellation(self):
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -219,7 +201,9 @@ class TestBookings:
         resp = client.delete(f"/v1/eva/bookings/{booking_id}", headers=CAROL)
         assert resp.status_code == 204
 
-        # Verify it's cancelled
+        # Verify it's cancelled — Carol has 3 seeded bookings (none) + 1 created = 1 from this test
+        # Actually, seeded bookings are for Alice and Eve, not Carol.
+        # Carol created 1 booking in this test, which is now cancelled.
         list_resp = client.get("/v1/eva/bookings", headers=CAROL)
         bookings = list_resp.json()
         assert len(bookings) == 1
@@ -229,7 +213,7 @@ class TestBookings:
         """Bob can't update Carol's booking."""
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -250,7 +234,7 @@ class TestTeams:
         """Create a booking as Carol and return its ID."""
         resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
             headers=CAROL,
         )
         return resp.json()["id"]
@@ -355,7 +339,7 @@ class TestSurveys:
         """Create and activate a booking as Carol."""
         resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-general", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
             headers=CAROL,
         )
         booking_id = resp.json()["id"]

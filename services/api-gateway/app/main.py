@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from .middleware.apim_simulation import APIMSimulationMiddleware
 from .routers import (
     admin,
     auth,
@@ -18,6 +20,31 @@ from .routers import (
 
 def create_app() -> FastAPI:
     app = FastAPI(title="EVA Agentic API Gateway", version="0.1.0")
+
+    # --- Middleware (outermost first) ---
+
+    # CORS — allow local Vite dev servers
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=[
+            "x-correlation-id",
+            "x-app-id",
+            "x-request-duration-ms",
+        ],
+    )
+
+    # APIM simulation — correlation IDs, session cookies, telemetry
+    app.add_middleware(APIMSimulationMiddleware)
+
+    # --- Routers ---
 
     # Infrastructure
     app.include_router(health.router, tags=["health"])

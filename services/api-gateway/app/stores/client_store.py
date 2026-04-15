@@ -18,25 +18,27 @@ class ClientStore:
     # ------------------------------------------------------------------
 
     def _seed(self) -> None:
-        """Pre-populate with two demo clients matching the stub mock data."""
+        """Pre-populate with demo clients matching the walkthrough story."""
         seed_clients = [
             Client(
-                id="cl-001",
+                id="client-bdm",
                 org_name="Benefits Delivery Modernization",
                 entra_group_id="grp-bdm-001",
-                billing_contact="bdm-lead@esdc.gc.ca",
+                billing_contact="bdm-finance@esdc.gc.ca",
                 data_classification_level="protected_b",
-                onboarded_at="2025-09-01T00:00:00Z",
+                onboarded_at="2026-01-15T00:00:00Z",
                 status="active",
+                workspace_ids=["ws-oas-act", "ws-ei-juris", "ws-bdm-km"],
             ),
             Client(
-                id="cl-002",
+                id="client-sco",
                 org_name="Service Canada Operations",
                 entra_group_id="grp-sco-001",
-                billing_contact="sco-lead@esdc.gc.ca",
-                data_classification_level="protected_a",
-                onboarded_at="2025-11-01T00:00:00Z",
+                billing_contact="sco-admin@servicecanada.gc.ca",
+                data_classification_level="unclassified",
+                onboarded_at="2026-03-01T00:00:00Z",
                 status="active",
+                workspace_ids=["ws-faq"],
             ),
         ]
         for c in seed_clients:

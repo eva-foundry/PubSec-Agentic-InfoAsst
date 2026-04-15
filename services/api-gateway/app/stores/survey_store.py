@@ -11,6 +11,61 @@ class SurveyStore:
     def __init__(self) -> None:
         self._entry_surveys: dict[str, EntrySurvey] = {}
         self._exit_surveys: dict[str, ExitSurvey] = {}
+        self._seed()
+
+    def _seed(self) -> None:
+        """Pre-populate with surveys matching the demo walkthrough bookings."""
+        # Entry surveys for all 3 seeded bookings
+        entry_surveys = [
+            EntrySurvey(
+                id="es-alice-oas",
+                booking_id="bk-alice-oas",
+                use_case="Legislative analysis of Old Age Security Act provisions for adjudicators",
+                expected_users=8,
+                expected_data_volume_gb=2.5,
+                data_classification="protected_b",
+                business_justification="OAS adjudicators need AI-assisted search across the Act and regulations to resolve complex eligibility questions faster.",
+                completed_at="2026-01-25T14:30:00Z",
+            ),
+            EntrySurvey(
+                id="es-alice-faq",
+                booking_id="bk-alice-faq",
+                use_case="General FAQ for onboarding new team members to EVA platform",
+                expected_users=15,
+                expected_data_volume_gb=0.5,
+                data_classification="unclassified",
+                business_justification="New hires need self-service access to platform documentation and common procedures.",
+                completed_at="2026-02-26T10:00:00Z",
+            ),
+            EntrySurvey(
+                id="es-eve-ei",
+                booking_id="bk-eve-ei",
+                use_case="EI tribunal decision research and case law analysis",
+                expected_users=5,
+                expected_data_volume_gb=4.0,
+                data_classification="protected_b",
+                business_justification="Appeals officers require citation-aware search across EI tribunal decisions to identify precedents and maintain consistency.",
+                completed_at="2026-03-12T09:15:00Z",
+            ),
+        ]
+        for s in entry_surveys:
+            self._entry_surveys[s.id] = s
+
+        # Exit survey for the completed bk-alice-faq booking
+        exit_surveys = [
+            ExitSurvey(
+                id="xs-alice-faq",
+                booking_id="bk-alice-faq",
+                satisfaction_rating=4,
+                objectives_met=True,
+                data_disposition="archive",
+                feedback="Good experience overall. The FAQ workspace helped new team members get up to speed quickly. Would benefit from better bilingual support.",
+                would_recommend=True,
+                completed_at="2026-03-31T16:00:00Z",
+            ),
+        ]
+        for s in exit_surveys:
+            self._exit_surveys[s.id] = s
 
     def create_entry(self, survey: EntrySurvey) -> EntrySurvey:
         """Store an entry survey."""

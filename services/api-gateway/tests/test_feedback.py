@@ -40,7 +40,8 @@ def test_capture_feedback_accept():
     assert record.signal == "accept"
     assert record.correction_text is None
     assert record.confidence_score == 0.92
-    assert len(store._feedback) == 1
+    # 15 seeded + 1 new = 16
+    assert len(store._feedback) == 16
 
 
 def test_capture_feedback_reject_with_correction():
@@ -231,7 +232,8 @@ def test_capture_question_analytics():
     assert record.archetype == "legislation"
     assert record.topic_cluster is None  # Not yet clustered
     assert record.had_answer is True
-    assert len(store._questions) == 1
+    # 20 seeded + 1 new = 21
+    assert len(store._questions) == 21
 
 
 # ── API endpoint test ──────────────────────────────────────────────

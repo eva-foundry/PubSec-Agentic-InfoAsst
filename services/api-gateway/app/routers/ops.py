@@ -38,20 +38,29 @@ async def service_health(
 
 @router.get("/ops/metrics/finops")
 async def finops_metrics(
+    days: int = 30,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
-    """FinOps cost attribution and budget metrics."""
+    """FinOps cost attribution and budget metrics — powered by APIM telemetry."""
     _require_ops(user)
+
+    from ..stores import telemetry_store
+
+    summary = telemetry_store.summary(days=days)
+    budget_cad = 15_000.00
+    total = summary["total_cost_cad"]
+
     return {
-        "period": "2026-04",
-        "total_cost_cad": 12_450.00,
-        "budget_cad": 15_000.00,
-        "utilization_pct": 83.0,
-        "by_workspace": {
-            "ws-oas-act": {"cost_cad": 4_200.00, "queries": 3_420, "cost_per_query": 1.23},
-            "ws-ei-juris": {"cost_cad": 6_800.00, "queries": 8_910, "cost_per_query": 0.76},
-            "ws-general-faq": {"cost_cad": 1_450.00, "queries": 2_100, "cost_per_query": 0.69},
-        },
+        "period_days": summary["period_days"],
+        "total_cost_cad": total,
+        "budget_cad": budget_cad,
+        "utilization_pct": round((total / budget_cad) * 100, 1) if budget_cad else 0.0,
+        "query_count": summary["query_count"],
+        "avg_latency_ms": summary["avg_latency_ms"],
+        "avg_tokens": summary["avg_tokens"],
+        "by_workspace": summary["cost_by_workspace"],
+        "by_model": summary["cost_by_model"],
+        "by_client": summary["cost_by_client"],
         "anomalies": [],
     }
 
