@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check services/
+
+  lint-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run lint --workspaces --if-present
+
+  type-check-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyright
+      - run: pip install -r services/api-gateway/requirements.txt
+      - run: pyright services/api-gateway/
+
+  type-check-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run typecheck --workspaces --if-present
+
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest httpx
+      - run: pip install -r services/api-gateway/requirements.txt
+      - run: pytest services/api-gateway/tests/
+
+  test-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run test --workspaces --if-present
+
+  build-containers:
+    runs-on: ubuntu-latest
+    needs: [lint-python, lint-ts, type-check-python, type-check-ts, test-python, test-ts]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t eva-api-gateway services/api-gateway/
+      - run: docker build -t eva-portal-self-service apps/portal-self-service/
+      - run: docker build -t eva-portal-admin apps/portal-admin/
+      - run: docker build -t eva-portal-ops apps/portal-ops/
+      - run: docker build -t eva-doc-pipeline services/doc-pipeline/
+      - run: docker build -t eva-enrichment services/enrichment/

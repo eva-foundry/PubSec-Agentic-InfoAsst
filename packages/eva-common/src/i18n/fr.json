@@ -1,0 +1,10 @@
+{
+  "common": {
+    "appName": "EVA",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "submit": "Soumettre"
+  }
+}
