@@ -1,8 +1,7 @@
-"""Chat & RAG endpoints."""
+"""Chat & RAG endpoints — wired to the ReAct agent orchestrator."""
 
 from __future__ import annotations
 
-import json
 import uuid
 from collections.abc import AsyncIterator
 
@@ -10,10 +9,28 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from ..agents.orchestrator import AgentOrchestrator
 from ..auth import UserContext, get_current_user
 from ..models.chat import ChatRequest
+from ..tools.cite import CitationTool
+from ..tools.registry import ToolRegistry
+from ..tools.search import SearchTool
+from ..tools.translate import TranslationTool
 
 router = APIRouter()
+
+
+def _build_registry() -> ToolRegistry:
+    """Build and populate the tool registry with all available tools."""
+    registry = ToolRegistry()
+    registry.register(SearchTool())
+    registry.register(CitationTool())
+    registry.register(TranslationTool())
+    return registry
+
+
+# Module-level singleton — created once, reused across requests.
+_registry = _build_registry()
 
 
 class FeedbackPayload(BaseModel):
@@ -24,64 +41,27 @@ class FeedbackPayload(BaseModel):
     comment: str | None = None
 
 
-async def _mock_stream(user: UserContext, req: ChatRequest) -> AsyncIterator[str]:
-    """Yield NDJSON chunks simulating a streamed RAG response."""
-    correlation_id = str(uuid.uuid4())
-    conversation_id = req.conversation_id or str(uuid.uuid4())
-    message_id = str(uuid.uuid4())
+async def _orchestrator_stream(
+    user: UserContext, req: ChatRequest
+) -> AsyncIterator[str]:
+    """Run the agent orchestrator and yield NDJSON lines."""
+    trace_id = f"trace-{uuid.uuid4()}"
+    orchestrator = AgentOrchestrator(
+        tool_registry=_registry,
+        model_client=None,  # Uses MockModelClient for now
+        trace_id=trace_id,
+    )
 
-    # 1. Provenance start
-    yield json.dumps({
-        "type": "provenance",
-        "correlation_id": correlation_id,
-        "agent_id": "eva-rag-agent",
-        "sources_consulted": 5,
-        "sources_cited": 2,
-        "confidence": 0.87,
-    }) + "\n"
+    overrides = req.overrides.model_dump() if req.overrides else None
 
-    # 2. Agent step indicator
-    yield json.dumps({
-        "type": "agent_step",
-        "id": 1,
-        "tool": "search",
-        "status": "complete",
-        "label_en": "Searching knowledge base",
-        "label_fr": "Recherche dans la base de connaissances",
-        "duration_ms": 320,
-    }) + "\n"
-
-    # 3. Content chunk
-    yield json.dumps({
-        "type": "content",
-        "conversation_id": conversation_id,
-        "message_id": message_id,
-        "delta": f"This is a placeholder response to: '{req.message}'. "
-                 "In production, this streams from the agent orchestrator with "
-                 "full citations and provenance. [stub]",
-        "citations": [
-            {
-                "file": "oas-act-2024.pdf",
-                "page": 12,
-                "section": "Section 4.1",
-                "sas_url": "https://placeholder.blob.core.windows.net/docs/oas-act-2024.pdf?sv=stub",
-            },
-        ],
-    }) + "\n"
-
-    # 4. Provenance complete
-    yield json.dumps({
-        "type": "provenance_complete",
-        "correlation_id": correlation_id,
-        "confidence": 0.87,
-        "escalation_tier": "auto-resolve",
-        "behavioral_fingerprint": {
-            "model": "gpt-5.1-2026-04",
-            "prompt_version": "v3.2",
-            "corpus_snapshot": "2026-04-10",
-            "policy_rules_version": "v1.4",
-        },
-    }) + "\n"
+    async for line in orchestrator.run(
+        user_message=req.message,
+        conversation_history=[],
+        workspace_id=req.workspace_id,
+        mode=req.mode,
+        overrides=overrides,
+    ):
+        yield line
 
 
 @router.post("/chat")
@@ -91,7 +71,7 @@ async def chat(
 ) -> StreamingResponse:
     """Stream a RAG-grounded chat response as NDJSON."""
     return StreamingResponse(
-        _mock_stream(user, req),
+        _orchestrator_stream(user, req),
         media_type="application/x-ndjson",
     )
 
