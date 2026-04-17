@@ -77,6 +77,27 @@ class SearchTool(Tool):
                 workspace_id,
                 len(results),
             )
+        else:
+            # Mock mode — no vector store configured. Return deterministic
+            # placeholder results so the agent pipeline can be exercised
+            # end-to-end in dev/tests without Azure AI Search.
+            results = [
+                {
+                    "file": f"mock-doc-{i + 1}.txt",
+                    "page": 1,
+                    "section": f"Section {i + 1}",
+                    "content": f"Mock search result {i + 1} for query: {query[:60]}",
+                    "relevance_score": max(0.1, 0.9 - (i * 0.2)),
+                    "last_modified": "2026-01-01",
+                }
+                for i in range(top_k)
+            ]
+            logger.info(
+                "Mock search (no vector store): query=%r workspace=%s results=%d",
+                query[:80],
+                workspace_id,
+                len(results),
+            )
 
         duration_ms = int((time.monotonic() - start) * 1000)
 
