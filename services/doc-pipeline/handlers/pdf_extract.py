@@ -4,6 +4,7 @@ Submits PDFs to Document Intelligence for analysis, polls for results
 with exponential backoff, then parses the analyzeResult into chunks
 and writes them to blob storage.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,7 +51,9 @@ class DocumentIntelligencePoller(Protocol):
 class BlobContainerForChunks(Protocol):
     """Protocol for the blob container client used to write chunks."""
 
-    async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
+    async def upload_blob(
+        self, name: str, data: bytes, overwrite: bool = False
+    ) -> None: ...
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +162,9 @@ async def poll_pdf(
                     PipelineState.ERROR,
                     f"Document Intelligence analysis failed: {error_msg}",
                 )
-                raise RuntimeError(f"Document Intelligence analysis failed: {error_msg}")
+                raise RuntimeError(
+                    f"Document Intelligence analysis failed: {error_msg}"
+                )
         except AttributeError:
             # Client may not have get_analyze_result; fall through to retry
             pass
@@ -289,7 +294,9 @@ async def process_pdf_result(
     span.set_attribute("doc.chunk_count", len(chunks))
 
     for chunk in chunks:
-        chunk_path = f"{workspace_id}/{blob_name}/chunks/{chunk['chunk_index']:04d}.json"
+        chunk_path = (
+            f"{workspace_id}/{blob_name}/chunks/{chunk['chunk_index']:04d}.json"
+        )
         await upload_chunk(chunk_container, chunk_path, chunk)
 
     logger.info(

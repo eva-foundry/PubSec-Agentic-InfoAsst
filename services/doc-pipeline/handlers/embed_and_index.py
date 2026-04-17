@@ -4,6 +4,7 @@ Reads enriched chunks from blob, generates embeddings via Azure OpenAI
 (routed through APIM), builds search index documents, and batch-uploads
 them to Azure AI Search.
 """
+
 from __future__ import annotations
 
 import json
@@ -32,7 +33,9 @@ class EmbeddingClient(Protocol):
 class SearchIndexClient(Protocol):
     """Protocol for Azure AI Search index operations."""
 
-    async def upload_documents(self, index_name: str, documents: list[dict]) -> dict: ...
+    async def upload_documents(
+        self, index_name: str, documents: list[dict]
+    ) -> dict: ...
 
 
 class BlobContainerClient(Protocol):
@@ -143,7 +146,9 @@ async def embed_and_index(
             if "detected_language" in chunk:
                 search_doc["detected_language"] = chunk["detected_language"]
             if "entities" in chunk:
-                search_doc["entities"] = json.dumps(chunk["entities"], ensure_ascii=False)
+                search_doc["entities"] = json.dumps(
+                    chunk["entities"], ensure_ascii=False
+                )
             if "key_phrases" in chunk:
                 search_doc["key_phrases"] = chunk["key_phrases"]
             if "pages" in chunk:

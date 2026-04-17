@@ -73,13 +73,15 @@ class CalibrationEngine:
                 predicted_avg = sum(o.predicted_confidence for o in bucket) / count
                 actual_accuracy = sum(1 for o in bucket if o.was_accurate) / count
 
-            curve.append({
-                "bucket_start": round(_BUCKET_EDGES[i], 1),
-                "bucket_end": round(_BUCKET_EDGES[i + 1], 1),
-                "predicted_avg": round(predicted_avg, 4),
-                "actual_accuracy": round(actual_accuracy, 4),
-                "count": count,
-            })
+            curve.append(
+                {
+                    "bucket_start": round(_BUCKET_EDGES[i], 1),
+                    "bucket_end": round(_BUCKET_EDGES[i + 1], 1),
+                    "predicted_avg": round(predicted_avg, 4),
+                    "actual_accuracy": round(actual_accuracy, 4),
+                    "count": count,
+                }
+            )
 
         return curve
 

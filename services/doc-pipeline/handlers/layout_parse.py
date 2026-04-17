@@ -4,6 +4,7 @@ Downloads files from blob, extracts text content using the appropriate
 method for the file type, chunks the text, and writes chunks to blob.
 The pluggable extraction engine abstraction comes in a later session.
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,7 +28,9 @@ tracer = trace.get_tracer(__name__)
 class BlobContainerClient(Protocol):
     """Protocol for blob container operations."""
 
-    async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
+    async def upload_blob(
+        self, name: str, data: bytes, overwrite: bool = False
+    ) -> None: ...
     async def download_blob(self, blob: str) -> BlobDownloader: ...
 
 
@@ -188,7 +191,9 @@ async def parse_document(
 
     # 4. Write chunks to blob
     for chunk in chunks:
-        chunk_path = f"{workspace_id}/{blob_name}/chunks/{chunk['chunk_index']:04d}.json"
+        chunk_path = (
+            f"{workspace_id}/{blob_name}/chunks/{chunk['chunk_index']:04d}.json"
+        )
         await upload_chunk(chunk_container, chunk_path, chunk)
 
     logger.info(

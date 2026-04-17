@@ -55,7 +55,9 @@ async def submit_entry_survey(
 
     existing = await aio(survey_store.get_entry_by_booking(payload.booking_id))
     if existing is not None:
-        raise HTTPException(status_code=409, detail="Entry survey already submitted for this booking")
+        raise HTTPException(
+            status_code=409, detail="Entry survey already submitted for this booking"
+        )
 
     survey = EntrySurvey(
         id=f"es-{uuid.uuid4().hex[:8]}",
@@ -69,10 +71,15 @@ async def submit_entry_survey(
     )
     await aio(survey_store.create_entry(survey))
 
-    await aio(booking_store.update(payload.booking_id, {
-        "entry_survey_completed": True,
-        "updated_at": _now_iso(),
-    }))
+    await aio(
+        booking_store.update(
+            payload.booking_id,
+            {
+                "entry_survey_completed": True,
+                "updated_at": _now_iso(),
+            },
+        )
+    )
 
     return survey
 
@@ -91,7 +98,9 @@ async def submit_exit_survey(
 
     existing = await aio(survey_store.get_exit_by_booking(payload.booking_id))
     if existing is not None:
-        raise HTTPException(status_code=409, detail="Exit survey already submitted for this booking")
+        raise HTTPException(
+            status_code=409, detail="Exit survey already submitted for this booking"
+        )
 
     survey = ExitSurvey(
         id=f"xs-{uuid.uuid4().hex[:8]}",
@@ -105,10 +114,15 @@ async def submit_exit_survey(
     )
     await aio(survey_store.create_exit(survey))
 
-    await aio(booking_store.update(payload.booking_id, {
-        "exit_survey_completed": True,
-        "status": "completed",
-        "updated_at": _now_iso(),
-    }))
+    await aio(
+        booking_store.update(
+            payload.booking_id,
+            {
+                "exit_survey_completed": True,
+                "status": "completed",
+                "updated_at": _now_iso(),
+            },
+        )
+    )
 
     return survey

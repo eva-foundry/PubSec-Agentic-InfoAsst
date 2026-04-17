@@ -64,9 +64,7 @@ class PromptShield:
     ]
 
     def __init__(self) -> None:
-        self._compiled = [
-            re.compile(p, re.IGNORECASE) for p in self.INJECTION_PATTERNS
-        ]
+        self._compiled = [re.compile(p, re.IGNORECASE) for p in self.INJECTION_PATTERNS]
 
     def check(self, user_input: str) -> PromptShieldResult:
         """Check user input for prompt injection patterns."""

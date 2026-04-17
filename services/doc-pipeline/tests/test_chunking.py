@@ -12,6 +12,7 @@ from chunking.legislation import LegislationChunkingStrategy
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_para(
     text: str,
     *,
@@ -44,6 +45,7 @@ def _simple_doc(n_paragraphs: int = 5, words_per: int = 80) -> list[dict]:
 # token_count
 # ---------------------------------------------------------------------------
 
+
 class TestTokenCount:
     def test_empty_string(self):
         assert BaseStrategy.token_count("") == 0
@@ -63,6 +65,7 @@ class TestTokenCount:
 # ---------------------------------------------------------------------------
 # DefaultChunkingStrategy — basic splitting
 # ---------------------------------------------------------------------------
+
 
 class TestDefaultChunking:
     def test_single_small_paragraph(self):
@@ -131,6 +134,7 @@ class TestDefaultChunking:
 # Factory
 # ---------------------------------------------------------------------------
 
+
 class TestFactory:
     def test_default_strategy(self):
         s = get_chunking_strategy("default")
@@ -157,15 +161,27 @@ class TestFactory:
 # LegislationChunkingStrategy
 # ---------------------------------------------------------------------------
 
+
 class TestLegislationChunking:
     def test_detects_section_boundaries(self):
         # Each section has enough content that merging two would exceed
         # target_size, forcing the strategy to emit separate chunks.
-        filler = " This provision establishes important requirements that must be followed." * 15
+        filler = (
+            " This provision establishes important requirements that must be followed."
+            * 15
+        )
         doc = [
             _make_para("PART I", section="", title="Act"),
-            _make_para("1. This Act may be cited as the Test Act." + filler, section="", title="Act"),
-            _make_para("2. In this Act, the following definitions apply." + filler, section="", title="Act"),
+            _make_para(
+                "1. This Act may be cited as the Test Act." + filler,
+                section="",
+                title="Act",
+            ),
+            _make_para(
+                "2. In this Act, the following definitions apply." + filler,
+                section="",
+                title="Act",
+            ),
         ]
         strategy = LegislationChunkingStrategy(target_size=150)
         result = strategy.chunk(doc, "act.pdf", "uri")
@@ -174,7 +190,11 @@ class TestLegislationChunking:
 
     def test_cross_reference_extraction(self):
         doc = [
-            _make_para("1. As defined in section 3(1), the Minister may act.", section="", title="Act"),
+            _make_para(
+                "1. As defined in section 3(1), the Minister may act.",
+                section="",
+                title="Act",
+            ),
         ]
         strategy = LegislationChunkingStrategy(target_size=1500)
         result = strategy.chunk(doc, "act.pdf", "uri")
@@ -197,13 +217,20 @@ class TestLegislationChunking:
 # CaseLawChunkingStrategy
 # ---------------------------------------------------------------------------
 
+
 class TestCaseLawChunking:
     def test_detects_case_sections(self):
         doc = [
-            _make_para("[2024] FCA 123\nBetween Applicant and Respondent", title="Case"),
-            _make_para("FACTS\nThe applicant filed a claim on January 1.", title="Case"),
+            _make_para(
+                "[2024] FCA 123\nBetween Applicant and Respondent", title="Case"
+            ),
+            _make_para(
+                "FACTS\nThe applicant filed a claim on January 1.", title="Case"
+            ),
             _make_para("ISSUES\nWhether the decision was reasonable.", title="Case"),
-            _make_para("ANALYSIS\nThe court finds the decision unreasonable.", title="Case"),
+            _make_para(
+                "ANALYSIS\nThe court finds the decision unreasonable.", title="Case"
+            ),
             _make_para("DECISION\nThe application is granted.", title="Case"),
         ]
         strategy = CaseLawChunkingStrategy(target_size=1500)
@@ -215,7 +242,10 @@ class TestCaseLawChunking:
 
     def test_citation_extraction(self):
         doc = [
-            _make_para("ANALYSIS\nAs stated in [2023] SCC 45 and [2022] FCA 789, the test is met.", title="Case"),
+            _make_para(
+                "ANALYSIS\nAs stated in [2023] SCC 45 and [2022] FCA 789, the test is met.",
+                title="Case",
+            ),
         ]
         strategy = CaseLawChunkingStrategy(target_size=1500)
         result = strategy.chunk(doc, "case.pdf", "uri")
@@ -237,13 +267,15 @@ class TestCaseLawChunking:
 
     def test_analysis_never_splits_mid_paragraph(self):
         # Build analysis with a few paragraphs, each just under target.
-        paras = "\n".join(
-            f"Paragraph {i}. " + ("Word " * 60) for i in range(5)
-        )
+        paras = "\n".join(f"Paragraph {i}. " + ("Word " * 60) for i in range(5))
         doc = [_make_para("ANALYSIS\n" + paras, title="Case")]
         strategy = CaseLawChunkingStrategy(target_size=200)
         result = strategy.chunk(doc, "case.pdf", "uri")
         # Each chunk should contain complete paragraphs.
         for chunk in result:
             # No paragraph should be cut mid-word (simplistic check).
-            assert chunk.content.strip().endswith("Word") or chunk.content.strip()[-1] in ".!?"  or chunk.content.strip()[-1].isalpha()
+            assert (
+                chunk.content.strip().endswith("Word")
+                or chunk.content.strip()[-1] in ".!?"
+                or chunk.content.strip()[-1].isalpha()
+            )

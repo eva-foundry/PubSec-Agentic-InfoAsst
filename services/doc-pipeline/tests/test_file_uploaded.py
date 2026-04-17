@@ -6,6 +6,7 @@ Covers:
 - Queue routing for each file type
 - handle_file_uploaded end-to-end with mocked dependencies
 """
+
 from __future__ import annotations
 
 import json
@@ -190,10 +191,7 @@ class TestHandleFileUploaded:
 
         # Should have called status with ERROR
         calls = mocks["status_tracker"].update.call_args_list
-        assert any(
-            call.args[1] == PipelineState.ERROR
-            for call in calls
-        )
+        assert any(call.args[1] == PipelineState.ERROR for call in calls)
 
     @pytest.mark.asyncio
     async def test_message_sent_to_queue(self) -> None:

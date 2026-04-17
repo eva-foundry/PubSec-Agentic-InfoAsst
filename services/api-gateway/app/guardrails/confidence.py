@@ -20,9 +20,7 @@ class ConfidenceScorer:
         - grounding_quality = grounding_ratio clamped to [0, 1]
         """
         retrieval_relevance = (
-            sum(retrieval_scores) / len(retrieval_scores)
-            if retrieval_scores
-            else 0.0
+            sum(retrieval_scores) / len(retrieval_scores) if retrieval_scores else 0.0
         )
         retrieval_relevance = max(0.0, min(1.0, retrieval_relevance))
 

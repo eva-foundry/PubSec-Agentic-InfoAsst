@@ -17,7 +17,7 @@ class ToolMetadata:
     name: str
     description: str
     classification_ceiling: str  # "unclassified" | "protected_a" | "protected_b"
-    data_residency: str          # "canada_central" | "canada_east"
+    data_residency: str  # "canada_central" | "canada_east"
     bilingual: bool
     hitl_required: bool
 

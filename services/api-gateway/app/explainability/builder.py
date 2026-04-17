@@ -55,9 +55,7 @@ class ExplainabilityBuilder:
 
         # Reasoning summary from the summarizer
         excluded = self.retrieval_tracker.sources_excluded
-        exclusion_reasons = [
-            s.exclusion_reason or "unspecified reason" for s in excluded
-        ]
+        exclusion_reasons = [s.exclusion_reason or "unspecified reason" for s in excluded]
         reasoning_summary = self.reasoning_summarizer.summarize(
             search_query=search_query,
             sources_consulted=len(self.retrieval_tracker.sources_considered),
@@ -76,11 +74,7 @@ class ExplainabilityBuilder:
 
         # Cross-language disclosure
         cross_language: str | None = None
-        if (
-            source_language
-            and query_language
-            and source_language.lower() != query_language.lower()
-        ):
+        if source_language and query_language and source_language.lower() != query_language.lower():
             cross_language = (
                 f"Query in {query_language}; "
                 f"sources in {source_language}; "

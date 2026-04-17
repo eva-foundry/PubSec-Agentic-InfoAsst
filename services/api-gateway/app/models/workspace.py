@@ -11,8 +11,13 @@ class Workspace(BaseModel):
     name_fr: str = ""
     description: str = ""
     description_fr: str = ""
-    type: str = Field(default="standard", description="'standard', 'premium', 'sandbox', 'restricted', 'shared'")
-    status: str = Field(default="draft", description="'draft', 'pending_approval', 'active', 'suspended', 'archived'")
+    type: str = Field(
+        default="standard", description="'standard', 'premium', 'sandbox', 'restricted', 'shared'"
+    )
+    status: str = Field(
+        default="draft",
+        description="'draft', 'pending_approval', 'active', 'suspended', 'archived'",
+    )
     owner_id: str = Field(description="Entra ID of the workspace owner")
     data_classification: str = Field(
         default="unclassified",
@@ -46,7 +51,9 @@ class Booking(BaseModel):
     id: str
     workspace_id: str
     requester_id: str
-    status: str = Field(default="pending", description="'pending', 'confirmed', 'active', 'completed', 'cancelled'")
+    status: str = Field(
+        default="pending", description="'pending', 'confirmed', 'active', 'completed', 'cancelled'"
+    )
     start_date: str = Field(description="ISO date")
     end_date: str = Field(description="ISO date")
     entry_survey_completed: bool = False

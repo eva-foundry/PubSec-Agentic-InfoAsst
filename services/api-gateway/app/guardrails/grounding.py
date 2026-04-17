@@ -35,9 +35,7 @@ class GroundingEnforcer:
     def __init__(self, threshold: float = DEFAULT_THRESHOLD):
         self.threshold = threshold
 
-    def check_grounding(
-        self, answer: str, citations: list | None = None
-    ) -> GroundingResult:
+    def check_grounding(self, answer: str, citations: list | None = None) -> GroundingResult:
         """Analyze *answer* for inline citation references.
 
         Counts sentences and determines which ones contain citation markers

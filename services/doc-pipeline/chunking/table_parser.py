@@ -122,7 +122,11 @@ def chunk_table_with_headers(
     current_chunk = prefix_text
 
     # First chunk's budget is reduced by the prefix.
-    budget = target_size - ChunkingStrategy.token_count(prefix_text) if prefix_text else target_size
+    budget = (
+        target_size - ChunkingStrategy.token_count(prefix_text)
+        if prefix_text
+        else target_size
+    )
 
     for row in body_rows:
         row_html = str(row)

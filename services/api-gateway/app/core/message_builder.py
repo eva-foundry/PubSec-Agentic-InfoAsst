@@ -87,7 +87,4 @@ class MessageBuilder:
         return len(self._messages)
 
     def __repr__(self) -> str:
-        return (
-            f"MessageBuilder(messages={len(self._messages)}, "
-            f"tokens={self._token_count})"
-        )
+        return f"MessageBuilder(messages={len(self._messages)}, tokens={self._token_count})"

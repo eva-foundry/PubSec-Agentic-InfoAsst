@@ -44,7 +44,9 @@ _CASE_LAW_PATTERNS = [
 _POLICY_PATTERNS = [
     re.compile(r"\b(policy|politique|directive|guideline|ligne directrice)\b", re.IGNORECASE),
     re.compile(r"\b(Treasury Board|Conseil du Trésor|TBS|SCT)\b", re.IGNORECASE),
-    re.compile(r"\b(standard|norme|procedure|procédure)\b.*\b(government|gouvernement)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(standard|norme|procedure|procédure)\b.*\b(government|gouvernement)\b", re.IGNORECASE
+    ),
     re.compile(r"\b(effective date|date d['']entrée en vigueur)\b", re.IGNORECASE),
     re.compile(r"\b(mandatory|obligatoire)\s+(requirements?|exigences?)\b", re.IGNORECASE),
 ]
@@ -63,8 +65,13 @@ _ENGLISH_PATTERNS = [
 # Data classification heuristics
 _PROTECTED_B_PATTERNS = [
     re.compile(r"\b(protected\s*b|protégé\s*b)\b", re.IGNORECASE),
-    re.compile(r"\b(SIN|NAS|social insurance number|numéro d['']assurance sociale)\b", re.IGNORECASE),
-    re.compile(r"\b(medical|médicale?|health|santé)\s+(record|dossier|information|renseignement)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(SIN|NAS|social insurance number|numéro d['']assurance sociale)\b", re.IGNORECASE
+    ),
+    re.compile(
+        r"\b(medical|médicale?|health|santé)\s+(record|dossier|information|renseignement)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"\b(personal|personnel)\s+(information|renseignement)\b", re.IGNORECASE),
 ]
 
@@ -184,7 +191,11 @@ class ClassifyTool(Tool):
 
         logger.info(
             "ClassifyTool: type=%s class=%s lang=%s conf=%.2f (text_len=%d)",
-            doc_type, data_class, language, confidence, len(text),
+            doc_type,
+            data_class,
+            language,
+            confidence,
+            len(text),
         )
 
         return {

@@ -8,7 +8,7 @@ avoid creating multiple CosmosClient instances.
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from azure.cosmos import PartitionKey
 from azure.cosmos.aio import ContainerProxy, CosmosClient, DatabaseProxy
@@ -21,22 +21,22 @@ logger = logging.getLogger(__name__)
 
 CONTAINER_DEFS: dict[str, dict[str, str]] = {
     # eva-workspaces database
-    "workspaces":           {"database": "eva-workspaces", "partition_key": "/id"},
-    "bookings":             {"database": "eva-workspaces", "partition_key": "/workspace_id"},
-    "teams":                {"database": "eva-workspaces", "partition_key": "/booking_id"},
-    "surveys-entry":        {"database": "eva-workspaces", "partition_key": "/booking_id"},
-    "surveys-exit":         {"database": "eva-workspaces", "partition_key": "/booking_id"},
-    "clients":              {"database": "eva-workspaces", "partition_key": "/id"},
-    "interviews":           {"database": "eva-workspaces", "partition_key": "/client_id"},
+    "workspaces": {"database": "eva-workspaces", "partition_key": "/id"},
+    "bookings": {"database": "eva-workspaces", "partition_key": "/workspace_id"},
+    "teams": {"database": "eva-workspaces", "partition_key": "/booking_id"},
+    "surveys-entry": {"database": "eva-workspaces", "partition_key": "/booking_id"},
+    "surveys-exit": {"database": "eva-workspaces", "partition_key": "/booking_id"},
+    "clients": {"database": "eva-workspaces", "partition_key": "/id"},
+    "interviews": {"database": "eva-workspaces", "partition_key": "/client_id"},
     # eva-platform database
-    "prompt-versions":      {"database": "eva-platform", "partition_key": "/prompt_name"},
-    "model-registry":       {"database": "eva-platform", "partition_key": "/id"},
-    "feedback":             {"database": "eva-platform", "partition_key": "/workspace_id"},
-    "demo-users":           {"database": "eva-platform", "partition_key": "/email"},
-    "telemetry":            {"database": "eva-platform", "partition_key": "/workspace_id"},
+    "prompt-versions": {"database": "eva-platform", "partition_key": "/prompt_name"},
+    "model-registry": {"database": "eva-platform", "partition_key": "/id"},
+    "feedback": {"database": "eva-platform", "partition_key": "/workspace_id"},
+    "demo-users": {"database": "eva-platform", "partition_key": "/email"},
+    "telemetry": {"database": "eva-platform", "partition_key": "/workspace_id"},
     # statusdb database
-    "documents":            {"database": "statusdb", "partition_key": "/workspace_id"},
-    "chat-history":         {"database": "statusdb", "partition_key": "/user_id"},
+    "documents": {"database": "statusdb", "partition_key": "/workspace_id"},
+    "chat-history": {"database": "statusdb", "partition_key": "/user_id"},
 }
 
 
@@ -81,9 +81,7 @@ class CosmosClientManager:
     def container(self, name: str) -> ContainerProxy:
         """Get a container proxy by logical name."""
         if name not in self._containers:
-            raise RuntimeError(
-                f"Container '{name}' not initialized. Call initialize() first."
-            )
+            raise RuntimeError(f"Container '{name}' not initialized. Call initialize() first.")
         return self._containers[name]
 
     async def close(self) -> None:
@@ -141,7 +139,9 @@ class CosmosClientManager:
 
     async def count(self, container_name: str) -> int:
         """Count items in a container."""
-        result = await self.query(
-            container_name, "SELECT VALUE COUNT(1) FROM c"
+        # SELECT VALUE COUNT(1) returns a list with a single scalar int,
+        # not the dict-shape that self.query() declares. Cast to satisfy typing.
+        result = cast(
+            list[int], await self.query(container_name, "SELECT VALUE COUNT(1) FROM c")
         )
         return result[0] if result else 0

@@ -4,6 +4,7 @@ Enriches each chunk of a document with linguistic metadata using
 Azure AI Language and Azure Translator services, then queues
 the enriched chunks for embedding.
 """
+
 from __future__ import annotations
 
 import json
@@ -42,7 +43,9 @@ class TranslatorClient(Protocol):
 class BlobContainerClient(Protocol):
     """Protocol for blob container operations."""
 
-    async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
+    async def upload_blob(
+        self, name: str, data: bytes, overwrite: bool = False
+    ) -> None: ...
     async def download_blob(self, blob: str) -> BlobDownloader: ...
     def list_blobs(self, name_starts_with: str | None = None) -> AsyncBlobIterator: ...
 

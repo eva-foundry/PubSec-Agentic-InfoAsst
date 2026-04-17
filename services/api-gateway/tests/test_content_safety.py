@@ -146,6 +146,7 @@ async def test_threshold_blocks_medium_and_above(mock_azure_client):
         result = await checker.check_input("text")
 
         assert result.passed is False
+        assert result.blocked_reason is not None
         assert "severity 4" in result.blocked_reason
 
 
@@ -241,6 +242,7 @@ async def test_multiple_categories_one_blocked(mock_azure_client):
         result = await checker.check_input("text")
 
         assert result.passed is False
+        assert result.blocked_reason is not None
         assert "Violence" in result.blocked_reason
 
 
@@ -336,7 +338,7 @@ async def test_api_error_graceful_degradation(mock_azure_client):
             # Should pass through on error
             assert result.passed is True
             # But should note the error
-            assert "API error" in result.blocked_reason or result.blocked_reason is None
+            assert result.blocked_reason is None or "API error" in result.blocked_reason
             # Audit should log the error
             mock_audit.log_action.assert_called()
             call_kwargs = mock_audit.log_action.call_args[1]
@@ -499,7 +501,10 @@ def test_client_initialization_import_error():
         mock_settings.content_safety_endpoint = "https://example.contentsafety.azure.com"
         mock_settings.content_safety_key = "test-key"
 
-        with patch("app.guardrails.content_safety.ContentSafetyClient", side_effect=ImportError("SDK not found")):
+        with patch(
+            "app.guardrails.content_safety.ContentSafetyClient",
+            side_effect=ImportError("SDK not found"),
+        ):
             # Should not raise, just log warning
             checker = ContentSafetyChecker()
             assert checker._client is None
@@ -511,7 +516,10 @@ def test_client_initialization_api_error():
         mock_settings.content_safety_endpoint = "https://example.contentsafety.azure.com"
         mock_settings.content_safety_key = "test-key"
 
-        with patch("app.guardrails.content_safety.ContentSafetyClient", side_effect=Exception("Init failed")):
+        with patch(
+            "app.guardrails.content_safety.ContentSafetyClient",
+            side_effect=Exception("Init failed"),
+        ):
             checker = ContentSafetyChecker()
             assert checker._client is None
 
@@ -624,7 +632,7 @@ def test_content_safety_result_with_data():
     result = ContentSafetyResult(
         passed=False,
         categories={"Hate": "6", "Violence": "4"},
-        blocked_reason="Hate: severity 6 >= threshold 4"
+        blocked_reason="Hate: severity 6 >= threshold 4",
     )
     assert result.passed is False
     assert result.categories["Hate"] == "6"

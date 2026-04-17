@@ -3,6 +3,7 @@
 Detects file type from extension, logs status to Cosmos, cleans up any
 previous chunks, and routes a message to the appropriate processing queue.
 """
+
 from __future__ import annotations
 
 import json
@@ -24,23 +25,37 @@ tracer = trace.get_tracer(__name__)
 # File type classification
 # ---------------------------------------------------------------------------
 
+
 class FileType(Enum):
     PDF = "pdf"
-    OFFICE = "office"       # docx, pptx, xlsx
-    TEXT = "text"            # txt, md, html, htm, csv, json, xml
-    IMAGE = "image"          # jpg, jpeg, png, gif, bmp, tif, tiff
-    EMAIL = "email"          # eml, msg
+    OFFICE = "office"  # docx, pptx, xlsx
+    TEXT = "text"  # txt, md, html, htm, csv, json, xml
+    IMAGE = "image"  # jpg, jpeg, png, gif, bmp, tif, tiff
+    EMAIL = "email"  # eml, msg
     UNSUPPORTED = "unsupported"
 
 
 EXTENSION_MAP: dict[str, FileType] = {
     ".pdf": FileType.PDF,
-    ".docx": FileType.OFFICE, ".pptx": FileType.OFFICE, ".xlsx": FileType.OFFICE,
-    ".txt": FileType.TEXT, ".md": FileType.TEXT, ".html": FileType.TEXT, ".htm": FileType.TEXT,
-    ".csv": FileType.TEXT, ".json": FileType.TEXT, ".xml": FileType.TEXT,
-    ".jpg": FileType.IMAGE, ".jpeg": FileType.IMAGE, ".png": FileType.IMAGE,
-    ".gif": FileType.IMAGE, ".bmp": FileType.IMAGE, ".tif": FileType.IMAGE, ".tiff": FileType.IMAGE,
-    ".eml": FileType.EMAIL, ".msg": FileType.EMAIL,
+    ".docx": FileType.OFFICE,
+    ".pptx": FileType.OFFICE,
+    ".xlsx": FileType.OFFICE,
+    ".txt": FileType.TEXT,
+    ".md": FileType.TEXT,
+    ".html": FileType.TEXT,
+    ".htm": FileType.TEXT,
+    ".csv": FileType.TEXT,
+    ".json": FileType.TEXT,
+    ".xml": FileType.TEXT,
+    ".jpg": FileType.IMAGE,
+    ".jpeg": FileType.IMAGE,
+    ".png": FileType.IMAGE,
+    ".gif": FileType.IMAGE,
+    ".bmp": FileType.IMAGE,
+    ".tif": FileType.IMAGE,
+    ".tiff": FileType.IMAGE,
+    ".eml": FileType.EMAIL,
+    ".msg": FileType.EMAIL,
 }
 
 QUEUE_MAP: dict[FileType, str] = {
@@ -62,6 +77,7 @@ def detect_file_type(filename: str) -> FileType:
 # Protocols for external dependencies (mockable in tests)
 # ---------------------------------------------------------------------------
 
+
 class QueueSender(Protocol):
     """Protocol for sending messages to a queue."""
 
@@ -71,12 +87,15 @@ class QueueSender(Protocol):
 class SearchIndexCleaner(Protocol):
     """Protocol for cleaning up search index entries for a document."""
 
-    async def delete_documents_by_source(self, index_name: str, source_path: str) -> int: ...
+    async def delete_documents_by_source(
+        self, index_name: str, source_path: str
+    ) -> int: ...
 
 
 # ---------------------------------------------------------------------------
 # Processing metadata
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class UploadResult:
@@ -92,6 +111,7 @@ class UploadResult:
 # ---------------------------------------------------------------------------
 # Main handler
 # ---------------------------------------------------------------------------
+
 
 @tracer.start_as_current_span("handle_file_uploaded")
 async def handle_file_uploaded(

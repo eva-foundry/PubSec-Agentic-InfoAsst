@@ -102,9 +102,7 @@ class MockModelClient:
     Used when no real Azure OpenAI client is available (local dev, tests).
     """
 
-    async def generate_query(
-        self, system: str, user_message: str, history: list[dict]
-    ) -> str:
+    async def generate_query(self, system: str, user_message: str, history: list[dict]) -> str:
         """Generate an optimized search query from the user message."""
         return user_message
 
@@ -231,12 +229,17 @@ class AgentOrchestrator:
         )
 
         # Emit initial provenance (informational header — frontend ignores)
-        yield json.dumps({
-            "provenance": {
-                "correlation_id": correlation_id,
-                "trace_id": self.trace_id,
-            },
-        }) + "\n"
+        yield (
+            json.dumps(
+                {
+                    "provenance": {
+                        "correlation_id": correlation_id,
+                        "trace_id": self.trace_id,
+                    },
+                }
+            )
+            + "\n"
+        )
 
         # Check circuit breakers before dispatching
         dm = self.degradation_manager
@@ -245,50 +248,84 @@ class AgentOrchestrator:
 
         if openai_down:
             # OpenAI breaker open — cannot generate any response
-            yield json.dumps({
-                "content": "Service temporarily unavailable. Please try again later. / "
-                           "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
-            }) + "\n"
-            yield json.dumps({
-                "degradation": {
-                    "status": "unavailable",
-                    "service": "openai",
-                },
-            }) + "\n"
+            yield (
+                json.dumps(
+                    {
+                        "content": "Service temporarily unavailable. Please try again later. / "
+                        "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
+                    }
+                )
+                + "\n"
+            )
+            yield (
+                json.dumps(
+                    {
+                        "degradation": {
+                            "status": "unavailable",
+                            "service": "openai",
+                        },
+                    }
+                )
+                + "\n"
+            )
         elif mode == "ungrounded" or (mode == "grounded" and search_down):
             # Ungrounded mode, or grounded but search is down — fall back to ungrounded
             if search_down and mode == "grounded":
-                yield json.dumps({
-                    "degradation": {
-                        "status": "partial",
-                        "service": "search",
-                        "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
-                        "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
-                    },
-                }) + "\n"
+                yield (
+                    json.dumps(
+                        {
+                            "degradation": {
+                                "status": "partial",
+                                "service": "search",
+                                "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
+                                "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
+                            },
+                        }
+                    )
+                    + "\n"
+                )
             async for line in self._run_ungrounded(
-                user_message, conversation_history, tracker,
-                conversation_id, message_id, overrides,
+                user_message,
+                conversation_history,
+                tracker,
+                conversation_id,
+                message_id,
+                overrides,
             ):
                 yield line
         else:
             async for line in self._run_grounded(
-                user_message, conversation_history, workspace_id, tracker,
-                conversation_id, message_id, overrides,
+                user_message,
+                conversation_history,
+                workspace_id,
+                tracker,
+                conversation_id,
+                message_id,
+                overrides,
             ):
                 yield line
 
         # Final provenance record
         provenance = tracker.build()
-        yield json.dumps({
-            "provenance_complete": provenance.model_dump(),
-        }) + "\n"
+        yield (
+            json.dumps(
+                {
+                    "provenance_complete": provenance.model_dump(),
+                }
+            )
+            + "\n"
+        )
 
         # Explainability record (separate event)
         if tracker.explainability:
-            yield json.dumps({
-                "explainability": tracker.explainability.model_dump(),
-            }) + "\n"
+            yield (
+                json.dumps(
+                    {
+                        "explainability": tracker.explainability.model_dump(),
+                    }
+                )
+                + "\n"
+            )
 
     # ------------------------------------------------------------------
     # Grounded mode (RAG)
@@ -316,62 +353,85 @@ class AgentOrchestrator:
             "Optimizing search query",
             "Optimisation de la requ\u00eate de recherche",
         )
-        yield self._step_event(step_id, "query_rewrite", "running",
-                               "Optimizing search query",
-                               "Optimisation de la requ\u00eate de recherche")
+        yield self._step_event(
+            step_id,
+            "query_rewrite",
+            "running",
+            "Optimizing search query",
+            "Optimisation de la requ\u00eate de recherche",
+        )
 
         query_rewrite_prompt, self._query_rewrite_version = await self._resolve_prompt(
-            "query-rewrite", _QUERY_REWRITE_SYSTEM,
+            "query-rewrite",
+            _QUERY_REWRITE_SYSTEM,
         )
 
         start = time.monotonic()
         optimized_query = await self.model_client.generate_query(
-            query_rewrite_prompt, user_message, history,
+            query_rewrite_prompt,
+            user_message,
+            history,
         )
         # Fallback: if rewrite returned empty, use original message
         if not optimized_query or not optimized_query.strip():
             optimized_query = user_message
         rewrite_ms = int((time.monotonic() - start) * 1000)
 
-        tracker.complete_step(step_id, duration_ms=rewrite_ms,
-                              metadata={"optimized_query": optimized_query})
-        yield self._step_event(step_id, "query_rewrite", "complete",
-                               "Optimizing search query",
-                               "Optimisation de la requ\u00eate de recherche",
-                               duration_ms=rewrite_ms,
-                               metadata={"optimized_query": optimized_query})
+        tracker.complete_step(
+            step_id, duration_ms=rewrite_ms, metadata={"optimized_query": optimized_query}
+        )
+        yield self._step_event(
+            step_id,
+            "query_rewrite",
+            "complete",
+            "Optimizing search query",
+            "Optimisation de la requ\u00eate de recherche",
+            duration_ms=rewrite_ms,
+            metadata={"optimized_query": optimized_query},
+        )
 
         # ---- Step 2: Search ----
         step_id = tracker.add_step(
-            "search", "Searching documents", "Recherche de documents",
+            "search",
+            "Searching documents",
+            "Recherche de documents",
         )
-        yield self._step_event(step_id, "search", "running",
-                               "Searching documents",
-                               "Recherche de documents")
+        yield self._step_event(
+            step_id, "search", "running", "Searching documents", "Recherche de documents"
+        )
 
         search_tool = self.tool_registry.get_tool("search")
         search_result = await search_tool.execute(
-            query=optimized_query, workspace_id=workspace_id, top_k=top_k,
+            query=optimized_query,
+            workspace_id=workspace_id,
+            top_k=top_k,
         )
 
         results = search_result.get("results", [])
         search_ms = search_result.get("duration_ms", 0)
         tracker.add_source_consulted(len(results))
-        tracker.complete_step(step_id, duration_ms=search_ms,
-                              metadata={"sources_found": len(results)})
-        yield self._step_event(step_id, "search", "complete",
-                               "Searching documents",
-                               "Recherche de documents",
-                               duration_ms=search_ms,
-                               metadata={"sources_found": len(results)})
+        tracker.complete_step(
+            step_id, duration_ms=search_ms, metadata={"sources_found": len(results)}
+        )
+        yield self._step_event(
+            step_id,
+            "search",
+            "complete",
+            "Searching documents",
+            "Recherche de documents",
+            duration_ms=search_ms,
+            metadata={"sources_found": len(results)},
+        )
 
         # ---- Step 3: Cite ----
         step_id = tracker.add_step(
-            "cite", "Resolving citations", "R\u00e9solution des citations",
+            "cite",
+            "Resolving citations",
+            "R\u00e9solution des citations",
         )
-        yield self._step_event(step_id, "cite", "running",
-                               "Resolving citations",
-                               "R\u00e9solution des citations")
+        yield self._step_event(
+            step_id, "cite", "running", "Resolving citations", "R\u00e9solution des citations"
+        )
 
         cite_tool = self.tool_registry.get_tool("cite")
         cite_start = time.monotonic()
@@ -382,31 +442,51 @@ class AgentOrchestrator:
         for citation in citations:
             tracker.add_source_cited(citation)
 
-        tracker.complete_step(step_id, duration_ms=cite_ms,
-                              metadata={"citations_resolved": len(citations)})
-        yield self._step_event(step_id, "cite", "complete",
-                               "Resolving citations",
-                               "R\u00e9solution des citations",
-                               duration_ms=cite_ms,
-                               metadata={"citations_resolved": len(citations)})
+        tracker.complete_step(
+            step_id, duration_ms=cite_ms, metadata={"citations_resolved": len(citations)}
+        )
+        yield self._step_event(
+            step_id,
+            "cite",
+            "complete",
+            "Resolving citations",
+            "R\u00e9solution des citations",
+            duration_ms=cite_ms,
+            metadata={"citations_resolved": len(citations)},
+        )
 
         # ---- Step 4: Generate answer ----
         step_id = tracker.add_step(
-            "answer", "Generating answer", "G\u00e9n\u00e9ration de la r\u00e9ponse",
+            "answer",
+            "Generating answer",
+            "G\u00e9n\u00e9ration de la r\u00e9ponse",
         )
-        yield self._step_event(step_id, "answer", "running",
-                               "Generating answer",
-                               "G\u00e9n\u00e9ration de la r\u00e9ponse")
+        yield self._step_event(
+            step_id,
+            "answer",
+            "running",
+            "Generating answer",
+            "G\u00e9n\u00e9ration de la r\u00e9ponse",
+        )
 
         rag_prompt_content, self._rag_prompt_version = await self._resolve_prompt(
-            "rag-system", _RAG_SYSTEM,
+            "rag-system",
+            _RAG_SYSTEM,
         )
 
         # Compose: base RAG prompt wraps workspace business prompt
-        workspace = await aio(self.workspace_store.get(workspace_id)) if self.workspace_store and workspace_id else None
-        business_prompt = workspace.business_prompt if workspace and workspace.business_prompt else ""
-        if business_prompt:
-            rag_prompt_content = f"{rag_prompt_content}\n\n## Workspace Context\n\n{business_prompt}"
+        workspace = (
+            await aio(self.workspace_store.get(workspace_id))
+            if self.workspace_store and workspace_id
+            else None
+        )
+        business_prompt = (
+            workspace.business_prompt if workspace and workspace.business_prompt else ""
+        )
+        if business_prompt and workspace is not None:
+            rag_prompt_content = (
+                f"{rag_prompt_content}\n\n## Workspace Context\n\n{business_prompt}"
+            )
             self._rag_prompt_version += f" + {workspace_id}:v{workspace.business_prompt_version}"
 
         source_block = _build_source_block(results)
@@ -422,21 +502,31 @@ class AgentOrchestrator:
 
         async for token in self.model_client.stream_completion(rag_system, messages):
             full_answer += token
-            yield json.dumps({
-                "content": token,
-            }) + "\n"
+            yield (
+                json.dumps(
+                    {
+                        "content": token,
+                    }
+                )
+                + "\n"
+            )
 
         answer_ms = int((time.monotonic() - answer_start) * 1000)
 
         # Citations are included in the provenance_complete event — no separate emit needed
 
-        tracker.complete_step(step_id, duration_ms=answer_ms,
-                              metadata={"answer_length": len(full_answer)})
-        yield self._step_event(step_id, "answer", "complete",
-                               "Generating answer",
-                               "G\u00e9n\u00e9ration de la r\u00e9ponse",
-                               duration_ms=answer_ms,
-                               metadata={"answer_length": len(full_answer)})
+        tracker.complete_step(
+            step_id, duration_ms=answer_ms, metadata={"answer_length": len(full_answer)}
+        )
+        yield self._step_event(
+            step_id,
+            "answer",
+            "complete",
+            "Generating answer",
+            "G\u00e9n\u00e9ration de la r\u00e9ponse",
+            duration_ms=answer_ms,
+            metadata={"answer_length": len(full_answer)},
+        )
 
         # ---- Confidence & provenance ----
         await self._compute_grounded_provenance(tracker, results, citations)
@@ -459,38 +549,55 @@ class AgentOrchestrator:
         tracker.add_policy_applied("ungrounded-mode")
 
         ungrounded_prompt, self._ungrounded_prompt_version = await self._resolve_prompt(
-            "ungrounded-system", _UNGROUNDED_SYSTEM,
+            "ungrounded-system",
+            _UNGROUNDED_SYSTEM,
         )
 
         step_id = tracker.add_step(
-            "answer", "Generating answer (ungrounded)",
+            "answer",
+            "Generating answer (ungrounded)",
             "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)",
         )
-        yield self._step_event(step_id, "answer", "running",
-                               "Generating answer (ungrounded)",
-                               "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)")
+        yield self._step_event(
+            step_id,
+            "answer",
+            "running",
+            "Generating answer (ungrounded)",
+            "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)",
+        )
 
         messages = self._build_messages(history, user_message)
         answer_start = time.monotonic()
         full_answer = ""
 
         async for token in self.model_client.stream_completion(
-            ungrounded_prompt, messages,
+            ungrounded_prompt,
+            messages,
         ):
             full_answer += token
-            yield json.dumps({
-                "content": token,
-            }) + "\n"
+            yield (
+                json.dumps(
+                    {
+                        "content": token,
+                    }
+                )
+                + "\n"
+            )
 
         answer_ms = int((time.monotonic() - answer_start) * 1000)
 
-        tracker.complete_step(step_id, duration_ms=answer_ms,
-                              metadata={"answer_length": len(full_answer)})
-        yield self._step_event(step_id, "answer", "complete",
-                               "Generating answer (ungrounded)",
-                               "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)",
-                               duration_ms=answer_ms,
-                               metadata={"answer_length": len(full_answer)})
+        tracker.complete_step(
+            step_id, duration_ms=answer_ms, metadata={"answer_length": len(full_answer)}
+        )
+        yield self._step_event(
+            step_id,
+            "answer",
+            "complete",
+            "Generating answer (ungrounded)",
+            "G\u00e9n\u00e9ration de la r\u00e9ponse (non ancr\u00e9e)",
+            duration_ms=answer_ms,
+            metadata={"answer_length": len(full_answer)},
+        )
 
         # Ungrounded confidence is low by default
         await self._compute_ungrounded_provenance(tracker)
@@ -513,84 +620,101 @@ class AgentOrchestrator:
         source_coverage = min(len(citations) / max(len(search_results), 1), 1.0)
         grounding_quality = 0.85 if citations else 0.2
 
-        tracker.set_confidence(ConfidenceFactors(
-            retrieval_relevance=round(avg_relevance, 4),
-            source_coverage=round(source_coverage, 4),
-            grounding_quality=grounding_quality,
-        ))
+        tracker.set_confidence(
+            ConfidenceFactors(
+                retrieval_relevance=round(avg_relevance, 4),
+                source_coverage=round(source_coverage, 4),
+                grounding_quality=grounding_quality,
+            )
+        )
 
         # Freshness from source dates
-        dates = [r.get("last_modified") for r in search_results if r.get("last_modified")]
-        tracker.set_freshness(FreshnessInfo(
-            oldest_source=min(dates) if dates else None,
-            newest_source=max(dates) if dates else None,
-            staleness_warning=False,
-        ))
+        dates: list[str] = [
+            d for r in search_results if (d := r.get("last_modified")) is not None
+        ]
+        tracker.set_freshness(
+            FreshnessInfo(
+                oldest_source=min(dates) if dates else None,
+                newest_source=max(dates) if dates else None,
+                staleness_warning=False,
+            )
+        )
 
         # Behavioral fingerprint — snapshot model config + prompt version at query time
         prompt_ver = getattr(self, "_rag_prompt_version", _PROMPT_VERSION)
         deployment = getattr(self.model_client, "deployment", _MODEL_ID)
         model_snap = await self._snapshot_model(deployment)
-        tracker.set_behavioral_fingerprint(BehavioralFingerprint(
-            model=_MODEL_ID,
-            model_snapshot=model_snap,
-            prompt_version=prompt_ver,
-            corpus_snapshot=_CORPUS_SNAPSHOT,
-            policy_rules_version=_POLICY_RULES_VERSION,
-        ))
+        tracker.set_behavioral_fingerprint(
+            BehavioralFingerprint(
+                model=_MODEL_ID,
+                model_snapshot=model_snap,
+                prompt_version=prompt_ver,
+                corpus_snapshot=_CORPUS_SNAPSHOT,
+                policy_rules_version=_POLICY_RULES_VERSION,
+            )
+        )
 
         # Explainability
         consulted = len(search_results)
         cited = len(citations)
         excluded = consulted - cited
-        tracker.set_explainability(ExplainabilityRecord(
-            retrieval_summary=(
-                f"{consulted} sources retrieved; {cited} cited; "
-                f"{excluded} excluded"
-            ),
-            reasoning_summary=(
-                "Used hybrid search (vector + keyword) to find relevant documents, "
-                "resolved citations with SAS URLs, then generated a grounded answer "
-                "constrained to the retrieved sources."
-            ),
-            negative_evidence=[],
-            cross_language=None,
-        ))
+        tracker.set_explainability(
+            ExplainabilityRecord(
+                retrieval_summary=(
+                    f"{consulted} sources retrieved; {cited} cited; {excluded} excluded"
+                ),
+                reasoning_summary=(
+                    "Used hybrid search (vector + keyword) to find relevant documents, "
+                    "resolved citations with SAS URLs, then generated a grounded answer "
+                    "constrained to the retrieved sources."
+                ),
+                negative_evidence=[],
+                cross_language=None,
+            )
+        )
 
     async def _compute_ungrounded_provenance(self, tracker: ProvenanceTracker) -> None:
         """Set provenance for ungrounded (no-RAG) mode."""
 
-        tracker.set_confidence(ConfidenceFactors(
-            retrieval_relevance=0.0,
-            source_coverage=0.0,
-            grounding_quality=_UNGROUNDED_DEFAULT_CONFIDENCE,
-        ))
-        tracker.set_freshness(FreshnessInfo(
-            oldest_source=None,
-            newest_source=None,
-            staleness_warning=False,
-        ))
+        tracker.set_confidence(
+            ConfidenceFactors(
+                retrieval_relevance=0.0,
+                source_coverage=0.0,
+                grounding_quality=_UNGROUNDED_DEFAULT_CONFIDENCE,
+            )
+        )
+        tracker.set_freshness(
+            FreshnessInfo(
+                oldest_source=None,
+                newest_source=None,
+                staleness_warning=False,
+            )
+        )
         prompt_ver = getattr(self, "_ungrounded_prompt_version", _PROMPT_VERSION)
         deployment = getattr(self.model_client, "deployment", _MODEL_ID)
         model_snap = await self._snapshot_model(deployment)
-        tracker.set_behavioral_fingerprint(BehavioralFingerprint(
-            model=_MODEL_ID,
-            model_snapshot=model_snap,
-            prompt_version=prompt_ver,
-            corpus_snapshot=_CORPUS_SNAPSHOT,
-            policy_rules_version=_POLICY_RULES_VERSION,
-        ))
-        tracker.set_explainability(ExplainabilityRecord(
-            retrieval_summary="0 sources retrieved; 0 cited; ungrounded mode",
-            reasoning_summary=(
-                "Answered using general model knowledge without document retrieval. "
-                "Response is not grounded in official ESDC documents."
-            ),
-            negative_evidence=[
-                "No document search was performed (ungrounded mode).",
-            ],
-            cross_language=None,
-        ))
+        tracker.set_behavioral_fingerprint(
+            BehavioralFingerprint(
+                model=_MODEL_ID,
+                model_snapshot=model_snap,
+                prompt_version=prompt_ver,
+                corpus_snapshot=_CORPUS_SNAPSHOT,
+                policy_rules_version=_POLICY_RULES_VERSION,
+            )
+        )
+        tracker.set_explainability(
+            ExplainabilityRecord(
+                retrieval_summary="0 sources retrieved; 0 cited; ungrounded mode",
+                reasoning_summary=(
+                    "Answered using general model knowledge without document retrieval. "
+                    "Response is not grounded in official ESDC documents."
+                ),
+                negative_evidence=[
+                    "No document search was performed (ungrounded mode).",
+                ],
+                cross_language=None,
+            )
+        )
 
     # ------------------------------------------------------------------
     # Helpers

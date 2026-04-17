@@ -31,6 +31,7 @@ def _weeks_between(start: str, end: str) -> int:
 
 # --- Request/response schemas ---
 
+
 class BookingCreate(BaseModel):
     workspace_id: str
     start_date: str = Field(description="ISO date")
@@ -44,6 +45,7 @@ class BookingUpdate(BaseModel):
 
 class BookingResponse(Booking):
     """Booking with computed cost fields."""
+
     weekly_cost: float = 0.0
     total_cost: float = 0.0
     search_index_id: str | None = None

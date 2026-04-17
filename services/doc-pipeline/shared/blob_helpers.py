@@ -3,6 +3,7 @@
 Provides async helpers for uploading, downloading, listing, and deleting
 chunk blobs, plus SAS URL generation for read-only access.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,7 +20,9 @@ tracer = trace.get_tracer(__name__)
 class BlobContainerClient(Protocol):
     """Protocol for Azure Blob container operations (async)."""
 
-    async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
+    async def upload_blob(
+        self, name: str, data: bytes, overwrite: bool = False
+    ) -> None: ...
     async def download_blob(self, blob: str) -> BlobDownloader: ...
     async def delete_blob(self, blob: str) -> None: ...
 
@@ -63,7 +66,9 @@ async def upload_chunk(
     """Upload a JSON chunk to blob storage."""
     data = json.dumps(chunk_data, ensure_ascii=False).encode("utf-8")
     await container_client.upload_blob(blob_path, data, overwrite=True)
-    logger.info("Chunk uploaded", extra={"blob_path": blob_path, "size_bytes": len(data)})
+    logger.info(
+        "Chunk uploaded", extra={"blob_path": blob_path, "size_bytes": len(data)}
+    )
 
 
 @tracer.start_as_current_span("blob.download_blob")
@@ -74,7 +79,9 @@ async def download_blob(
     """Download blob content as bytes."""
     downloader = await container_client.download_blob(blob_path)
     content = await downloader.readall()
-    logger.info("Blob downloaded", extra={"blob_path": blob_path, "size_bytes": len(content)})
+    logger.info(
+        "Blob downloaded", extra={"blob_path": blob_path, "size_bytes": len(content)}
+    )
     return content
 
 

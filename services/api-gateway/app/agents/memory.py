@@ -178,8 +178,7 @@ class SemanticMemory:
             return []
 
         scored = [
-            (entry, _cosine_similarity(entry.embedding, query_embedding))
-            for entry in entries
+            (entry, _cosine_similarity(entry.embedding, query_embedding)) for entry in entries
         ]
         scored.sort(key=lambda x: x[1], reverse=True)
 
@@ -214,7 +213,9 @@ class SemanticMemory:
                 await aio(client.delete_documents(documents=docs_to_delete))
             logger.info(
                 "SemanticMemory: cleared %d memories from Azure for user=%s ws=%s",
-                len(docs_to_delete), user_id, workspace_id,
+                len(docs_to_delete),
+                user_id,
+                workspace_id,
             )
             return len(docs_to_delete)
 
@@ -223,6 +224,8 @@ class SemanticMemory:
         count = len(self._store.pop(key, []))
         logger.info(
             "SemanticMemory: cleared %d memories from memory for user=%s ws=%s",
-            count, user_id, workspace_id,
+            count,
+            user_id,
+            workspace_id,
         )
         return count

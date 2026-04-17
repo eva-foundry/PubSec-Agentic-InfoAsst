@@ -73,12 +73,14 @@ class PromptStore:
         for name, versions in self._prompts.items():
             active = self.get_active(name)
             latest = versions[-1]
-            result.append({
-                "prompt_name": name,
-                "latest_version": latest.version,
-                "active_version": active.version if active else None,
-                "total_versions": len(versions),
-            })
+            result.append(
+                {
+                    "prompt_name": name,
+                    "latest_version": latest.version,
+                    "active_version": active.version if active else None,
+                    "total_versions": len(versions),
+                }
+            )
         return result
 
     def get_versions(self, prompt_name: str) -> list[PromptVersion]:

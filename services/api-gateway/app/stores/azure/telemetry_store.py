@@ -33,9 +33,7 @@ class CosmosTelemetryStore:
         data["timestamp"] = data["timestamp"].isoformat()
         await self._cosmos.upsert(CONTAINER, data)
 
-    async def list_by_workspace(
-        self, ws_id: str, days: int = 30
-    ) -> list[APIMTelemetryRecord]:
+    async def list_by_workspace(self, ws_id: str, days: int = 30) -> list[APIMTelemetryRecord]:
         cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
         items = await self._cosmos.query(
             CONTAINER,
@@ -59,9 +57,14 @@ class CosmosTelemetryStore:
 
         if not records:
             return {
-                "period_days": days, "total_cost_cad": 0.0, "query_count": 0,
-                "avg_latency_ms": 0, "avg_tokens": 0,
-                "cost_by_workspace": {}, "cost_by_model": {}, "cost_by_client": {},
+                "period_days": days,
+                "total_cost_cad": 0.0,
+                "query_count": 0,
+                "avg_latency_ms": 0,
+                "avg_tokens": 0,
+                "cost_by_workspace": {},
+                "cost_by_model": {},
+                "cost_by_client": {},
             }
 
         total_cost = sum(r.cost_cad for r in records)
@@ -78,9 +81,7 @@ class CosmosTelemetryStore:
             )
             cost_by_workspace[ws]["queries"] += 1
         for ws_data in cost_by_workspace.values():
-            ws_data["cost_per_query"] = round(
-                ws_data["cost_cad"] / max(ws_data["queries"], 1), 4
-            )
+            ws_data["cost_per_query"] = round(ws_data["cost_cad"] / max(ws_data["queries"], 1), 4)
 
         cost_by_model: dict[str, dict] = {}
         for r in records:

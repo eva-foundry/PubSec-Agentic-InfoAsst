@@ -24,6 +24,7 @@ def _get_entra_token() -> str | None:
     """Get an Azure AD token for Azure OpenAI using DefaultAzureCredential."""
     try:
         from azure.identity import DefaultAzureCredential
+
         credential = DefaultAzureCredential()
         token = credential.get_token("https://cognitiveservices.azure.com/.default")
         return token.token
@@ -66,9 +67,7 @@ class AzureOpenAIModelClient:
     # Public API
     # ------------------------------------------------------------------
 
-    async def generate_query(
-        self, system: str, user_message: str, history: list[dict]
-    ) -> str:
+    async def generate_query(self, system: str, user_message: str, history: list[dict]) -> str:
         """Single-shot completion for query rewrite. Temperature=0 for determinism."""
         messages = [{"role": "system", "content": system}]
         for h in history[-3:]:  # last 3 turns for context
@@ -163,8 +162,10 @@ class AzureOpenAIModelClient:
     def _log_http_error(exc: httpx.HTTPStatusError) -> None:
         status = exc.response.status_code
         if status == 429:
-            logger.warning("Azure OpenAI throttled (429) — retry-after: %s",
-                           exc.response.headers.get("retry-after", "unknown"))
+            logger.warning(
+                "Azure OpenAI throttled (429) — retry-after: %s",
+                exc.response.headers.get("retry-after", "unknown"),
+            )
         elif status == 401:
             logger.error("Azure OpenAI authentication failed (401)")
         else:

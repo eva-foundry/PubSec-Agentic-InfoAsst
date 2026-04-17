@@ -63,15 +63,19 @@ class SearchTool(Tool):
             query_embedding = query_embeddings[0]
 
             # Search the vector store (sync for in-memory, async for Azure AI Search)
-            results = await aio(self._vector_store.search(
-                workspace_id=workspace_id,
-                query_embedding=query_embedding,
-                top_k=top_k,
-            ))
+            results = await aio(
+                self._vector_store.search(
+                    workspace_id=workspace_id,
+                    query_embedding=query_embedding,
+                    top_k=top_k,
+                )
+            )
 
             logger.info(
                 "Vector search: query=%r workspace=%s results=%d",
-                query[:80], workspace_id, len(results),
+                query[:80],
+                workspace_id,
+                len(results),
             )
 
         duration_ms = int((time.monotonic() - start) * 1000)

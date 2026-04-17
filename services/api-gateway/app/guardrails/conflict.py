@@ -30,6 +30,7 @@ _audit = AuditLogger()
 
 class SourceAuthority(IntEnum):
     """Authority hierarchy for conflict arbitration (higher = more authoritative)."""
+
     UNKNOWN = 0
     GENERAL_KNOWLEDGE = 10
     OPERATIONAL_GUIDANCE = 20
@@ -65,6 +66,7 @@ _AUTHORITY_MAP: dict[str, SourceAuthority] = {
 @dataclass
 class SourceClaim:
     """A claim made by a specific source."""
+
     source_id: str
     source_type: str  # e.g., "legislation", "tribunal", "policy"
     source_title: str
@@ -76,6 +78,7 @@ class SourceClaim:
 @dataclass
 class ConflictDetection:
     """Result of conflict detection between two or more claims."""
+
     conflict_id: str
     topic: str
     claims: list[SourceClaim]
@@ -90,6 +93,7 @@ class ConflictDetection:
 @dataclass
 class ConflictReport:
     """Aggregated conflict report for a single query."""
+
     conflicts_detected: int = 0
     conflicts_resolved: int = 0
     conflicts_unresolved: int = 0
@@ -148,9 +152,7 @@ class ConflictResolver:
                 # Detect if claims conflict (heuristic: different authority sources
                 # making claims about the same topic with different conclusions)
                 if self._claims_may_conflict(claim_a, claim_b):
-                    detection = self._resolve_conflict(
-                        claim_a, claim_b, topic, correlation_id
-                    )
+                    detection = self._resolve_conflict(claim_a, claim_b, topic, correlation_id)
                     report.detections.append(detection)
 
                     if detection.is_conflict:

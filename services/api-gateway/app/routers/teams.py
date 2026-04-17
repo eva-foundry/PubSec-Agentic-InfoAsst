@@ -118,7 +118,9 @@ async def update_member_role(
 
     updated = await aio(team_store.update_role(booking_id, user_id, payload.role))
     if updated is None:
-        raise HTTPException(status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'")
+        raise HTTPException(
+            status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'"
+        )
     return updated
 
 
@@ -133,4 +135,6 @@ async def remove_member(
 
     removed = await aio(team_store.remove(booking_id, user_id))
     if not removed:
-        raise HTTPException(status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'")
+        raise HTTPException(
+            status_code=404, detail=f"Member '{user_id}' not found in booking '{booking_id}'"
+        )

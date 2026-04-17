@@ -29,7 +29,9 @@ def init_telemetry() -> None:
         {
             "service.name": "eva-agentic-api-gateway",
             "service.version": "0.1.0",
-            "deployment.environment": "production" if settings.auth_mode == "production" else "development",
+            "deployment.environment": "production"
+            if settings.auth_mode == "production"
+            else "development",
             "cloud.provider": "azure",
             "cloud.region": "canadacentral",
         }
@@ -47,10 +49,14 @@ def init_telemetry() -> None:
             provider.add_span_processor(BatchSpanProcessor(exporter))
             logger.info("OTEL: Azure Monitor exporter configured")
         except ImportError:
-            logger.warning("azure-monitor-opentelemetry-exporter not installed — using console exporter")
+            logger.warning(
+                "azure-monitor-opentelemetry-exporter not installed — using console exporter"
+            )
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
         except Exception as exc:
-            logger.error("OTEL: Failed to init Azure Monitor exporter: %s — falling back to console", exc)
+            logger.error(
+                "OTEL: Failed to init Azure Monitor exporter: %s — falling back to console", exc
+            )
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     else:
         provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))

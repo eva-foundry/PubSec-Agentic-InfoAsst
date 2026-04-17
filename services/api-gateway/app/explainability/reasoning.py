@@ -45,9 +45,7 @@ class ReasoningSummarizer:
 
         parts: list[str] = []
 
-        parts.append(
-            f'{sources_consulted} sources retrieved for query "{search_query}"'
-        )
+        parts.append(f'{sources_consulted} sources retrieved for query "{search_query}"')
 
         if sources_used > 0:
             parts.append(f"{sources_used} selected based on section relevance")
@@ -59,8 +57,6 @@ class ReasoningSummarizer:
         if answer_approach == "grounded":
             parts.append("Answer is grounded in retrieved sources")
         else:
-            parts.append(
-                "Answer could not be fully grounded in retrieved sources"
-            )
+            parts.append("Answer could not be fully grounded in retrieved sources")
 
         return "; ".join(parts) + "."

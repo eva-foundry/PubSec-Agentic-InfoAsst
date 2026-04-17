@@ -12,6 +12,7 @@ the router layer wraps calls uniformly via ``stores.compat.aio()``.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, cast
 
 from ..config import get_settings
 from ..guardrails.degradation import DegradationManager
@@ -58,6 +59,7 @@ from .workspace_store import WorkspaceStore as WorkspaceStore  # noqa: E402
 # Lazy proxy for Azure-mode stores
 # ---------------------------------------------------------------------------
 
+
 class _LazyStore:
     """Proxy that delegates to a real store once it's set during startup.
 
@@ -89,7 +91,22 @@ class _LazyStore:
 
 cosmos_manager = None  # CosmosClientManager — only set when api_mock=false
 
-if API_MOCK:
+# Type declarations for static analysis. At runtime each name is bound below
+# to either a concrete store (mock mode) or a _LazyStore proxy (Azure mode);
+# both satisfy the concrete store's interface via duck typing / __getattr__.
+if TYPE_CHECKING:
+    workspace_store: WorkspaceStore
+    booking_store: BookingStore
+    team_store: TeamStore
+    survey_store: SurveyStore
+    client_store: ClientStore
+    model_registry_store: ModelRegistryStore
+    prompt_store: PromptStore
+    telemetry_store: TelemetryStore
+    vector_store: VectorStore
+    document_store: DocumentStore
+    chat_store: ChatStore
+elif API_MOCK:
     workspace_store = WorkspaceStore()
     booking_store = BookingStore()
     team_store = TeamStore()
@@ -102,17 +119,17 @@ if API_MOCK:
     document_store = DocumentStore()
     chat_store = ChatStore()
 else:
-    workspace_store = _LazyStore("workspace_store")  # type: ignore[assignment]
-    booking_store = _LazyStore("booking_store")  # type: ignore[assignment]
-    team_store = _LazyStore("team_store")  # type: ignore[assignment]
-    survey_store = _LazyStore("survey_store")  # type: ignore[assignment]
-    client_store = _LazyStore("client_store")  # type: ignore[assignment]
-    model_registry_store = _LazyStore("model_registry_store")  # type: ignore[assignment]
-    prompt_store = _LazyStore("prompt_store")  # type: ignore[assignment]
-    telemetry_store = _LazyStore("telemetry_store")  # type: ignore[assignment]
-    vector_store = _LazyStore("vector_store")  # type: ignore[assignment]
-    document_store = _LazyStore("document_store")  # type: ignore[assignment]
-    chat_store = _LazyStore("chat_store")  # type: ignore[assignment]
+    workspace_store = _LazyStore("workspace_store")
+    booking_store = _LazyStore("booking_store")
+    team_store = _LazyStore("team_store")
+    survey_store = _LazyStore("survey_store")
+    client_store = _LazyStore("client_store")
+    model_registry_store = _LazyStore("model_registry_store")
+    prompt_store = _LazyStore("prompt_store")
+    telemetry_store = _LazyStore("telemetry_store")
+    vector_store = _LazyStore("vector_store")
+    document_store = _LazyStore("document_store")
+    chat_store = _LazyStore("chat_store")
 
 
 async def initialize_azure_stores() -> None:
@@ -143,25 +160,30 @@ async def initialize_azure_stores() -> None:
     await cosmos_manager.initialize()
     logger.info("Cosmos DB client initialized — all databases and containers ready")
 
-    workspace_store._set(CosmosWorkspaceStore(cosmos_manager))
-    booking_store._set(CosmosBookingStore(cosmos_manager))
-    team_store._set(CosmosTeamStore(cosmos_manager))
-    survey_store._set(CosmosSurveyStore(cosmos_manager))
-    client_store._set(CosmosClientStore(cosmos_manager))
-    model_registry_store._set(CosmosModelRegistryStore(cosmos_manager))
-    prompt_store._set(CosmosPromptStore(cosmos_manager))
-    telemetry_store._set(CosmosTelemetryStore(cosmos_manager))
-    document_store._set(CosmosDocumentStore(cosmos_manager))
-    chat_store._set(CosmosChatStore(cosmos_manager))
+    # In Azure mode these are _LazyStore proxies; cast so pyright allows _set().
+    cast(_LazyStore, workspace_store)._set(CosmosWorkspaceStore(cosmos_manager))
+    cast(_LazyStore, booking_store)._set(CosmosBookingStore(cosmos_manager))
+    cast(_LazyStore, team_store)._set(CosmosTeamStore(cosmos_manager))
+    cast(_LazyStore, survey_store)._set(CosmosSurveyStore(cosmos_manager))
+    cast(_LazyStore, client_store)._set(CosmosClientStore(cosmos_manager))
+    cast(_LazyStore, model_registry_store)._set(CosmosModelRegistryStore(cosmos_manager))
+    cast(_LazyStore, prompt_store)._set(CosmosPromptStore(cosmos_manager))
+    cast(_LazyStore, telemetry_store)._set(CosmosTelemetryStore(cosmos_manager))
+    cast(_LazyStore, document_store)._set(CosmosDocumentStore(cosmos_manager))
+    cast(_LazyStore, chat_store)._set(CosmosChatStore(cosmos_manager))
 
     from .azure.search_store import AzureSearchVectorStore
 
-    vector_store._set(AzureSearchVectorStore(
-        endpoint=settings.azure_search_endpoint,
-        api_key=settings.azure_search_api_key,
-        index_prefix=settings.azure_search_index_prefix,
-    ))
-    logger.info("Azure AI Search vector store initialized (prefix: %s)", settings.azure_search_index_prefix)
+    cast(_LazyStore, vector_store)._set(
+        AzureSearchVectorStore(
+            endpoint=settings.azure_search_endpoint,
+            api_key=settings.azure_search_api_key,
+            index_prefix=settings.azure_search_index_prefix,
+        )
+    )
+    logger.info(
+        "Azure AI Search vector store initialized (prefix: %s)", settings.azure_search_index_prefix
+    )
 
 
 __all__ = [

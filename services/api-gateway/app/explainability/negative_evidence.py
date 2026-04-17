@@ -88,14 +88,10 @@ class NegativeEvidenceDetector:
                 matched_hedges.append(pattern.pattern)
 
         if matched_hedges:
-            return [
-                "Answer contains hedging language, indicating partial source coverage"
-            ]
+            return ["Answer contains hedging language, indicating partial source coverage"]
         return []
 
-    def _detect_date_gaps(
-        self, user_query: str, search_results: list[dict]
-    ) -> list[str]:
+    def _detect_date_gaps(self, user_query: str, search_results: list[dict]) -> list[str]:
         """Check if query mentions dates not covered by any search result."""
         query_dates = _DATE_PATTERN.findall(user_query)
         if not query_dates:
@@ -103,8 +99,7 @@ class NegativeEvidenceDetector:
 
         # Build a set of years mentioned in results (from content, title, file)
         result_text = " ".join(
-            " ".join(str(v) for v in r.values() if isinstance(v, str))
-            for r in search_results
+            " ".join(str(v) for v in r.values() if isinstance(v, str)) for r in search_results
         )
         result_dates = {m[0] for m in _DATE_PATTERN.findall(result_text)}
 
@@ -116,15 +111,11 @@ class NegativeEvidenceDetector:
                     date_str += f"-{month}"
                 if day:
                     date_str += f"-{day}"
-                negatives.append(
-                    f"No sources found covering the period {date_str}"
-                )
+                negatives.append(f"No sources found covering the period {date_str}")
 
         return negatives
 
-    def _detect_missing_acts(
-        self, user_query: str, search_results: list[dict]
-    ) -> list[str]:
+    def _detect_missing_acts(self, user_query: str, search_results: list[dict]) -> list[str]:
         """Check if query references Acts/regulations not present in results."""
         query_acts = _ACT_PATTERN.findall(user_query)
         if not query_acts:
@@ -135,8 +126,7 @@ class NegativeEvidenceDetector:
 
         # Build searchable text from all results
         result_text = " ".join(
-            " ".join(str(v) for v in r.values() if isinstance(v, str))
-            for r in search_results
+            " ".join(str(v) for v in r.values() if isinstance(v, str)) for r in search_results
         ).lower()
 
         negatives: list[str] = []
@@ -145,8 +135,6 @@ class NegativeEvidenceDetector:
             if act_name not in result_text:
                 # Capitalize for display
                 display_name = act_name.title()
-                negatives.append(
-                    f'No sources found referencing "{display_name}"'
-                )
+                negatives.append(f'No sources found referencing "{display_name}"')
 
         return negatives

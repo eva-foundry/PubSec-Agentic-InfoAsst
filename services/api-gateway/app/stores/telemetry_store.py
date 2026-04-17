@@ -92,9 +92,7 @@ class TelemetryStore:
             day_offset = rng.randint(0, 13)  # April 1-14
             hour_offset = rng.randint(0, 9) + 8  # 8am-5pm
             minute_offset = rng.randint(0, 59)
-            ts = base + timedelta(
-                days=day_offset, hours=hour_offset, minutes=minute_offset
-            )
+            ts = base + timedelta(days=day_offset, hours=hour_offset, minutes=minute_offset)
 
             prompt_tokens = rng.randint(300, 2000)
             completion_tokens = rng.randint(200, 1200)
@@ -128,16 +126,10 @@ class TelemetryStore:
         """Record a new telemetry entry (called by APIM middleware)."""
         self._records.append(record)
 
-    def list_by_workspace(
-        self, ws_id: str, days: int = 30
-    ) -> list[APIMTelemetryRecord]:
+    def list_by_workspace(self, ws_id: str, days: int = 30) -> list[APIMTelemetryRecord]:
         """Return records for a workspace within the last N days."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
-        return [
-            r
-            for r in self._records
-            if r.workspace_id == ws_id and r.timestamp >= cutoff
-        ]
+        return [r for r in self._records if r.workspace_id == ws_id and r.timestamp >= cutoff]
 
     def summary(self, days: int = 30) -> dict:
         """Aggregated FinOps summary for the ops dashboard."""
@@ -172,18 +164,14 @@ class TelemetryStore:
 
         # Add cost_per_query to each workspace
         for ws_data in cost_by_workspace.values():
-            ws_data["cost_per_query"] = round(
-                ws_data["cost_cad"] / max(ws_data["queries"], 1), 4
-            )
+            ws_data["cost_per_query"] = round(ws_data["cost_cad"] / max(ws_data["queries"], 1), 4)
 
         cost_by_model: dict[str, dict] = {}
         for r in records:
             d = r.deployment
             if d not in cost_by_model:
                 cost_by_model[d] = {"cost_cad": 0.0, "queries": 0, "model_name": r.model_name}
-            cost_by_model[d]["cost_cad"] = round(
-                cost_by_model[d]["cost_cad"] + r.cost_cad, 6
-            )
+            cost_by_model[d]["cost_cad"] = round(cost_by_model[d]["cost_cad"] + r.cost_cad, 6)
             cost_by_model[d]["queries"] += 1
 
         cost_by_client: dict[str, dict] = {}
@@ -191,9 +179,7 @@ class TelemetryStore:
             c = r.client_id
             if c not in cost_by_client:
                 cost_by_client[c] = {"cost_cad": 0.0, "queries": 0}
-            cost_by_client[c]["cost_cad"] = round(
-                cost_by_client[c]["cost_cad"] + r.cost_cad, 6
-            )
+            cost_by_client[c]["cost_cad"] = round(cost_by_client[c]["cost_cad"] + r.cost_cad, 6)
             cost_by_client[c]["queries"] += 1
 
         return {

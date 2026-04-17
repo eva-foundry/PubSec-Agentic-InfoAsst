@@ -46,26 +46,30 @@ def _paragraph_chunk(
     for para in paragraphs:
         candidate = (current + "\n\n" + para) if current else para
         if len(candidate) > target_chars and current:
-            chunks.append({
-                "content": current,
-                "chunk_index": chunk_index,
-                "title": "",
-                "section": "",
-                "pages": [],
-            })
+            chunks.append(
+                {
+                    "content": current,
+                    "chunk_index": chunk_index,
+                    "title": "",
+                    "section": "",
+                    "pages": [],
+                }
+            )
             chunk_index += 1
             current = para
         else:
             current = candidate
 
     if current:
-        chunks.append({
-            "content": current,
-            "chunk_index": chunk_index,
-            "title": "",
-            "section": "",
-            "pages": [],
-        })
+        chunks.append(
+            {
+                "content": current,
+                "chunk_index": chunk_index,
+                "title": "",
+                "section": "",
+                "pages": [],
+            }
+        )
 
     return chunks
 
@@ -119,23 +123,29 @@ class LocalDocumentProcessor:
             # 1. Extract text
             text = content_bytes.decode("utf-8", errors="replace").strip()
             if not text:
-                await aio(self.document_store.update_status(
-                    doc_id, "error", error_message="Empty document"
-                ))
+                await aio(
+                    self.document_store.update_status(
+                        doc_id, "error", error_message="Empty document"
+                    )
+                )
                 return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]
 
             # 2. Chunk
             await aio(self.document_store.update_status(doc_id, "chunking"))
             chunks = _paragraph_chunk(text, file_name)
             if not chunks:
-                await aio(self.document_store.update_status(
-                    doc_id, "error", error_message="No chunks produced"
-                ))
+                await aio(
+                    self.document_store.update_status(
+                        doc_id, "error", error_message="No chunks produced"
+                    )
+                )
                 return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]
 
             logger.info(
                 "Chunked %s into %d chunks for workspace %s",
-                file_name, len(chunks), workspace_id,
+                file_name,
+                len(chunks),
+                workspace_id,
             )
 
             # 3. Embed
@@ -165,21 +175,24 @@ class LocalDocumentProcessor:
             await aio(self.vector_store.add_documents(workspace_id, vector_docs))
 
             indexed_at = datetime.now(UTC).isoformat()
-            await aio(self.document_store.update_status(
-                doc_id, "indexed",
-                chunk_count=len(vector_docs),
-                indexed_at=indexed_at,
-            ))
+            await aio(
+                self.document_store.update_status(
+                    doc_id,
+                    "indexed",
+                    chunk_count=len(vector_docs),
+                    indexed_at=indexed_at,
+                )
+            )
 
             logger.info(
                 "Indexed %s: %d chunks stored for workspace %s",
-                file_name, len(vector_docs), workspace_id,
+                file_name,
+                len(vector_docs),
+                workspace_id,
             )
 
         except Exception as exc:
             logger.exception("Failed to process %s", file_name)
-            await aio(self.document_store.update_status(
-                doc_id, "error", error_message=str(exc)
-            ))
+            await aio(self.document_store.update_status(doc_id, "error", error_message=str(exc)))
 
         return await aio(self.document_store.get(doc_id))  # type: ignore[return-value]
