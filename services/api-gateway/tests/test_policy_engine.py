@@ -419,8 +419,9 @@ class TestNestedFieldResolution:
         result = custom_rules_engine.evaluate(context)
         verdict = next((v for v in result.verdicts if v.rule_id == "TEST-002"), None)
         assert verdict is not None
-        # Should fail because 2 >= 2 is True, so condition fails
-        assert not verdict.passed
+        # Condition `workspace.aicm_level >= 2` is satisfied (2 >= 2),
+        # so the rule passes and its pass_action (allow) applies.
+        assert verdict.passed is True
         assert "workspace.aicm_level" in verdict.evidence
 
     def test_resolve_deeply_nested_field(self, policy_engine):

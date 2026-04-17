@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+
 import pytest
 
 
 @pytest.fixture(autouse=True, scope="session")
-def _test_content_safety_endpoint() -> None:
+def _test_content_safety_endpoint() -> Generator[None, None, None]:
     """Ensure ContentSafetyChecker thinks a Content Safety endpoint is configured.
 
     The real module inspects app.config.settings at construction time and skips

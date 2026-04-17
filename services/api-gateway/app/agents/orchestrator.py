@@ -228,14 +228,14 @@ class AgentOrchestrator:
             trace_id=self.trace_id,
         )
 
-        # Emit initial provenance (informational header — frontend ignores)
+        # Emit initial provenance header (top-level correlation_id/trace_id).
         yield (
             json.dumps({
                 "type": "provenance",
-                "provenance": {
-                    "correlation_id": correlation_id,
-                    "trace_id": self.trace_id,
-                },
+                "correlation_id": correlation_id,
+                "trace_id": self.trace_id,
+                "conversation_id": conversation_id,
+                "message_id": message_id,
             })
             + "\n"
         )
@@ -307,17 +307,9 @@ class AgentOrchestrator:
             ):
                 yield line
 
-        # Final provenance record
-        provenance = tracker.build()
-        yield (
-            json.dumps({
-                "type": "provenance_complete",
-                "provenance_complete": provenance.model_dump(),
-            })
-            + "\n"
-        )
-
-        # Explainability record (separate event)
+        # Explainability record — emitted BEFORE provenance_complete so that
+        # provenance_complete is always the last event on the stream (the UI
+        # treats it as the close marker).
         if tracker.explainability:
             yield (
                 json.dumps({
@@ -326,6 +318,16 @@ class AgentOrchestrator:
                 })
                 + "\n"
             )
+
+        # Final provenance record — always the last event on the stream.
+        provenance = tracker.build()
+        yield (
+            json.dumps({
+                "type": "provenance_complete",
+                "provenance": provenance.model_dump(),
+            })
+            + "\n"
+        )
 
     # ------------------------------------------------------------------
     # Grounded mode (RAG)
@@ -515,7 +517,9 @@ class AgentOrchestrator:
             yield (
                 json.dumps({
                     "type": "content",
-                    "content": token,
+                    "delta": token,
+                    "conversation_id": conversation_id,
+                    "message_id": message_id,
                 })
                 + "\n"
             )
@@ -587,7 +591,9 @@ class AgentOrchestrator:
             yield (
                 json.dumps({
                     "type": "content",
-                    "content": token,
+                    "delta": token,
+                    "conversation_id": conversation_id,
+                    "message_id": message_id,
                 })
                 + "\n"
             )
@@ -753,4 +759,4 @@ class AgentOrchestrator:
             duration_ms=duration_ms,
             metadata=metadata,
         )
-        return json.dumps({"type": "agent_step", "agent_step": step.model_dump()}) + "\n"
+        return json.dumps({"type": "agent_step", **step.model_dump()}) + "\n"
