@@ -8,6 +8,8 @@ from uuid import uuid4
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 from app.auth.entra_provider import validate_token
 from app.auth.group_mapping import resolve_portal_access, resolve_role, resolve_workspace_grants
@@ -18,50 +20,38 @@ from app.auth.models import UserContext
 # ============================================================================
 
 
+def _generate_test_keypair() -> tuple[str, str]:
+    """Generate a fresh RSA-2048 keypair in PEM for use by the token factory.
+
+    Generated at module import so every test run gets a disposable key — never
+    trusted by production code, never stored in a vault. Using real key
+    material (vs. a hand-rolled fake) lets PyJWT actually sign and verify.
+    """
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_pem = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode()
+    public_pem = (
+        key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode()
+    )
+    return private_pem, public_pem
+
+
+_PRIVATE_PEM, _PUBLIC_PEM = _generate_test_keypair()
+
+
 class TestTokenFactory:
     """Factory for creating test JWT tokens with configurable claims."""
 
-    PRIVATE_KEY = """-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA2a2rwplBCGGD2ypUzQJN4p1A5TdQLw3ZPuKwFfgzxu8Pg16l
-+xZ5KHzI68TZmJk2BLxQc8KqsN5EQLqJ8p6uLZflIbQdN5GZMvC7VQKX/aM8cHsI
-jTVs1VF5sV/uLF0pVZjMvP2xKBXp8G/r7VB6VVQZ8F8lW8j5Y9eP/zN7K7r4kBJu
-yF6z8J5D5v9p2Q8R9F3F1K5I0L8M9N0O1P2Q3R4S5T6U7V8W9X0Y1Z2a3b4c5d6e
-7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8A9B0C1D2E3F4G5H6I7J8K9L
-QIDAQABAoIBADwxWbvTFzPDZePlyoqVGPKEWj/8KZN8F3t9K1v1F2s5V2Q3U7T8J6K
-7I9H4Q5P2O0M9N8L7K6J5I4H3G2F1E0D9C8B7A6Z5Y4X3W2V1U0T9S8R7Q6P5O4N3M
-2L1K0J9I8H7G6F5E4D3C2B1A0Z9Y8X7W6V5U4T3S2R1Q0P9O8N7M6L5K4J3I2H1G0F9
-E8D7C6B5A4Z3Y2X1W0V9U8T7S6R5Q4P3O2N1M0L9K8J7I6H5G4F3E2D1C0B9A8Z7Y6X5
-W4V3U2T1S0R9Q8P7O6N5M4L3K2J1I0H9G8F7E6D5C4B3A2Z1Y0X9W8V7U6T5S4R3Q2P1
-O0N9M8L7K6J5I4H3G2F1E0ECgYEA7rJ5pF7W2V9U6T3S0R7Q4P1O8N5M2L9K6J3I0H7G
-4F1E8D5C2B9A6Z3Y0X7W4V1U8T5S2R9Q6P3O0N7M4L1K8J5I2H9G6F3E0D7C4B1A8Z5Y2
-X9W6V3U0T7S4R1Q8P5O2N9M6L3K0J7I4H1G8F5E2D9C6B3A0Z7Y4X1W8V5U2T9S6R3Q0P
-7O4N1M8L5K2J9I6H3G0F7E4D1C8B5A2Z9Y6X3W0V7U4T1S8R5Q2P9O6N3M0L7K4J1I8H5
-G2F9E6D3C0B7A4Z1Y8X5W2V9U6T3S0R7Q4P1O8NCgYEA6WkrS8H2g4L1M5V0N3U7I8J9O
-6P4Q2T0S5R1U9V3W8X4Y2Z0a7b1c5d3e9f7g2h0i6j4k8l2m9n5o0p6r3s1t7u5v0w8x4
-y2z0A7B1C5D3E9F7G2H0I6J4K8L2M9N5O0P6R3S1T7U5V0W8X4Y2Z0a7b1c5d3e9f7g2h0
-i6j4k8l2m9n5o0p6r3s1t7u5v0w8x4y2z0KBgQC7S4K2L3M4N5O6P7Q8R9S0T1U2V3W4X5
-Y6Z7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3A4B5C6D7E8F9G0
-H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5q
-QKBgQC5R1K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z8a9b0c1d2e3f4g5h6i7j8k9l0m1n2o3p
-4q5r6s7t8u9v0w1x2y3z4A5B6C7D8E9F0G1H2I3J4K5L6M7N8O9P0Q1R2S3T4U5V6W7X8Y9Z0
-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6A7B8C9D0E1F2G3H4I5J6
-K7L8M9N0O1P2Q3R4S5T6U7V8W9X0Y1Z2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2
-uQKBgQDLqY4P5R7T9V1X3Z5b7d9f1h3j5l7n9p1r3t5v7x9z1B3D5F7H9J1L3N5P7R9T1V3X5
-Z7b9d1f3h5j7l9n1p3r5t7v9x1z3B5D7F9H1J3L5N7P9R1T3V5X7Z9b1d3f5h7j9l1n3p5r7t
-9v1x3z5B7D9F1H3J5L7N9P1R3T5V7X9Z1b3d5f7h9j1l3n5p7r9t1v3x5z7B9D1F3H5J7L9N1P
-3R5T7V9X1Z3b5d7f9h1j3l5n7p9r1t3v5x7z9B1D3F5H7J9L1N3P5R7T9V1X3Z5b7d9f1h3j5l
-7n9p1r3t5v7x9z1B3D5F7H9J1L3N5P7R9T1V3X5Z7b9d1f3h5j7l9n1p3r5t7v9x1z3B5D7F9H1
-J3L5N7P9R1T3V5X7Z9
------END RSA PRIVATE KEY-----"""
-
-    PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2a2rwplBCGGD2ypUzQJN
-4p1A5TdQLw3ZPuKwFfgzxu8Pg16l+xZ5KHzI68TZmJk2BLxQc8KqsN5EQLqJ8p6u
-LZflIbQdN5GZMvC7VQKX/aM8cHsIjTVs1VF5sV/uLF0pVZjMvP2xKBXp8G/r7VB6
-VVQZ8F8lW8j5Y9eP/zN7K7r4kBJuyF6z8J5D5v9p2Q8R9F3F1K5I0L8M9N0O1P2Q3
-R4S5T6U7V8W9X0Y1Z2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6
-y7z8A9B0C1D2E3F4G5H6I7J8K9LQIDAQAB
------END PUBLIC KEY-----"""
+    PRIVATE_KEY = _PRIVATE_PEM
+    PUBLIC_KEY = _PUBLIC_PEM
 
     @staticmethod
     def create_token(

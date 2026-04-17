@@ -231,6 +231,7 @@ class AgentOrchestrator:
         # Emit initial provenance (informational header — frontend ignores)
         yield (
             json.dumps({
+                "type": "provenance",
                 "provenance": {
                     "correlation_id": correlation_id,
                     "trace_id": self.trace_id,
@@ -248,6 +249,7 @@ class AgentOrchestrator:
             # OpenAI breaker open — cannot generate any response
             yield (
                 json.dumps({
+                    "type": "content",
                     "content": "Service temporarily unavailable. Please try again later. / "
                     "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
                 })
@@ -255,6 +257,7 @@ class AgentOrchestrator:
             )
             yield (
                 json.dumps({
+                    "type": "degradation",
                     "degradation": {
                         "status": "unavailable",
                         "service": "openai",
@@ -267,6 +270,7 @@ class AgentOrchestrator:
             if search_down and mode == "grounded":
                 yield (
                     json.dumps({
+                        "type": "degradation",
                         "degradation": {
                             "status": "partial",
                             "service": "search",
@@ -307,6 +311,7 @@ class AgentOrchestrator:
         provenance = tracker.build()
         yield (
             json.dumps({
+                "type": "provenance_complete",
                 "provenance_complete": provenance.model_dump(),
             })
             + "\n"
@@ -316,6 +321,7 @@ class AgentOrchestrator:
         if tracker.explainability:
             yield (
                 json.dumps({
+                    "type": "explainability",
                     "explainability": tracker.explainability.model_dump(),
                 })
                 + "\n"
@@ -449,6 +455,16 @@ class AgentOrchestrator:
             metadata={"citations_resolved": len(citations)},
         )
 
+        # Surface citations as a discrete event so the UI can render them
+        # alongside the streamed answer (also duplicated in provenance_complete).
+        yield (
+            json.dumps({
+                "type": "citations",
+                "citations": [c.model_dump() for c in citations],
+            })
+            + "\n"
+        )
+
         # ---- Step 4: Generate answer ----
         step_id = tracker.add_step(
             "answer",
@@ -498,6 +514,7 @@ class AgentOrchestrator:
             full_answer += token
             yield (
                 json.dumps({
+                    "type": "content",
                     "content": token,
                 })
                 + "\n"
@@ -569,6 +586,7 @@ class AgentOrchestrator:
             full_answer += token
             yield (
                 json.dumps({
+                    "type": "content",
                     "content": token,
                 })
                 + "\n"
@@ -735,4 +753,4 @@ class AgentOrchestrator:
             duration_ms=duration_ms,
             metadata=metadata,
         )
-        return json.dumps({"agent_step": step.model_dump()}) + "\n"
+        return json.dumps({"type": "agent_step", "agent_step": step.model_dump()}) + "\n"
