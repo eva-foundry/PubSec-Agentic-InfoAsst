@@ -141,7 +141,5 @@ class CosmosClientManager:
         """Count items in a container."""
         # SELECT VALUE COUNT(1) returns a list with a single scalar int,
         # not the dict-shape that self.query() declares. Cast to satisfy typing.
-        result = cast(
-            list[int], await self.query(container_name, "SELECT VALUE COUNT(1) FROM c")
-        )
+        result = cast(list[int], await self.query(container_name, "SELECT VALUE COUNT(1) FROM c"))
         return result[0] if result else 0

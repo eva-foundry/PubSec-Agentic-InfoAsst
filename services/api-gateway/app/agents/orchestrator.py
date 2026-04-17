@@ -230,14 +230,12 @@ class AgentOrchestrator:
 
         # Emit initial provenance (informational header — frontend ignores)
         yield (
-            json.dumps(
-                {
-                    "provenance": {
-                        "correlation_id": correlation_id,
-                        "trace_id": self.trace_id,
-                    },
-                }
-            )
+            json.dumps({
+                "provenance": {
+                    "correlation_id": correlation_id,
+                    "trace_id": self.trace_id,
+                },
+            })
             + "\n"
         )
 
@@ -249,39 +247,33 @@ class AgentOrchestrator:
         if openai_down:
             # OpenAI breaker open — cannot generate any response
             yield (
-                json.dumps(
-                    {
-                        "content": "Service temporarily unavailable. Please try again later. / "
-                        "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
-                    }
-                )
+                json.dumps({
+                    "content": "Service temporarily unavailable. Please try again later. / "
+                    "Service temporairement indisponible. Veuillez r\u00e9essayer plus tard.",
+                })
                 + "\n"
             )
             yield (
-                json.dumps(
-                    {
-                        "degradation": {
-                            "status": "unavailable",
-                            "service": "openai",
-                        },
-                    }
-                )
+                json.dumps({
+                    "degradation": {
+                        "status": "unavailable",
+                        "service": "openai",
+                    },
+                })
                 + "\n"
             )
         elif mode == "ungrounded" or (mode == "grounded" and search_down):
             # Ungrounded mode, or grounded but search is down — fall back to ungrounded
             if search_down and mode == "grounded":
                 yield (
-                    json.dumps(
-                        {
-                            "degradation": {
-                                "status": "partial",
-                                "service": "search",
-                                "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
-                                "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
-                            },
-                        }
-                    )
+                    json.dumps({
+                        "degradation": {
+                            "status": "partial",
+                            "service": "search",
+                            "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
+                            "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
+                        },
+                    })
                     + "\n"
                 )
             async for line in self._run_ungrounded(
@@ -308,22 +300,18 @@ class AgentOrchestrator:
         # Final provenance record
         provenance = tracker.build()
         yield (
-            json.dumps(
-                {
-                    "provenance_complete": provenance.model_dump(),
-                }
-            )
+            json.dumps({
+                "provenance_complete": provenance.model_dump(),
+            })
             + "\n"
         )
 
         # Explainability record (separate event)
         if tracker.explainability:
             yield (
-                json.dumps(
-                    {
-                        "explainability": tracker.explainability.model_dump(),
-                    }
-                )
+                json.dumps({
+                    "explainability": tracker.explainability.model_dump(),
+                })
                 + "\n"
             )
 
@@ -503,11 +491,9 @@ class AgentOrchestrator:
         async for token in self.model_client.stream_completion(rag_system, messages):
             full_answer += token
             yield (
-                json.dumps(
-                    {
-                        "content": token,
-                    }
-                )
+                json.dumps({
+                    "content": token,
+                })
                 + "\n"
             )
 
@@ -576,11 +562,9 @@ class AgentOrchestrator:
         ):
             full_answer += token
             yield (
-                json.dumps(
-                    {
-                        "content": token,
-                    }
-                )
+                json.dumps({
+                    "content": token,
+                })
                 + "\n"
             )
 
@@ -629,9 +613,7 @@ class AgentOrchestrator:
         )
 
         # Freshness from source dates
-        dates: list[str] = [
-            d for r in search_results if (d := r.get("last_modified")) is not None
-        ]
+        dates: list[str] = [d for r in search_results if (d := r.get("last_modified")) is not None]
         tracker.set_freshness(
             FreshnessInfo(
                 oldest_source=min(dates) if dates else None,

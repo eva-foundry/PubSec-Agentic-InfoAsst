@@ -53,17 +53,30 @@ interface CustomizerState {
 const Ctx = createContext<CustomizerState | null>(null);
 const KEY = "aia.customizer.v1";
 
-const DEFAULTS = {
-  accent: "indigo" as AccentKey,
-  product: "violet" as ProductKey,
-  cardStyle: "glass" as CardStyle,
-  radius: "default" as Radius,
-  spacing: "default" as Spacing,
-  density: "reader" as Density,
-  portal: "workspace" as PortalMode,
-  lang: "en" as Lang,
-  theme: "dark" as ThemeMode,
-  assurance: "Advisory" as "Advisory" | "Decision-informing",
+interface CustomizerData {
+  accent: AccentKey;
+  product: ProductKey;
+  cardStyle: CardStyle;
+  radius: Radius;
+  spacing: Spacing;
+  density: Density;
+  portal: PortalMode;
+  lang: Lang;
+  theme: ThemeMode;
+  assurance: "Advisory" | "Decision-informing";
+}
+
+const DEFAULTS: CustomizerData = {
+  accent: "indigo",
+  product: "violet",
+  cardStyle: "glass",
+  radius: "default",
+  spacing: "default",
+  density: "reader",
+  portal: "workspace",
+  lang: "en",
+  theme: "dark",
+  assurance: "Advisory",
 };
 
 export function ThemeCustomizerProvider({ children }: { children: ReactNode }) {
@@ -102,16 +115,16 @@ export function ThemeCustomizerProvider({ children }: { children: ReactNode }) {
 
   const value: CustomizerState = {
     ...state,
-    setAccent: (accent) => setState((s: any) => ({ ...s, accent })),
-    setProduct: (product) => setState((s: any) => ({ ...s, product })),
-    setCardStyle: (cardStyle) => setState((s: any) => ({ ...s, cardStyle })),
-    setRadius: (radius) => setState((s: any) => ({ ...s, radius })),
-    setSpacing: (spacing) => setState((s: any) => ({ ...s, spacing })),
-    setDensity: (density) => setState((s: any) => ({ ...s, density })),
-    setPortal: (portal) => setState((s: any) => ({ ...s, portal })),
-    setLang: (lang) => setState((s: any) => ({ ...s, lang })),
-    setTheme: (theme) => setState((s: any) => ({ ...s, theme })),
-    setAssurance: (assurance) => setState((s: any) => ({ ...s, assurance })),
+    setAccent: (accent) => setState((s: CustomizerData) => ({ ...s, accent })),
+    setProduct: (product) => setState((s: CustomizerData) => ({ ...s, product })),
+    setCardStyle: (cardStyle) => setState((s: CustomizerData) => ({ ...s, cardStyle })),
+    setRadius: (radius) => setState((s: CustomizerData) => ({ ...s, radius })),
+    setSpacing: (spacing) => setState((s: CustomizerData) => ({ ...s, spacing })),
+    setDensity: (density) => setState((s: CustomizerData) => ({ ...s, density })),
+    setPortal: (portal) => setState((s: CustomizerData) => ({ ...s, portal })),
+    setLang: (lang) => setState((s: CustomizerData) => ({ ...s, lang })),
+    setTheme: (theme) => setState((s: CustomizerData) => ({ ...s, theme })),
+    setAssurance: (assurance) => setState((s: CustomizerData) => ({ ...s, assurance })),
     reset: () => setState(DEFAULTS),
   };
 

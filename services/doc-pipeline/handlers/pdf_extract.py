@@ -214,16 +214,14 @@ def _build_chunks_from_result(
             para_page = para.get("boundingRegions", [{}])[0].get("pageNumber", 1)
 
             if len(current_text) + len(para_content) > chunk_size and current_text:
-                chunks.append(
-                    {
-                        "chunk_id": f"{blob_name}__chunk_{chunk_index}",
-                        "source_file": blob_name,
-                        "workspace_id": workspace_id,
-                        "content": current_text.strip(),
-                        "pages": sorted(current_pages),
-                        "chunk_index": chunk_index,
-                    }
-                )
+                chunks.append({
+                    "chunk_id": f"{blob_name}__chunk_{chunk_index}",
+                    "source_file": blob_name,
+                    "workspace_id": workspace_id,
+                    "content": current_text.strip(),
+                    "pages": sorted(current_pages),
+                    "chunk_index": chunk_index,
+                })
                 chunk_index += 1
                 current_text = ""
                 current_pages = set()
@@ -232,16 +230,14 @@ def _build_chunks_from_result(
             current_pages.add(para_page)
 
         if current_text.strip():
-            chunks.append(
-                {
-                    "chunk_id": f"{blob_name}__chunk_{chunk_index}",
-                    "source_file": blob_name,
-                    "workspace_id": workspace_id,
-                    "content": current_text.strip(),
-                    "pages": sorted(current_pages),
-                    "chunk_index": chunk_index,
-                }
-            )
+            chunks.append({
+                "chunk_id": f"{blob_name}__chunk_{chunk_index}",
+                "source_file": blob_name,
+                "workspace_id": workspace_id,
+                "content": current_text.strip(),
+                "pages": sorted(current_pages),
+                "chunk_index": chunk_index,
+            })
     elif pages:
         # Fallback: chunk by page content
         chunk_index = 0
@@ -251,16 +247,14 @@ def _build_chunks_from_result(
             page_text = "\n".join(line.get("content", "") for line in lines)
 
             if page_text.strip():
-                chunks.append(
-                    {
-                        "chunk_id": f"{blob_name}__chunk_{chunk_index}",
-                        "source_file": blob_name,
-                        "workspace_id": workspace_id,
-                        "content": page_text.strip(),
-                        "pages": [page_number],
-                        "chunk_index": chunk_index,
-                    }
-                )
+                chunks.append({
+                    "chunk_id": f"{blob_name}__chunk_{chunk_index}",
+                    "source_file": blob_name,
+                    "workspace_id": workspace_id,
+                    "content": page_text.strip(),
+                    "pages": [page_number],
+                    "chunk_index": chunk_index,
+                })
                 chunk_index += 1
 
     return chunks

@@ -161,15 +161,13 @@ async def list_clients(
                 if last_active is None or bk.updated_at > last_active:
                     last_active = bk.updated_at
 
-        result.append(
-            {
-                **cl.model_dump(),
-                "workspaces_count": workspaces_count,
-                "query_count": query_count,
-                "document_count": document_count,
-                "last_active": last_active,
-            }
-        )
+        result.append({
+            **cl.model_dump(),
+            "workspaces_count": workspaces_count,
+            "query_count": query_count,
+            "document_count": document_count,
+            "last_active": last_active,
+        })
     return result
 
 
@@ -260,14 +258,12 @@ async def list_admin_workspaces(
                 client_name = cl.org_name
                 client_id = cl.id
                 break
-        result.append(
-            {
-                **ws.model_dump(),
-                "client_id": client_id,
-                "client_name": client_name,
-                "health": "green",
-            }
-        )
+        result.append({
+            **ws.model_dump(),
+            "client_id": client_id,
+            "client_name": client_name,
+            "health": "green",
+        })
     return result
 
 
@@ -604,15 +600,13 @@ async def update_workspace_prompt(
 
     new_version = ws.business_prompt_version + 1
     history = list(ws.business_prompt_history)
-    history.append(
-        {
-            "version": new_version,
-            "content": payload.content,
-            "author": user.user_id,
-            "rationale": payload.rationale,
-            "created_at": _now(),
-        }
-    )
+    history.append({
+        "version": new_version,
+        "content": payload.content,
+        "author": user.user_id,
+        "rationale": payload.rationale,
+        "created_at": _now(),
+    })
 
     updated = await aio(
         workspace_store.update(
@@ -654,15 +648,13 @@ async def rollback_workspace_prompt(
 
     new_version = ws.business_prompt_version + 1
     history = list(ws.business_prompt_history)
-    history.append(
-        {
-            "version": new_version,
-            "content": target_entry["content"],
-            "author": user.user_id,
-            "rationale": f"Rollback to v{payload.version}",
-            "created_at": _now(),
-        }
-    )
+    history.append({
+        "version": new_version,
+        "content": target_entry["content"],
+        "author": user.user_id,
+        "rationale": f"Rollback to v{payload.version}",
+        "created_at": _now(),
+    })
 
     updated = await aio(
         workspace_store.update(

@@ -258,18 +258,16 @@ class ModelRegistryStore:
                 continue
             old_value = data.get(field)
             if old_value != new_value:
-                history.append(
-                    {
-                        "version": version,
-                        "action": "update",
-                        "field": field,
-                        "old_value": old_value,
-                        "new_value": new_value,
-                        "author": author,
-                        "rationale": rationale,
-                        "timestamp": now,
-                    }
-                )
+                history.append({
+                    "version": version,
+                    "action": "update",
+                    "field": field,
+                    "old_value": old_value,
+                    "new_value": new_value,
+                    "author": author,
+                    "rationale": rationale,
+                    "timestamp": now,
+                })
 
         data.update(updates)
         data["change_history"] = history

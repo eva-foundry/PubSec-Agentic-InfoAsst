@@ -46,30 +46,26 @@ def _paragraph_chunk(
     for para in paragraphs:
         candidate = (current + "\n\n" + para) if current else para
         if len(candidate) > target_chars and current:
-            chunks.append(
-                {
-                    "content": current,
-                    "chunk_index": chunk_index,
-                    "title": "",
-                    "section": "",
-                    "pages": [],
-                }
-            )
+            chunks.append({
+                "content": current,
+                "chunk_index": chunk_index,
+                "title": "",
+                "section": "",
+                "pages": [],
+            })
             chunk_index += 1
             current = para
         else:
             current = candidate
 
     if current:
-        chunks.append(
-            {
-                "content": current,
-                "chunk_index": chunk_index,
-                "title": "",
-                "section": "",
-                "pages": [],
-            }
-        )
+        chunks.append({
+            "content": current,
+            "chunk_index": chunk_index,
+            "title": "",
+            "section": "",
+            "pages": [],
+        })
 
     return chunks
 

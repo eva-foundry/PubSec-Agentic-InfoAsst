@@ -101,15 +101,13 @@ def _chunk_text(
         chunk_content = text[start:end]
 
         if chunk_content.strip():
-            chunks.append(
-                {
-                    "chunk_id": f"{blob_name}__chunk_{chunk_index}",
-                    "source_file": blob_name,
-                    "workspace_id": workspace_id,
-                    "content": chunk_content.strip(),
-                    "chunk_index": chunk_index,
-                }
-            )
+            chunks.append({
+                "chunk_id": f"{blob_name}__chunk_{chunk_index}",
+                "source_file": blob_name,
+                "workspace_id": workspace_id,
+                "content": chunk_content.strip(),
+                "chunk_index": chunk_index,
+            })
             chunk_index += 1
 
         start = end - overlap if end < len(text) else end

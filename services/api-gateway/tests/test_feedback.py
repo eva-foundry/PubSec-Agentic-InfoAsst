@@ -90,15 +90,13 @@ def test_feedback_summary_calculation():
     store, capture = _make_capture()
 
     # 3 accepts (confidence 0.9, 0.8, 0.7) + 2 rejects (confidence 0.4, 0.3)
-    for i, (sig, conf, reason) in enumerate(
-        [
-            ("accept", 0.9, None),
-            ("accept", 0.8, None),
-            ("accept", 0.7, None),
-            ("reject", 0.4, "answer_incomplete"),
-            ("reject", 0.3, "citation_incorrect"),
-        ]
-    ):
+    for i, (sig, conf, reason) in enumerate([
+        ("accept", 0.9, None),
+        ("accept", 0.8, None),
+        ("accept", 0.7, None),
+        ("reject", 0.4, "answer_incomplete"),
+        ("reject", 0.3, "citation_incorrect"),
+    ]):
         capture.capture_feedback(
             conversation_id=f"conv-{i}",
             message_id=f"msg-{i}",
