@@ -9,10 +9,9 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from ..guardrails.degradation import DegradationManager, DependencyStatus
-from ..stores.compat import aio
 from ..provenance.correlation import generate_correlation_id
 from ..provenance.models import (
     AgentStep,
@@ -20,10 +19,11 @@ from ..provenance.models import (
     Citation,
     ConfidenceFactors,
     ExplainabilityRecord,
-    ModelSnapshot,
     FreshnessInfo,
+    ModelSnapshot,
 )
 from ..provenance.tracker import ProvenanceTracker
+from ..stores.compat import aio
 from ..stores.prompt_store import PromptStore
 from ..stores.workspace_store import WorkspaceStore
 from ..tools.registry import ToolRegistry

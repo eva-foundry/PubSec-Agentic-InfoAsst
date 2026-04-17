@@ -21,12 +21,11 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from api_gateway.app.guardrails.policy_engine import (
+from app.guardrails.policy_engine import (
     PolicyEngine,
     PolicyEvaluationResult,
     PolicyVerdict,
 )
-
 
 # ============================================================================
 # Fixtures
@@ -564,22 +563,21 @@ class TestOperators:
 
     def test_eq_operator(self, policy_engine):
         """Equality operator works correctly."""
-        context = {"status": "active"}
-        from api_gateway.app.guardrails.policy_engine import _OPS
+        from app.guardrails.policy_engine import _OPS
 
         assert _OPS["eq"]("active", "active") is True
         assert _OPS["eq"]("active", "inactive") is False
 
     def test_in_operator(self, policy_engine):
         """Membership operator works."""
-        from api_gateway.app.guardrails.policy_engine import _OPS
+        from app.guardrails.policy_engine import _OPS
 
         assert _OPS["in"]("canadacentral", ["canadacentral", "canadaeast"]) is True
         assert _OPS["in"]("useast", ["canadacentral", "canadaeast"]) is False
 
     def test_ge_operator(self, policy_engine):
         """Greater-than-or-equal operator works."""
-        from api_gateway.app.guardrails.policy_engine import _OPS
+        from app.guardrails.policy_engine import _OPS
 
         assert _OPS["ge"](5, 5) is True
         assert _OPS["ge"](6, 5) is True
@@ -587,7 +585,7 @@ class TestOperators:
 
     def test_is_true_operator(self, policy_engine):
         """is_true operator evaluates truthiness."""
-        from api_gateway.app.guardrails.policy_engine import _OPS
+        from app.guardrails.policy_engine import _OPS
 
         assert _OPS["is_true"](True, None) is True
         assert _OPS["is_true"](1, None) is True

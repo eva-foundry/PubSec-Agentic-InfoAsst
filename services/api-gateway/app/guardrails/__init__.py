@@ -2,7 +2,13 @@
 
 from .audit import AuditLogger
 from .confidence import ConfidenceScorer
-from .conflict import ConflictResolver, SourceAuthority, SourceClaim, ConflictDetection, ConflictReport
+from .conflict import (
+    ConflictDetection,
+    ConflictReport,
+    ConflictResolver,
+    SourceAuthority,
+    SourceClaim,
+)
 from .content_safety import ContentSafetyChecker, ContentSafetyResult
 from .degradation import CircuitBreaker, DegradationManager, DependencyStatus
 from .escalation import EscalationEngine, EscalationTier

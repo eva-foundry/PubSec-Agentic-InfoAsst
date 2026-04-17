@@ -7,7 +7,7 @@ import hashlib
 import json
 import uuid
 from collections.abc import AsyncIterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
@@ -20,7 +20,15 @@ from ..auth import UserContext, get_current_user
 from ..config import get_settings
 from ..feedback import FeedbackCapture, FeedbackStore
 from ..models.chat import ChatOverrides, ChatRequest
-from ..stores import chat_store, degradation_manager, model_registry_store, prompt_store, telemetry_store, vector_store, workspace_store
+from ..stores import (
+    chat_store,
+    degradation_manager,
+    model_registry_store,
+    prompt_store,
+    telemetry_store,
+    vector_store,
+    workspace_store,
+)
 from ..stores.chat_store import ChatHistoryRecord
 from ..stores.compat import aio
 from ..tools.cite import CitationTool
@@ -99,7 +107,7 @@ async def _orchestrator_stream(
     )
 
     overrides = req.overrides.model_dump() if req.overrides else None
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Record the user message
     user_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
@@ -170,7 +178,7 @@ async def _orchestrator_stream(
 
     # Record the assistant message
     assistant_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-    assistant_now = datetime.now(timezone.utc).isoformat()
+    assistant_now = datetime.now(UTC).isoformat()
     await aio(chat_store.add(ChatHistoryRecord(
         conversation_id=conversation_id,
         message_id=assistant_msg_id,
@@ -262,7 +270,6 @@ async def _collect_full_response(
 
     full_content = ""
     agent_steps: list[dict] = []
-    citations: list[dict] = []
     provenance: dict | None = None
     degradation: dict | None = None
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import base64
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol
 
@@ -61,7 +61,7 @@ class StatusTracker:
     ) -> None:
         """Update the processing status for a document."""
         doc_id = _encode_id(file_path)
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         status_entry = {
             "timestamp": now,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 def _now_iso() -> str:
-    return datetime.now(tz=timezone.utc).isoformat()
+    return datetime.now(tz=UTC).isoformat()
 
 
 def _weeks_between(start: str, end: str) -> int:

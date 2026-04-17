@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
-
-from chunking import Chunk, ChunkMetadata, ChunkingStrategy, get_chunking_strategy
+from chunking import get_chunking_strategy
 from chunking.base import ChunkingStrategy as BaseStrategy
 from chunking.case_law import CaseLawChunkingStrategy
 from chunking.default import DefaultChunkingStrategy
 from chunking.legislation import LegislationChunkingStrategy
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -109,7 +106,7 @@ class TestDefaultChunking:
 
     def test_oversized_paragraph_split_by_sentence(self):
         # Build a paragraph with many sentences.
-        sentences = ["This is sentence number {}.".format(i) for i in range(200)]
+        sentences = [f"This is sentence number {i}." for i in range(200)]
         big_para = " ".join(sentences)
         doc = [_make_para(big_para, section="S", title="T")]
         strategy = DefaultChunkingStrategy(target_size=100)

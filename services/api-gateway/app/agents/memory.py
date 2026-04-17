@@ -10,8 +10,8 @@ from __future__ import annotations
 import logging
 import math
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from ..config import settings
 from ..stores.compat import aio
@@ -103,7 +103,7 @@ class SemanticMemory:
         Returns the ID of the created memory.
         """
         entry_id = f"mem-{uuid.uuid4().hex[:12]}"
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         if self._use_azure:
             client = self._get_search_client()

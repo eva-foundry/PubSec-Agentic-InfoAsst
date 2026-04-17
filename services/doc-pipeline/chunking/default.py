@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from nltk.tokenize import sent_tokenize
 
-from .base import Chunk, ChunkMetadata, ChunkingStrategy
+from .base import Chunk, ChunkingStrategy, ChunkMetadata
 from .table_parser import chunk_table_with_headers
 
 

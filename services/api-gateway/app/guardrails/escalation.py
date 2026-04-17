@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class EscalationTier(str, Enum):
+class EscalationTier(StrEnum):
     AUTO_RESOLVE = "auto-resolve"
     FLAGGED_FOR_REVIEW = "flagged-for-review"
     REQUIRES_HUMAN = "requires-human-decision"

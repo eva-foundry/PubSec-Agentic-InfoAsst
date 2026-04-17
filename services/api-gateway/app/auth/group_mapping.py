@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from ..config import settings
 
-
 # Entra group object IDs (from env)
 _ADMIN_GROUP = settings.entra_group_admin
 _CONTRIBUTOR_GROUP = settings.entra_group_contributor

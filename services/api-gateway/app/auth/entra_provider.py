@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
-import httpx
 import jwt  # PyJWT
-from jwt import PyJWKClient
 from cachetools import TTLCache
+from jwt import PyJWKClient
 
-from .models import UserContext
-from .group_mapping import resolve_role, resolve_portal_access, resolve_workspace_grants
 from ..config import settings
+from .group_mapping import resolve_portal_access, resolve_role, resolve_workspace_grants
+from .models import UserContext
 
 logger = logging.getLogger("eva.auth.entra")
 

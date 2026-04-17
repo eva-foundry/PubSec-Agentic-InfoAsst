@@ -7,12 +7,10 @@ and writes them to blob storage.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from typing import Protocol
 
 from opentelemetry import trace
-
 from shared.blob_helpers import upload_chunk
 from shared.status import PipelineState, StatusTracker
 
@@ -29,7 +27,7 @@ class DocumentIntelligenceClient(Protocol):
 
     async def begin_analyze_document_from_url(
         self, model_id: str, document_url: str
-    ) -> "AnalyzePoller": ...
+    ) -> AnalyzePoller: ...
 
 
 class AnalyzePoller(Protocol):

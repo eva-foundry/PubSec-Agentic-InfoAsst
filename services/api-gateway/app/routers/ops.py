@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import UserContext, get_current_user
@@ -22,9 +24,10 @@ async def service_health(
     """Service health grid across all components, including circuit breaker status."""
     _require_ops(user)
 
-    from ..stores import degradation_manager
+    from datetime import datetime
+
     from ..guardrails.degradation import DependencyStatus
-    from datetime import datetime, timezone
+    from ..stores import degradation_manager
 
     breaker_statuses = degradation_manager.get_all_statuses()
     breaker_section = {name: {"status": status.value} for name, status in breaker_statuses.items()}
@@ -49,7 +52,7 @@ async def service_health(
         "circuit_breakers": breaker_section,
         "fallback_tier": degradation_manager.get_fallback_tier(),
         "degradation_notice": degradation_manager.get_degradation_notice(),
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(UTC).isoformat(),
     }
 
 

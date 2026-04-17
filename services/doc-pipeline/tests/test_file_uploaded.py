@@ -9,14 +9,14 @@ Covers:
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
 
 # We need to make the handlers importable from the test location.
 # Add the doc-pipeline root to sys.path.
 import sys
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 DOC_PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 if str(DOC_PIPELINE_ROOT) not in sys.path:
@@ -31,7 +31,6 @@ from handlers.file_uploaded import (
     handle_file_uploaded,
 )
 from shared.status import PipelineState
-
 
 # ---------------------------------------------------------------------------
 # detect_file_type tests

@@ -11,7 +11,7 @@ Falls back to direct Azure OpenAI endpoint when APIM URL is not configured
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import httpx
 

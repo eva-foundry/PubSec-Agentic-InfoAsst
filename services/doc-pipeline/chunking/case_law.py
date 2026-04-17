@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
-from .base import Chunk, ChunkMetadata, ChunkingStrategy
+from .base import Chunk, ChunkingStrategy, ChunkMetadata
 
 # ---------------------------------------------------------------------------
 # Case structure detection

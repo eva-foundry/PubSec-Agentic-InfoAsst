@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from ..telemetry_store import APIMTelemetryRecord, estimate_cost
+from ..telemetry_store import APIMTelemetryRecord
 from .cosmos_client import CosmosClientManager
 
 CONTAINER = "telemetry"
@@ -36,7 +36,7 @@ class CosmosTelemetryStore:
     async def list_by_workspace(
         self, ws_id: str, days: int = 30
     ) -> list[APIMTelemetryRecord]:
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
         items = await self._cosmos.query(
             CONTAINER,
             "SELECT * FROM c WHERE c.workspace_id = @ws AND c.timestamp >= @cutoff",
@@ -49,7 +49,7 @@ class CosmosTelemetryStore:
         return [_to_record(i) for i in items]
 
     async def summary(self, days: int = 30) -> dict:
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
         items = await self._cosmos.query(
             CONTAINER,
             "SELECT * FROM c WHERE c.timestamp >= @cutoff",

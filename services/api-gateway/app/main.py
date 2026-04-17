@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,9 +19,6 @@ from .routers import (
     teams,
     workspaces,
 )
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -98,8 +97,8 @@ def create_app() -> FastAPI:
             existing = await workspace_store.list(["all"])
             if not existing:
                 logger.info("Cosmos containers empty — running seed data...")
-                from .stores.azure.seed import seed_all_containers
                 from .stores import cosmos_manager
+                from .stores.azure.seed import seed_all_containers
                 await seed_all_containers(cosmos_manager)
                 logger.info("Cosmos seed data loaded.")
             else:
@@ -123,7 +122,8 @@ def create_app() -> FastAPI:
         if API_MOCK:
             from .pipeline.local_processor import LocalDocumentProcessor
             from .pipeline.preload import preload_sample_documents
-            from .stores import document_store, vector_store, workspace_store as ws_store
+            from .stores import document_store, vector_store
+            from .stores import workspace_store as ws_store
 
             processor = LocalDocumentProcessor(
                 vector_store=vector_store,

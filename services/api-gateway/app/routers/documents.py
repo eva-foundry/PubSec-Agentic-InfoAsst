@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, UploadFile
 from fastapi.responses import JSONResponse
 
 from ..auth import UserContext, get_current_user
-from ..pipeline.document_store import DocumentRecord
 from ..stores.compat import aio
 
 logger = logging.getLogger(__name__)
@@ -18,10 +17,10 @@ router = APIRouter()
 
 def _get_processor():
     """Lazy import to avoid circular dependency at module load time."""
-    from ..stores import document_store, vector_store
-    from ..agents.embedding_client import MockEmbeddingClient, AzureEmbeddingClient
+    from ..agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
     from ..config import get_settings
     from ..pipeline.local_processor import LocalDocumentProcessor
+    from ..stores import document_store, vector_store
 
     settings = get_settings()
     if settings.azure_openai_endpoint and settings.azure_openai_api_key:

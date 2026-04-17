@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .models import FeedbackRecord, QuestionAnalytics
 from .store import FeedbackStore
@@ -48,7 +48,7 @@ class FeedbackCapture:
             confidence_score=confidence_score,
             model_version=model_version,
             prompt_version=prompt_version,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
         )
         self.store.add_feedback(record)
         return record
@@ -74,7 +74,7 @@ class FeedbackCapture:
             sources_found=sources_found,
             confidence_score=confidence_score,
             escalation_triggered=escalation_triggered,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
         )
         self.store.add_question(record)
         return record

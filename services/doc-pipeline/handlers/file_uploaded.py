@@ -13,7 +13,6 @@ from enum import Enum
 from typing import Protocol
 
 from opentelemetry import trace
-
 from shared.blob_helpers import delete_blobs
 from shared.status import PipelineState, StatusTracker
 

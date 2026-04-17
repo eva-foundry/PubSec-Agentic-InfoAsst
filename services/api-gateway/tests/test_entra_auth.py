@@ -2,19 +2,16 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import jwt
 import pytest
-from jwt import PyJWKClient
 
 from app.auth.entra_provider import validate_token
 from app.auth.group_mapping import resolve_portal_access, resolve_role, resolve_workspace_grants
 from app.auth.models import UserContext
-
 
 # ============================================================================
 # Fixtures for test token generation
@@ -82,7 +79,7 @@ y7z8A9B0C1D2E3F4G5H6I7J8K9LQIDAQAB
         if exp_offset is None:
             exp_offset = timedelta(hours=1)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "oid": oid or str(uuid4()),
             "preferred_username": email or "testuser@example.com",
@@ -309,7 +306,7 @@ class TestJWTValidation:
     async def test_validate_token_missing_oid_claim(self, mock_get_jwks_client):
         """JWT without 'oid' claim should raise MissingRequiredClaimError."""
         # Create token without oid
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "preferred_username": "test@example.com",
             "name": "Test User",
@@ -438,7 +435,7 @@ class TestDemoModeIndependence:
 
     def test_demo_provider_import(self):
         """Demo provider should be importable and functional."""
-        from app.auth.demo_provider import get_demo_user, get_demo_users, demo_login
+        from app.auth.demo_provider import demo_login, get_demo_user, get_demo_users
 
         assert callable(get_demo_user)
         assert callable(get_demo_users)

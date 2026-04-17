@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 
 
-class DependencyStatus(str, Enum):
+class DependencyStatus(StrEnum):
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     DOWN = "down"
@@ -34,7 +34,7 @@ class CircuitBreaker:
     def record_failure(self) -> None:
         """Record a failed call — increment count and potentially trip breaker."""
         self._failure_count += 1
-        self._last_failure = datetime.now(timezone.utc)
+        self._last_failure = datetime.now(UTC)
 
         if self._failure_count >= self.failure_threshold:
             self._state = DependencyStatus.DOWN
@@ -46,7 +46,7 @@ class CircuitBreaker:
     def status(self) -> DependencyStatus:
         """Current status, accounting for reset timeout."""
         if self._state == DependencyStatus.DOWN and self._last_failure is not None:
-            elapsed = datetime.now(timezone.utc) - self._last_failure
+            elapsed = datetime.now(UTC) - self._last_failure
             if elapsed > timedelta(seconds=self.reset_timeout_seconds):
                 # Half-open: allow retry — move to degraded
                 self._state = DependencyStatus.DEGRADED

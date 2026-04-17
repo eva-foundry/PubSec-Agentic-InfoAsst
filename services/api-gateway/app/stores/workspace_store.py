@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ..models.workspace import Workspace
 
-
 # ---------------------------------------------------------------------------
 # Per-workspace business prompts (seed data)
 # ---------------------------------------------------------------------------

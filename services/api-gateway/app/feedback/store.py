@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from .models import FeedbackRecord, FeedbackSummary, QuestionAnalytics
 
@@ -199,7 +199,7 @@ class FeedbackStore:
         days: int = 30,
     ) -> FeedbackSummary:
         """Compute acceptance rate, avg confidence, and top correction reasons."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cutoff = now - timedelta(days=days)
 
         records = self._feedback

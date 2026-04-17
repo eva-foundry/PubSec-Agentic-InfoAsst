@@ -11,7 +11,6 @@ import logging
 from typing import Protocol
 
 from opentelemetry import trace
-
 from shared.blob_helpers import download_blob, list_blobs
 from shared.status import PipelineState, StatusTracker
 
@@ -39,8 +38,8 @@ class SearchIndexClient(Protocol):
 class BlobContainerClient(Protocol):
     """Protocol for blob container operations."""
 
-    async def download_blob(self, blob: str) -> "BlobDownloader": ...
-    def list_blobs(self, name_starts_with: str | None = None) -> "AsyncBlobIterator": ...
+    async def download_blob(self, blob: str) -> BlobDownloader: ...
+    def list_blobs(self, name_starts_with: str | None = None) -> AsyncBlobIterator: ...
 
 
 class BlobDownloader(Protocol):
@@ -48,7 +47,7 @@ class BlobDownloader(Protocol):
 
 
 class AsyncBlobIterator(Protocol):
-    def __aiter__(self) -> "AsyncBlobIterator": ...
+    def __aiter__(self) -> AsyncBlobIterator: ...
     async def __anext__(self) -> object: ...
 
 

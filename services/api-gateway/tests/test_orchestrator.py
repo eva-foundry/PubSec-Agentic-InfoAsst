@@ -9,10 +9,9 @@ import pytest
 from app.agents.orchestrator import AgentOrchestrator, MockModelClient
 from app.provenance.models import Citation
 from app.tools.cite import CitationTool
-from app.tools.registry import Tool, ToolMetadata, ToolRegistry
+from app.tools.registry import ToolRegistry
 from app.tools.search import SearchTool
 from app.tools.translate import TranslationTool
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

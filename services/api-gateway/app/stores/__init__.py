@@ -42,6 +42,7 @@ degradation_manager.register("cosmos", failure_threshold=5, reset_timeout=60)
 # attribute, which we then overwrite with the actual store instances below.
 # ---------------------------------------------------------------------------
 
+from ..pipeline.document_store import DocumentStore as DocumentStore  # noqa: E402
 from .booking_store import BookingStore as BookingStore  # noqa: E402
 from .chat_store import ChatStore as ChatStore  # noqa: E402
 from .client_store import ClientStore as ClientStore  # noqa: E402
@@ -52,8 +53,6 @@ from .team_store import TeamStore as TeamStore  # noqa: E402
 from .telemetry_store import TelemetryStore as TelemetryStore  # noqa: E402
 from .vector_store import VectorStore as VectorStore  # noqa: E402
 from .workspace_store import WorkspaceStore as WorkspaceStore  # noqa: E402
-from ..pipeline.document_store import DocumentStore as DocumentStore  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # Lazy proxy for Azure-mode stores
@@ -125,17 +124,17 @@ async def initialize_azure_stores() -> None:
 
     settings = get_settings()
 
-    from .azure.cosmos_client import CosmosClientManager
-    from .azure.workspace_store import CosmosWorkspaceStore
     from .azure.booking_store import CosmosBookingStore
-    from .azure.team_store import CosmosTeamStore
-    from .azure.survey_store import CosmosSurveyStore
+    from .azure.chat_store import CosmosChatStore
     from .azure.client_store import CosmosClientStore
+    from .azure.cosmos_client import CosmosClientManager
+    from .azure.document_store import CosmosDocumentStore
     from .azure.model_registry_store import CosmosModelRegistryStore
     from .azure.prompt_store import CosmosPromptStore
+    from .azure.survey_store import CosmosSurveyStore
+    from .azure.team_store import CosmosTeamStore
     from .azure.telemetry_store import CosmosTelemetryStore
-    from .azure.document_store import CosmosDocumentStore
-    from .azure.chat_store import CosmosChatStore
+    from .azure.workspace_store import CosmosWorkspaceStore
 
     cosmos_manager = CosmosClientManager(
         endpoint=settings.cosmos_endpoint,

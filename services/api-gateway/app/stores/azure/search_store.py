@@ -7,7 +7,6 @@ Creates per-workspace indexes with HNSW vector + BM25 keyword + semantic reranki
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
