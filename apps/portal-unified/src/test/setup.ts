@@ -22,9 +22,10 @@ class RO {
   unobserve() {}
   disconnect() {}
 }
-(globalThis as any).ResizeObserver = (globalThis as any).ResizeObserver ?? RO;
-(globalThis as any).IntersectionObserver =
-  (globalThis as any).IntersectionObserver ??
+const g = globalThis as unknown as Record<string, unknown>;
+g.ResizeObserver = g.ResizeObserver ?? RO;
+g.IntersectionObserver =
+  g.IntersectionObserver ??
   class {
     observe() {}
     unobserve() {}
@@ -38,24 +39,27 @@ class RO {
   };
 
 // Radix Select uses these — jsdom doesn't implement them
-if (!(Element.prototype as any).hasPointerCapture) {
-  (Element.prototype as any).hasPointerCapture = () => false;
+const elProto = Element.prototype as unknown as Record<string, unknown>;
+if (!elProto.hasPointerCapture) {
+  elProto.hasPointerCapture = () => false;
 }
-if (!(Element.prototype as any).setPointerCapture) {
-  (Element.prototype as any).setPointerCapture = () => {};
+if (!elProto.setPointerCapture) {
+  elProto.setPointerCapture = () => {};
 }
-if (!(Element.prototype as any).releasePointerCapture) {
-  (Element.prototype as any).releasePointerCapture = () => {};
+if (!elProto.releasePointerCapture) {
+  elProto.releasePointerCapture = () => {};
 }
-if (!(Element.prototype as any).scrollIntoView) {
-  (Element.prototype as any).scrollIntoView = () => {};
+if (!elProto.scrollIntoView) {
+  elProto.scrollIntoView = () => {};
 }
-if (!(HTMLElement.prototype as any).scrollTo) {
-  (HTMLElement.prototype as any).scrollTo = () => {};
+const htmlElProto = HTMLElement.prototype as unknown as Record<string, unknown>;
+if (!htmlElProto.scrollTo) {
+  htmlElProto.scrollTo = () => {};
 }
 
 // clipboard
-if (!(navigator as any).clipboard) {
+const nav = navigator as unknown as Record<string, unknown>;
+if (!nav.clipboard) {
   Object.defineProperty(navigator, "clipboard", {
     value: { writeText: async () => {} },
     configurable: true,

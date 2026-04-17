@@ -153,19 +153,20 @@ class CosmosChatStore:
                 or (hi == 1.0 and i.get("confidence_score", 0.0) == 1.0)
             ]
             if not in_bucket:
-                result.append(
-                    {"range": label, "count": 0, "avg_confidence": 0.0, "with_citations_pct": 0.0}
-                )
+                result.append({
+                    "range": label,
+                    "count": 0,
+                    "avg_confidence": 0.0,
+                    "with_citations_pct": 0.0,
+                })
                 continue
 
             avg_conf = sum(i.get("confidence_score", 0.0) for i in in_bucket) / len(in_bucket)
             with_citations = sum(1 for i in in_bucket if i.get("citations"))
-            result.append(
-                {
-                    "range": label,
-                    "count": len(in_bucket),
-                    "avg_confidence": round(avg_conf, 4),
-                    "with_citations_pct": round(with_citations / len(in_bucket) * 100, 1),
-                }
-            )
+            result.append({
+                "range": label,
+                "count": len(in_bucket),
+                "avg_confidence": round(avg_conf, 4),
+                "with_citations_pct": round(with_citations / len(in_bucket) * 100, 1),
+            })
         return result

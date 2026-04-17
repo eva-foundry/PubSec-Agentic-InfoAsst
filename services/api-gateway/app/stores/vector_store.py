@@ -62,18 +62,16 @@ class VectorStore:
 
         results: list[dict] = []
         for score, doc in scored[:top_k]:
-            results.append(
-                {
-                    "id": doc.id,
-                    "file": doc.file_name,
-                    "content": doc.content,
-                    "relevance_score": round(score, 4),
-                    "page": doc.pages[0] if doc.pages else 0,
-                    "section": doc.section,
-                    "title": doc.title,
-                    "chunk_index": doc.chunk_index,
-                }
-            )
+            results.append({
+                "id": doc.id,
+                "file": doc.file_name,
+                "content": doc.content,
+                "relevance_score": round(score, 4),
+                "page": doc.pages[0] if doc.pages else 0,
+                "section": doc.section,
+                "title": doc.title,
+                "chunk_index": doc.chunk_index,
+            })
         return results
 
     def delete_by_file(self, workspace_id: str, file_name: str) -> int:

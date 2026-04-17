@@ -25,17 +25,15 @@ def init_telemetry() -> None:
 
     Call once at application startup (main.py).
     """
-    resource = Resource.create(
-        {
-            "service.name": "eva-agentic-api-gateway",
-            "service.version": "0.1.0",
-            "deployment.environment": "production"
-            if settings.auth_mode == "production"
-            else "development",
-            "cloud.provider": "azure",
-            "cloud.region": "canadacentral",
-        }
-    )
+    resource = Resource.create({
+        "service.name": "eva-agentic-api-gateway",
+        "service.version": "0.1.0",
+        "deployment.environment": "production"
+        if settings.auth_mode == "production"
+        else "development",
+        "cloud.provider": "azure",
+        "cloud.region": "canadacentral",
+    })
 
     provider = TracerProvider(resource=resource)
 

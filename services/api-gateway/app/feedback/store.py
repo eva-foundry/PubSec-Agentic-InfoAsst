@@ -619,15 +619,13 @@ class FeedbackStore:
         results = []
         for source, stats in sorted(source_stats.items()):
             total = stats["accept"] + stats["reject"]
-            results.append(
-                {
-                    "source": source,
-                    "total_feedback": total,
-                    "accept_count": stats["accept"],
-                    "reject_count": stats["reject"],
-                    "acceptance_rate": round(stats["accept"] / total, 4) if total else 0.0,
-                }
-            )
+            results.append({
+                "source": source,
+                "total_feedback": total,
+                "accept_count": stats["accept"],
+                "reject_count": stats["reject"],
+                "acceptance_rate": round(stats["accept"] / total, 4) if total else 0.0,
+            })
 
         # Sort by acceptance rate ascending so worst sources surface first
         results.sort(key=lambda r: r["acceptance_rate"])

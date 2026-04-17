@@ -123,20 +123,18 @@ class AzureSearchVectorStore:
         client = self._search_client(workspace_id)
         batch = []
         for doc in docs:
-            batch.append(
-                {
-                    "id": doc.id,
-                    "content": doc.content,
-                    "title": doc.title,
-                    "workspace_id": doc.workspace_id,
-                    "file_name": doc.file_name,
-                    "chunk_index": doc.chunk_index,
-                    "section": doc.section,
-                    "pages": doc.pages,
-                    "last_verified": doc.last_verified,
-                    "content_vector": doc.embedding,
-                }
-            )
+            batch.append({
+                "id": doc.id,
+                "content": doc.content,
+                "title": doc.title,
+                "workspace_id": doc.workspace_id,
+                "file_name": doc.file_name,
+                "chunk_index": doc.chunk_index,
+                "section": doc.section,
+                "pages": doc.pages,
+                "last_verified": doc.last_verified,
+                "content_vector": doc.embedding,
+            })
 
         result = client.upload_documents(documents=batch)
         succeeded = sum(1 for r in result if r.succeeded)
@@ -173,18 +171,16 @@ class AzureSearchVectorStore:
                 top=top_k,
                 select=["id", "content", "title", "file_name", "section", "pages", "chunk_index"],
             ):
-                results.append(
-                    {
-                        "id": result["id"],
-                        "file": result.get("file_name", ""),
-                        "content": result.get("content", ""),
-                        "relevance_score": round(result["@search.score"], 4),
-                        "page": result.get("pages", [0])[0] if result.get("pages") else 0,
-                        "section": result.get("section", ""),
-                        "title": result.get("title", ""),
-                        "chunk_index": result.get("chunk_index", 0),
-                    }
-                )
+                results.append({
+                    "id": result["id"],
+                    "file": result.get("file_name", ""),
+                    "content": result.get("content", ""),
+                    "relevance_score": round(result["@search.score"], 4),
+                    "page": result.get("pages", [0])[0] if result.get("pages") else 0,
+                    "section": result.get("section", ""),
+                    "title": result.get("title", ""),
+                    "chunk_index": result.get("chunk_index", 0),
+                })
 
         return results
 

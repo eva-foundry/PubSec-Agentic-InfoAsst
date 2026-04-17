@@ -88,18 +88,16 @@ class SourceQualityTracker:
             acceptance_rate = accepted / total if total > 0 else 0.0
             correction_rate = corrected / total if total > 0 else 0.0
 
-            results.append(
-                {
-                    "file_name": file_name,
-                    "total_signals": total,
-                    "accepted_count": accepted,
-                    "rejected_count": rejected,
-                    "corrected_count": corrected,
-                    "acceptance_rate": round(acceptance_rate, 4),
-                    "correction_rate": round(correction_rate, 4),
-                    "quality_score": round(acceptance_rate, 4),
-                }
-            )
+            results.append({
+                "file_name": file_name,
+                "total_signals": total,
+                "accepted_count": accepted,
+                "rejected_count": rejected,
+                "corrected_count": corrected,
+                "acceptance_rate": round(acceptance_rate, 4),
+                "correction_rate": round(correction_rate, 4),
+                "quality_score": round(acceptance_rate, 4),
+            })
 
         # Sort worst quality first for easy identification
         results.sort(key=lambda r: r["quality_score"])
