@@ -270,8 +270,14 @@ class AgentOrchestrator:
                         "degradation": {
                             "status": "partial",
                             "service": "search",
-                            "notice_en": "Document search temporarily unavailable. Answering from general knowledge.",
-                            "notice_fr": "Recherche de documents temporairement indisponible. R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales.",
+                            "notice_en": (
+                                "Document search temporarily unavailable. "
+                                "Answering from general knowledge."
+                            ),
+                            "notice_fr": (
+                                "Recherche de documents temporairement indisponible. "
+                                "R\u00e9ponse \u00e0 partir des connaissances g\u00e9n\u00e9rales."
+                            ),
                         },
                     })
                     + "\n"

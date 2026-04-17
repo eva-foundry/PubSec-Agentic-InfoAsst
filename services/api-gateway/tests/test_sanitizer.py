@@ -178,7 +178,10 @@ class TestMultiplePIITypes:
 
     def test_all_pii_types(self) -> None:
         """Test all PII types in one string."""
-        text = "SIN 123-456-789, email jane@gov.ca, phone 416-555-0987, postal M5V 3A8, born 1985-03-22"
+        text = (
+            "SIN 123-456-789, email jane@gov.ca, phone 416-555-0987, "
+            "postal M5V 3A8, born 1985-03-22"
+        )
         result = sanitize_for_audit(text)
         assert "[SIN-REDACTED]" in result
         assert "[EMAIL-REDACTED]" in result

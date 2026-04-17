@@ -185,7 +185,10 @@ class TestNegativeEvidenceDetector:
         negatives = self.detector.detect(
             user_query="What is the policy?",
             search_results=[{"content": "Some policy text", "file": "policy.pdf"}],
-            answer_text="The employee may be eligible for benefits, but it is unclear whether this applies.",
+            answer_text=(
+                "The employee may be eligible for benefits, "
+                "but it is unclear whether this applies."
+            ),
         )
         assert any("hedging" in n.lower() for n in negatives)
 

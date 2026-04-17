@@ -23,7 +23,7 @@ DOC_PIPELINE_ROOT = Path(__file__).resolve().parent.parent
 if str(DOC_PIPELINE_ROOT) not in sys.path:
     sys.path.insert(0, str(DOC_PIPELINE_ROOT))
 
-from handlers.file_uploaded import (
+from handlers.file_uploaded import (  # noqa: E402 — imported after sys.path setup above
     EXTENSION_MAP,
     QUEUE_MAP,
     FileType,
@@ -31,7 +31,7 @@ from handlers.file_uploaded import (
     detect_file_type,
     handle_file_uploaded,
 )
-from shared.status import PipelineState
+from shared.status import PipelineState  # noqa: E402 — same reason
 
 # ---------------------------------------------------------------------------
 # detect_file_type tests

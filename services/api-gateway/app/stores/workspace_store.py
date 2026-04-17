@@ -84,8 +84,15 @@ class WorkspaceStore:
                 id="ws-oas-act",
                 name="OAS Act Legislation",
                 name_fr="Legislation sur la Loi sur la SV",
-                description="Protected B workspace for Old Age Security Act legislative analysis with hierarchical chunking and cross-references.",
-                description_fr="Espace de travail Protege B pour l'analyse legislative de la Loi sur la securite de la vieillesse avec decoupage hierarchique et references croisees.",
+                description=(
+                    "Protected B workspace for Old Age Security Act legislative analysis "
+                    "with hierarchical chunking and cross-references."
+                ),
+                description_fr=(
+                    "Espace de travail Protege B pour l'analyse legislative de la Loi "
+                    "sur la securite de la vieillesse avec decoupage hierarchique et "
+                    "references croisees."
+                ),
                 type="legislation",
                 status="active",
                 owner_id="demo-carol",
@@ -102,8 +109,15 @@ class WorkspaceStore:
                 id="ws-ei-juris",
                 name="EI Jurisprudence",
                 name_fr="Jurisprudence de l'AE",
-                description="Protected B workspace for Employment Insurance tribunal decisions with citation graphs and court hierarchy ranking.",
-                description_fr="Espace de travail Protege B pour les decisions du tribunal de l'assurance-emploi avec graphes de citations et classement hierarchique des tribunaux.",
+                description=(
+                    "Protected B workspace for Employment Insurance tribunal decisions "
+                    "with citation graphs and court hierarchy ranking."
+                ),
+                description_fr=(
+                    "Espace de travail Protege B pour les decisions du tribunal de "
+                    "l'assurance-emploi avec graphes de citations et classement "
+                    "hierarchique des tribunaux."
+                ),
                 type="case_law",
                 status="active",
                 owner_id="demo-carol",
@@ -120,8 +134,15 @@ class WorkspaceStore:
                 id="ws-bdm-km",
                 name="BDM Knowledge Management",
                 name_fr="Gestion des connaissances BPM",
-                description="Protected A workspace for Benefits Delivery Modernization document search, Q&A, and topic modelling.",
-                description_fr="Espace de travail Protege A pour la recherche de documents, questions-reponses et modelisation de sujets de la Modernisation de la prestation des prestations.",
+                description=(
+                    "Protected A workspace for Benefits Delivery Modernization document "
+                    "search, Q&A, and topic modelling."
+                ),
+                description_fr=(
+                    "Espace de travail Protege A pour la recherche de documents, "
+                    "questions-reponses et modelisation de sujets de la Modernisation "
+                    "de la prestation des prestations."
+                ),
                 type="knowledge_mgmt",
                 status="active",
                 owner_id="demo-carol",
@@ -138,8 +159,13 @@ class WorkspaceStore:
                 id="ws-faq",
                 name="General FAQ",
                 name_fr="FAQ generale",
-                description="Unclassified workspace for general Q&A, basic analytics, and export tools.",
-                description_fr="Espace de travail non classifie pour questions-reponses generales, analytique de base et outils d'exportation.",
+                description=(
+                    "Unclassified workspace for general Q&A, basic analytics, and export tools."
+                ),
+                description_fr=(
+                    "Espace de travail non classifie pour questions-reponses generales, "
+                    "analytique de base et outils d'exportation."
+                ),
                 type="faq",
                 status="active",
                 owner_id="demo-carol",
@@ -156,8 +182,14 @@ class WorkspaceStore:
                 id="ws-sandbox",
                 name="Sandbox / Training",
                 name_fr="Bac a sable / Formation",
-                description="Unclassified sandbox workspace for experimentation and training. All features enabled, no SLA.",
-                description_fr="Espace bac a sable non classifie pour l'experimentation et la formation. Toutes les fonctionnalites activees, pas d'ENS.",
+                description=(
+                    "Unclassified sandbox workspace for experimentation and training. "
+                    "All features enabled, no SLA."
+                ),
+                description_fr=(
+                    "Espace bac a sable non classifie pour l'experimentation et la formation. "
+                    "Toutes les fonctionnalites activees, pas d'ENS."
+                ),
                 type="sandbox",
                 status="active",
                 owner_id="demo-carol",

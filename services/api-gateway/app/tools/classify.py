@@ -154,7 +154,10 @@ class ClassifyTool(Tool):
 
     metadata = ToolMetadata(
         name="classify",
-        description="Classify document type, data classification, and language using keyword heuristics",
+        description=(
+            "Classify document type, data classification, and language "
+            "using keyword heuristics"
+        ),
         classification_ceiling="protected_b",
         data_residency="canada_central",
         bilingual=True,

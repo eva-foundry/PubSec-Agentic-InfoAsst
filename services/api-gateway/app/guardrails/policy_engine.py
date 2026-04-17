@@ -164,7 +164,10 @@ class PolicyEngine:
                         rule_id=rule_id,
                         rule_name=rule_name,
                         passed=False,
-                        reason=f"Condition failed: {field_path} {op_name} {expected} (actual: {actual})",
+                        reason=(
+                            f"Condition failed: {field_path} {op_name} {expected} "
+                            f"(actual: {actual})"
+                        ),
                         action=fail_action,
                         evidence=evidence,
                     )

@@ -24,7 +24,10 @@ class SurveyStore:
                 expected_users=8,
                 expected_data_volume_gb=2.5,
                 data_classification="protected_b",
-                business_justification="OAS adjudicators need AI-assisted search across the Act and regulations to resolve complex eligibility questions faster.",
+                business_justification=(
+                    "OAS adjudicators need AI-assisted search across the Act and "
+                    "regulations to resolve complex eligibility questions faster."
+                ),
                 completed_at="2026-01-25T14:30:00Z",
             ),
             EntrySurvey(
@@ -34,7 +37,10 @@ class SurveyStore:
                 expected_users=15,
                 expected_data_volume_gb=0.5,
                 data_classification="unclassified",
-                business_justification="New hires need self-service access to platform documentation and common procedures.",
+                business_justification=(
+                    "New hires need self-service access to platform documentation "
+                    "and common procedures."
+                ),
                 completed_at="2026-02-26T10:00:00Z",
             ),
             EntrySurvey(
@@ -44,7 +50,10 @@ class SurveyStore:
                 expected_users=5,
                 expected_data_volume_gb=4.0,
                 data_classification="protected_b",
-                business_justification="Appeals officers require citation-aware search across EI tribunal decisions to identify precedents and maintain consistency.",
+                business_justification=(
+                    "Appeals officers require citation-aware search across EI tribunal "
+                    "decisions to identify precedents and maintain consistency."
+                ),
                 completed_at="2026-03-12T09:15:00Z",
             ),
         ]
@@ -59,7 +68,10 @@ class SurveyStore:
                 satisfaction_rating=4,
                 objectives_met=True,
                 data_disposition="archive",
-                feedback="Good experience overall. The FAQ workspace helped new team members get up to speed quickly. Would benefit from better bilingual support.",
+                feedback=(
+                    "Good experience overall. The FAQ workspace helped new team members "
+                    "get up to speed quickly. Would benefit from better bilingual support."
+                ),
                 would_recommend=True,
                 completed_at="2026-03-31T16:00:00Z",
             ),

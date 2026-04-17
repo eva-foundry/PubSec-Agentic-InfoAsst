@@ -106,7 +106,9 @@ class FeedbackStore:
                 workspace_id="ws-oas-act",
                 user_id="demo-bob",
                 signal="reject",
-                correction_text="The answer omitted the residency requirement in subsection 3(1)(b).",
+                correction_text=(
+                    "The answer omitted the residency requirement in subsection 3(1)(b)."
+                ),
                 reason="incomplete_answer",
                 original_answer_hash="f6a1b2c3d4e5",
                 cited_sources=["oas-act-excerpt.txt"],
@@ -154,7 +156,10 @@ class FeedbackStore:
                 workspace_id="ws-oas-act",
                 user_id="demo-alice",
                 signal="reject",
-                correction_text="The referenced regulation was repealed in 2024. Current version applies different rules.",
+                correction_text=(
+                    "The referenced regulation was repealed in 2024. "
+                    "Current version applies different rules."
+                ),
                 reason="outdated_information",
                 original_answer_hash="c9d9e9f9a9b9",
                 cited_sources=["oas-regulations-excerpt.txt"],
@@ -203,7 +208,9 @@ class FeedbackStore:
                 workspace_id="ws-ei-juris",
                 user_id="demo-alice",
                 signal="reject",
-                correction_text="The decision cited was from the Federal Court, not the SST Appeal Division.",
+                correction_text=(
+                    "The decision cited was from the Federal Court, not the SST Appeal Division."
+                ),
                 reason="wrong_section_cited",
                 original_answer_hash="ec3d4e5f6a1b",
                 cited_sources=["ei-tribunal-decision-sample.txt"],
@@ -251,7 +258,10 @@ class FeedbackStore:
                 workspace_id="ws-ei-juris",
                 user_id="demo-eve",
                 signal="reject",
-                correction_text="Answer missed the claimant's hours of insurable employment context from the prior decision.",
+                correction_text=(
+                    "Answer missed the claimant's hours of insurable employment "
+                    "context from the prior decision."
+                ),
                 reason="missing_context",
                 original_answer_hash="ef6a1b2c3d4e",
                 cited_sources=["ei-tribunal-decision-sample.txt"],
