@@ -62,16 +62,18 @@ class VectorStore:
 
         results: list[dict] = []
         for score, doc in scored[:top_k]:
-            results.append({
-                "id": doc.id,
-                "file": doc.file_name,
-                "content": doc.content,
-                "relevance_score": round(score, 4),
-                "page": doc.pages[0] if doc.pages else 0,
-                "section": doc.section,
-                "title": doc.title,
-                "chunk_index": doc.chunk_index,
-            })
+            results.append(
+                {
+                    "id": doc.id,
+                    "file": doc.file_name,
+                    "content": doc.content,
+                    "relevance_score": round(score, 4),
+                    "page": doc.pages[0] if doc.pages else 0,
+                    "section": doc.section,
+                    "title": doc.title,
+                    "chunk_index": doc.chunk_index,
+                }
+            )
         return results
 
     def delete_by_file(self, workspace_id: str, file_name: str) -> int:
@@ -80,9 +82,7 @@ class VectorStore:
         if not docs:
             return 0
         before = len(docs)
-        self._documents[workspace_id] = [
-            d for d in docs if d.file_name != file_name
-        ]
+        self._documents[workspace_id] = [d for d in docs if d.file_name != file_name]
         return before - len(self._documents[workspace_id])
 
     def document_count(self, workspace_id: str) -> int:
@@ -100,7 +100,9 @@ class VectorStore:
                 result.append(d.file_name)
         return result
 
-    def get_chunks_by_file(self, file_name: str, workspace_id: str | None = None) -> list[VectorDocument]:
+    def get_chunks_by_file(
+        self, file_name: str, workspace_id: str | None = None
+    ) -> list[VectorDocument]:
         """Return all chunks for a file, optionally scoped to a workspace."""
         result: list[VectorDocument] = []
         workspaces = [workspace_id] if workspace_id else list(self._documents.keys())

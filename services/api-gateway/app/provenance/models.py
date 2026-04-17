@@ -6,17 +6,29 @@ from pydantic import BaseModel, Field
 class ConfidenceFactors(BaseModel):
     """Breakdown of how overall confidence was computed."""
 
-    retrieval_relevance: float = Field(ge=0, le=1, description="Relevance of retrieved documents to the query")
-    source_coverage: float = Field(ge=0, le=1, description="How well the sources cover the question scope")
-    grounding_quality: float = Field(ge=0, le=1, description="Degree to which the answer is grounded in sources")
+    retrieval_relevance: float = Field(
+        ge=0, le=1, description="Relevance of retrieved documents to the query"
+    )
+    source_coverage: float = Field(
+        ge=0, le=1, description="How well the sources cover the question scope"
+    )
+    grounding_quality: float = Field(
+        ge=0, le=1, description="Degree to which the answer is grounded in sources"
+    )
 
 
 class FreshnessInfo(BaseModel):
     """Temporal validity metadata for cited sources."""
 
-    oldest_source: str | None = Field(default=None, description="ISO date of the oldest source consulted")
-    newest_source: str | None = Field(default=None, description="ISO date of the newest source consulted")
-    staleness_warning: bool = Field(default=False, description="True if any cited source may be outdated")
+    oldest_source: str | None = Field(
+        default=None, description="ISO date of the oldest source consulted"
+    )
+    newest_source: str | None = Field(
+        default=None, description="ISO date of the newest source consulted"
+    )
+    staleness_warning: bool = Field(
+        default=False, description="True if any cited source may be outdated"
+    )
 
 
 class ModelSnapshot(BaseModel):
@@ -29,12 +41,19 @@ class ModelSnapshot(BaseModel):
     deployment_name: str = Field(description="Azure deployment name, e.g. 'chat-default'")
     model_name: str = Field(description="Model name, e.g. 'gpt-5-mini'")
     model_version: str = Field(default="", description="Model version, e.g. '2025-08-07'")
-    provider: str = Field(default="azure-openai", description="Provider, e.g. 'azure-openai', 'azure-foundry-serverless'")
+    provider: str = Field(
+        default="azure-openai",
+        description="Provider, e.g. 'azure-openai', 'azure-foundry-serverless'",
+    )
     endpoint: str = Field(default="", description="Azure endpoint URL")
     sku: str = Field(default="", description="SKU at query time, e.g. 'GlobalStandard'")
     cost_model: str = Field(default="pay-as-you-go", description="Pricing model at query time")
-    parameter_overrides: dict = Field(default_factory=dict, description="Active parameter overrides at query time")
-    config_version: int = Field(default=0, description="Number of changes to this model config at query time")
+    parameter_overrides: dict = Field(
+        default_factory=dict, description="Active parameter overrides at query time"
+    )
+    config_version: int = Field(
+        default=0, description="Number of changes to this model config at query time"
+    )
     last_changed_by: str = Field(default="", description="Who last modified this model config")
     last_changed_at: str = Field(default="", description="When the model config was last modified")
 
@@ -47,8 +66,12 @@ class BehavioralFingerprint(BaseModel):
     """
 
     model: str = Field(description="Model identifier, e.g. 'gpt-5-mini'")
-    model_snapshot: ModelSnapshot | None = Field(default=None, description="Full model config snapshot at query time")
-    prompt_version: str = Field(description="Prompt template version, e.g. 'rag-system:v1 + ws-oas-act:v1'")
+    model_snapshot: ModelSnapshot | None = Field(
+        default=None, description="Full model config snapshot at query time"
+    )
+    prompt_version: str = Field(
+        description="Prompt template version, e.g. 'rag-system:v1 + ws-oas-act:v1'"
+    )
     corpus_snapshot: str = Field(description="ISO date of the corpus snapshot used for retrieval")
     policy_rules_version: str = Field(description="Guardrail / policy rules version, e.g. 'v1.4'")
 
@@ -60,8 +83,12 @@ class Citation(BaseModel):
     page: int | None = Field(default=None, description="Page number within the document")
     section: str | None = Field(default=None, description="Section heading or identifier")
     sas_url: str = Field(description="SAS-signed URL for source retrieval")
-    last_verified: str | None = Field(default=None, description="ISO date when the source was last verified current")
-    source_quality_score: float | None = Field(default=None, ge=0, le=1, description="Quality score of the source")
+    last_verified: str | None = Field(
+        default=None, description="ISO date when the source was last verified current"
+    )
+    source_quality_score: float | None = Field(
+        default=None, ge=0, le=1, description="Quality score of the source"
+    )
 
 
 class ProvenanceRecord(BaseModel):
@@ -77,10 +104,14 @@ class ProvenanceRecord(BaseModel):
         default_factory=list,
         description="Ordered list of agents/tools invoked, e.g. ['user-request', 'orchestrator', 'search-tool']",
     )
-    sources_consulted: int = Field(default=0, ge=0, description="Total sources retrieved before filtering")
+    sources_consulted: int = Field(
+        default=0, ge=0, description="Total sources retrieved before filtering"
+    )
     sources_cited: int = Field(default=0, ge=0, description="Sources actually cited in the answer")
     sources_excluded: int = Field(default=0, ge=0, description="Sources retrieved but excluded")
-    exclusion_reasons: list[str] = Field(default_factory=list, description="Why each excluded source was dropped")
+    exclusion_reasons: list[str] = Field(
+        default_factory=list, description="Why each excluded source was dropped"
+    )
     policies_applied: list[str] = Field(
         default_factory=list,
         description="Guardrail policies enforced, e.g. ['grounding-required', 'protected-b-boundary']",
@@ -126,4 +157,6 @@ class AgentStep(BaseModel):
     label_en: str = Field(description="Human-readable step label in English")
     label_fr: str = Field(description="Human-readable step label in French")
     duration_ms: int | None = Field(default=None, description="Execution time in milliseconds")
-    metadata: dict | None = Field(default=None, description="Tool-specific data, e.g. {'sources_found': 5}")
+    metadata: dict | None = Field(
+        default=None, description="Tool-specific data, e.g. {'sources_found': 5}"
+    )

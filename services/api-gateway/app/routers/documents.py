@@ -59,7 +59,11 @@ async def upload_document(
 
     logger.info(
         "Uploaded %s to %s by %s — status=%s chunks=%d",
-        file_name, workspace_id, user.user_id, record.status, record.chunk_count,
+        file_name,
+        workspace_id,
+        user.user_id,
+        record.status,
+        record.chunk_count,
     )
 
     return record.model_dump()

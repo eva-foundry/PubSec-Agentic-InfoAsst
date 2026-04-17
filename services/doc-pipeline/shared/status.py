@@ -3,6 +3,7 @@
 Tracks each document through the ingestion pipeline states,
 providing audit trail and observability for the doc-pipeline.
 """
+
 from __future__ import annotations
 
 import base64
@@ -36,7 +37,10 @@ class CosmosContainerClient(Protocol):
     async def upsert_item(self, body: dict) -> dict: ...
     async def read_item(self, item: str, partition_key: str) -> dict: ...
     async def query_items(
-        self, query: str, parameters: list[dict] | None = None, partition_key: str | None = None
+        self,
+        query: str,
+        parameters: list[dict] | None = None,
+        partition_key: str | None = None,
     ) -> list[dict]: ...
 
 
@@ -115,9 +119,7 @@ class StatusTracker:
     ) -> list[dict]:
         """Get all document statuses for a workspace, optionally filtered by state."""
         if state:
-            query = (
-                "SELECT * FROM c WHERE STARTSWITH(c.file_path, @prefix) AND c.state = @state"
-            )
+            query = "SELECT * FROM c WHERE STARTSWITH(c.file_path, @prefix) AND c.state = @state"
             params = [
                 {"name": "@prefix", "value": workspace_id},
                 {"name": "@state", "value": state.value},

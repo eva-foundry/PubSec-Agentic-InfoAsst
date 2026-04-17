@@ -13,6 +13,7 @@ from app.explainability.retrieval_path import RetrievalPathTracker
 # Reasoning summarizer
 # ---------------------------------------------------------------------------
 
+
 class TestReasoningSummarizer:
     def setup_method(self):
         self.summarizer = ReasoningSummarizer()
@@ -84,6 +85,7 @@ class TestReasoningSummarizer:
 # Retrieval path tracker
 # ---------------------------------------------------------------------------
 
+
 class TestRetrievalPathTracker:
     def setup_method(self):
         self.tracker = RetrievalPathTracker()
@@ -153,6 +155,7 @@ class TestRetrievalPathTracker:
 # ---------------------------------------------------------------------------
 # Negative evidence detection
 # ---------------------------------------------------------------------------
+
 
 class TestNegativeEvidenceDetector:
     def setup_method(self):
@@ -249,6 +252,7 @@ class TestNegativeEvidenceDetector:
 # ---------------------------------------------------------------------------
 # Explainability builder
 # ---------------------------------------------------------------------------
+
 
 class TestExplainabilityBuilder:
     def test_builds_complete_record(self):

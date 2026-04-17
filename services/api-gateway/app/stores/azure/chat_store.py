@@ -64,19 +64,22 @@ class CosmosChatStore:
             assistant_msgs = [m for m in msgs_sorted if m.role == "assistant"]
             avg_conf = (
                 sum(m.confidence_score for m in assistant_msgs) / len(assistant_msgs)
-                if assistant_msgs else 0.0
+                if assistant_msgs
+                else 0.0
             )
 
-            summaries.append(ConversationSummary(
-                conversation_id=cid,
-                workspace_id=msgs_sorted[0].workspace_id,
-                user_id=msgs_sorted[0].user_id,
-                title=title,
-                message_count=len(msgs_sorted),
-                last_message_at=msgs_sorted[-1].created_at,
-                avg_confidence=round(avg_conf, 4),
-                mode=msgs_sorted[0].mode,
-            ))
+            summaries.append(
+                ConversationSummary(
+                    conversation_id=cid,
+                    workspace_id=msgs_sorted[0].workspace_id,
+                    user_id=msgs_sorted[0].user_id,
+                    title=title,
+                    message_count=len(msgs_sorted),
+                    last_message_at=msgs_sorted[-1].created_at,
+                    avg_confidence=round(avg_conf, 4),
+                    mode=msgs_sorted[0].mode,
+                )
+            )
 
         summaries.sort(key=lambda s: s.last_message_at, reverse=True)
         return summaries
@@ -93,9 +96,7 @@ class CosmosChatStore:
 
     async def get_all_assistant_messages(self) -> list[ChatHistoryRecord]:
         """Return all assistant messages (for ops metrics computation)."""
-        items = await self._cosmos.query(
-            CONTAINER, "SELECT * FROM c WHERE c.role = 'assistant'"
-        )
+        items = await self._cosmos.query(CONTAINER, "SELECT * FROM c WHERE c.role = 'assistant'")
         return [ChatHistoryRecord(**_strip(i)) for i in items]
 
     async def get_traces(
@@ -146,20 +147,25 @@ class CosmosChatStore:
         result: list[dict] = []
         for label, lo, hi in buckets:
             in_bucket = [
-                i for i in items
+                i
+                for i in items
                 if lo <= i.get("confidence_score", 0.0) < hi
                 or (hi == 1.0 and i.get("confidence_score", 0.0) == 1.0)
             ]
             if not in_bucket:
-                result.append({"range": label, "count": 0, "avg_confidence": 0.0, "with_citations_pct": 0.0})
+                result.append(
+                    {"range": label, "count": 0, "avg_confidence": 0.0, "with_citations_pct": 0.0}
+                )
                 continue
 
             avg_conf = sum(i.get("confidence_score", 0.0) for i in in_bucket) / len(in_bucket)
             with_citations = sum(1 for i in in_bucket if i.get("citations"))
-            result.append({
-                "range": label,
-                "count": len(in_bucket),
-                "avg_confidence": round(avg_conf, 4),
-                "with_citations_pct": round(with_citations / len(in_bucket) * 100, 1),
-            })
+            result.append(
+                {
+                    "range": label,
+                    "count": len(in_bucket),
+                    "avg_confidence": round(avg_conf, 4),
+                    "with_citations_pct": round(with_citations / len(in_bucket) * 100, 1),
+                }
+            )
         return result

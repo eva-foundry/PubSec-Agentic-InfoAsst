@@ -398,7 +398,10 @@ class TestConflictExplanation:
         )
         report = self.resolver.detect_conflicts([claim_act, claim_policy])
         detection = report.detections[0]
-        assert "authority_hierarchy" in detection.explanation.lower() or "authority hierarchy" in detection.explanation.lower()
+        assert (
+            "authority_hierarchy" in detection.explanation.lower()
+            or "authority hierarchy" in detection.explanation.lower()
+        )
         assert "precedence" in detection.explanation.lower()
 
     def test_recency_explanation(self):

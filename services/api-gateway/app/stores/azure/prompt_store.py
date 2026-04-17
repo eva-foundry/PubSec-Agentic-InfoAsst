@@ -33,12 +33,14 @@ class CosmosPromptStore:
         for name, versions in grouped.items():
             active = next((v for v in versions if v.is_active), None)
             latest = max(versions, key=lambda v: v.version)
-            result.append({
-                "prompt_name": name,
-                "latest_version": latest.version,
-                "active_version": active.version if active else None,
-                "total_versions": len(versions),
-            })
+            result.append(
+                {
+                    "prompt_name": name,
+                    "latest_version": latest.version,
+                    "active_version": active.version if active else None,
+                    "total_versions": len(versions),
+                }
+            )
         return result
 
     async def get_versions(self, prompt_name: str) -> list[PromptVersion]:

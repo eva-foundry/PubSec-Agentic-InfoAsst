@@ -123,24 +123,28 @@ class AzureSearchVectorStore:
         client = self._search_client(workspace_id)
         batch = []
         for doc in docs:
-            batch.append({
-                "id": doc.id,
-                "content": doc.content,
-                "title": doc.title,
-                "workspace_id": doc.workspace_id,
-                "file_name": doc.file_name,
-                "chunk_index": doc.chunk_index,
-                "section": doc.section,
-                "pages": doc.pages,
-                "last_verified": doc.last_verified,
-                "content_vector": doc.embedding,
-            })
+            batch.append(
+                {
+                    "id": doc.id,
+                    "content": doc.content,
+                    "title": doc.title,
+                    "workspace_id": doc.workspace_id,
+                    "file_name": doc.file_name,
+                    "chunk_index": doc.chunk_index,
+                    "section": doc.section,
+                    "pages": doc.pages,
+                    "last_verified": doc.last_verified,
+                    "content_vector": doc.embedding,
+                }
+            )
 
         result = client.upload_documents(documents=batch)
         succeeded = sum(1 for r in result if r.succeeded)
         logger.info(
             "Indexed %d/%d documents to %s",
-            succeeded, len(batch), _index_name(self._index_prefix, workspace_id),
+            succeeded,
+            len(batch),
+            _index_name(self._index_prefix, workspace_id),
         )
         return succeeded
 
@@ -169,16 +173,18 @@ class AzureSearchVectorStore:
                 top=top_k,
                 select=["id", "content", "title", "file_name", "section", "pages", "chunk_index"],
             ):
-                results.append({
-                    "id": result["id"],
-                    "file": result.get("file_name", ""),
-                    "content": result.get("content", ""),
-                    "relevance_score": round(result["@search.score"], 4),
-                    "page": result.get("pages", [0])[0] if result.get("pages") else 0,
-                    "section": result.get("section", ""),
-                    "title": result.get("title", ""),
-                    "chunk_index": result.get("chunk_index", 0),
-                })
+                results.append(
+                    {
+                        "id": result["id"],
+                        "file": result.get("file_name", ""),
+                        "content": result.get("content", ""),
+                        "relevance_score": round(result["@search.score"], 4),
+                        "page": result.get("pages", [0])[0] if result.get("pages") else 0,
+                        "section": result.get("section", ""),
+                        "title": result.get("title", ""),
+                        "chunk_index": result.get("chunk_index", 0),
+                    }
+                )
 
         return results
 
@@ -205,28 +211,51 @@ class AzureSearchVectorStore:
         except Exception:
             return 0
 
-    def get_chunks_by_file(self, file_name: str, workspace_id: str | None = None) -> list[VectorDocument]:
+    def get_chunks_by_file(
+        self, file_name: str, workspace_id: str | None = None
+    ) -> list[VectorDocument]:
         """Return all chunks for a file from the workspace index."""
         ws_ids = [workspace_id] if workspace_id else list(self._known_indexes)
         result: list[VectorDocument] = []
         for ws_id in ws_ids:
             # Extract workspace_id from index name if needed
-            actual_ws = ws_id.replace(f"{self._index_prefix}-", "") if ws_id.startswith(self._index_prefix) else ws_id
+            actual_ws = (
+                ws_id.replace(f"{self._index_prefix}-", "")
+                if ws_id.startswith(self._index_prefix)
+                else ws_id
+            )
             try:
                 client = self._search_client(actual_ws)
                 results = client.search(
                     search_text="*",
                     filter=f"file_name eq '{file_name}'",
-                    select=["id", "content", "title", "file_name", "section", "pages", "chunk_index", "last_verified", "workspace_id"],
+                    select=[
+                        "id",
+                        "content",
+                        "title",
+                        "file_name",
+                        "section",
+                        "pages",
+                        "chunk_index",
+                        "last_verified",
+                        "workspace_id",
+                    ],
                 )
                 for r in results:
-                    result.append(VectorDocument(
-                        id=r["id"], workspace_id=r.get("workspace_id", actual_ws),
-                        file_name=r.get("file_name", ""), chunk_index=r.get("chunk_index", 0),
-                        content=r.get("content", ""), embedding=[],
-                        title=r.get("title", ""), section=r.get("section", ""),
-                        pages=r.get("pages", []), last_verified=r.get("last_verified", ""),
-                    ))
+                    result.append(
+                        VectorDocument(
+                            id=r["id"],
+                            workspace_id=r.get("workspace_id", actual_ws),
+                            file_name=r.get("file_name", ""),
+                            chunk_index=r.get("chunk_index", 0),
+                            content=r.get("content", ""),
+                            embedding=[],
+                            title=r.get("title", ""),
+                            section=r.get("section", ""),
+                            pages=r.get("pages", []),
+                            last_verified=r.get("last_verified", ""),
+                        )
+                    )
             except Exception:
                 continue
         return sorted(result, key=lambda d: d.chunk_index)

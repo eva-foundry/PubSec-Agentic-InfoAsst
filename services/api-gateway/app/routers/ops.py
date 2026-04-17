@@ -37,18 +37,59 @@ async def service_health(
     overall = "degraded" if any_down else ("partial" if any_degraded else "healthy")
 
     services = [
-        {"name": "msub-eva-dev-openai", "type": "Azure OpenAI", "location": "canadaeast", "status": "healthy"},
-        {"name": "msub-eva-dev-search", "type": "AI Search", "location": "canadacentral", "status": "healthy"},
-        {"name": "msub-eva-dev-docint", "type": "Document Intelligence", "location": "canadacentral", "status": "healthy"},
-        {"name": "msub-sandbox-cosmos-free", "type": "Cosmos DB", "location": "canadacentral", "status": "healthy"},
-        {"name": "msub-sandbox-env", "type": "Container Apps", "location": "canadacentral", "status": "healthy"},
-        {"name": "msub-eva-vnext-bus-75", "type": "Service Bus", "location": "canadacentral", "status": "healthy"},
-        {"name": "msubsandkv202603031449", "type": "Key Vault", "location": "canadacentral", "status": "healthy"},
-        {"name": "msubsandacr202603031449", "type": "Container Registry", "location": "canadacentral", "status": "healthy"},
+        {
+            "name": "msub-eva-dev-openai",
+            "type": "Azure OpenAI",
+            "location": "canadaeast",
+            "status": "healthy",
+        },
+        {
+            "name": "msub-eva-dev-search",
+            "type": "AI Search",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msub-eva-dev-docint",
+            "type": "Document Intelligence",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msub-sandbox-cosmos-free",
+            "type": "Cosmos DB",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msub-sandbox-env",
+            "type": "Container Apps",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msub-eva-vnext-bus-75",
+            "type": "Service Bus",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msubsandkv202603031449",
+            "type": "Key Vault",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
+        {
+            "name": "msubsandacr202603031449",
+            "type": "Container Registry",
+            "location": "canadacentral",
+            "status": "healthy",
+        },
     ]
 
     return {
-        "overall": overall, "services": services,
+        "overall": overall,
+        "services": services,
         "circuit_breakers": breaker_section,
         "fallback_tier": degradation_manager.get_fallback_tier(),
         "degradation_notice": degradation_manager.get_degradation_notice(),
@@ -96,15 +137,18 @@ async def aiops_metrics(
     conversation_count = len(conversations)
     avg_confidence = (
         sum(m.confidence_score for m in assistant_msgs) / len(assistant_msgs)
-        if assistant_msgs else 0.0
+        if assistant_msgs
+        else 0.0
     )
 
     with_citations = sum(1 for m in assistant_msgs if m.citations)
     groundedness = with_citations / len(assistant_msgs) if assistant_msgs else 0.0
 
     escalated = sum(
-        1 for m in assistant_msgs
-        if m.provenance and isinstance(m.provenance, dict)
+        1
+        for m in assistant_msgs
+        if m.provenance
+        and isinstance(m.provenance, dict)
         and m.provenance.get("escalation_triggered")
     )
     escalation_rate = escalated / len(assistant_msgs) * 100 if assistant_msgs else 0.0
@@ -151,13 +195,23 @@ async def liveops_metrics(
 
     return {
         "queues": {
-            "document_ingestion": {"depth": ingestion_queue_depth, "max_depth": 1000, "avg_processing_ms": 45_000},
-            "embedding_generation": {"depth": embedding_queue_depth, "max_depth": 500, "avg_processing_ms": 8_000},
+            "document_ingestion": {
+                "depth": ingestion_queue_depth,
+                "max_depth": 1000,
+                "avg_processing_ms": 45_000,
+            },
+            "embedding_generation": {
+                "depth": embedding_queue_depth,
+                "max_depth": 500,
+                "avg_processing_ms": 8_000,
+            },
             "chat_requests": {"depth": 0, "max_depth": 100, "avg_processing_ms": 2_500},
         },
         "capacity": {
-            "active_workspaces": active_workspaces, "max_workspaces": 50,
-            "total_documents": total_documents, "total_chunks": total_chunks,
+            "active_workspaces": active_workspaces,
+            "max_workspaces": 50,
+            "total_documents": total_documents,
+            "total_chunks": total_chunks,
         },
         "sla": {"uptime_pct": 99.95, "target_pct": 99.9, "incidents_mtd": 0},
     }
@@ -197,8 +251,14 @@ async def get_agent_trace(
         "model_used": model_used,
         "provenance": provenance_records,
         "messages": [
-            {"message_id": m.message_id, "role": m.role, "content_preview": m.content_preview,
-             "confidence_score": m.confidence_score, "citations_count": len(m.citations), "created_at": m.created_at}
+            {
+                "message_id": m.message_id,
+                "role": m.role,
+                "content_preview": m.content_preview,
+                "confidence_score": m.confidence_score,
+                "citations_count": len(m.citations),
+                "created_at": m.created_at,
+            }
             for m in messages
         ],
     }
@@ -246,20 +306,38 @@ async def feedback_analytics(
 ) -> dict:
     _require_ops(user)
     from .chat import feedback_store
+
     summary = feedback_store.get_feedback_summary(workspace_id=workspace_id, days=days)
     content_gaps = feedback_store.get_content_gaps(workspace_id=workspace_id)
     source_quality = feedback_store.get_source_quality(workspace_id=workspace_id)
-    return {"summary": summary.model_dump(), "content_gaps": content_gaps, "source_quality": source_quality}
+    return {
+        "summary": summary.model_dump(),
+        "content_gaps": content_gaps,
+        "source_quality": source_quality,
+    }
 
 
 @router.get("/ops/evaluation-arena")
 async def evaluation_arena(user: UserContext = Depends(get_current_user)) -> dict:
     _require_ops(user)
     return {
-        "last_evaluation": "2026-04-12T00:00:00Z", "total_comparisons": 520,
+        "last_evaluation": "2026-04-12T00:00:00Z",
+        "total_comparisons": 520,
         "rankings": [
-            {"deployment": "reasoning-premium", "model": "gpt-5.1", "elo": 1285, "win_rate_pct": 72.3, "avg_groundedness": 0.93},
-            {"deployment": "chat-default", "model": "gpt-5-mini", "elo": 1180, "win_rate_pct": 58.1, "avg_groundedness": 0.89},
+            {
+                "deployment": "reasoning-premium",
+                "model": "gpt-5.1",
+                "elo": 1285,
+                "win_rate_pct": 72.3,
+                "avg_groundedness": 0.93,
+            },
+            {
+                "deployment": "chat-default",
+                "model": "gpt-5-mini",
+                "elo": 1180,
+                "win_rate_pct": 58.1,
+                "avg_groundedness": 0.89,
+            },
         ],
     }
 
@@ -268,9 +346,27 @@ async def evaluation_arena(user: UserContext = Depends(get_current_user)) -> dic
 async def deployment_history(user: UserContext = Depends(get_current_user)) -> dict:
     _require_ops(user)
     return {
-        "current": {"api_gateway": "0.1.0", "agent_orchestrator": "0.1.0", "ingestion_pipeline": "0.1.0", "prompt_version": "v3.2", "guardrail_rules": "v1.4"},
+        "current": {
+            "api_gateway": "0.1.0",
+            "agent_orchestrator": "0.1.0",
+            "ingestion_pipeline": "0.1.0",
+            "prompt_version": "v3.2",
+            "guardrail_rules": "v1.4",
+        },
         "recent_deployments": [
-            {"component": "api_gateway", "version": "0.1.0", "deployed_at": "2026-04-14T08:00:00Z", "deployed_by": "ci-pipeline", "status": "success"},
-            {"component": "prompt_version", "version": "v3.2", "deployed_at": "2026-04-01T10:00:00Z", "deployed_by": "demo-dave", "status": "success"},
+            {
+                "component": "api_gateway",
+                "version": "0.1.0",
+                "deployed_at": "2026-04-14T08:00:00Z",
+                "deployed_by": "ci-pipeline",
+                "status": "success",
+            },
+            {
+                "component": "prompt_version",
+                "version": "v3.2",
+                "deployed_at": "2026-04-01T10:00:00Z",
+                "deployed_by": "demo-dave",
+                "status": "success",
+            },
         ],
     }

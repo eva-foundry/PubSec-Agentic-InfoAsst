@@ -65,12 +65,12 @@ y7z8A9B0C1D2E3F4G5H6I7J8K9LQIDAQAB
 
     @staticmethod
     def create_token(
-        oid: str = None,
-        email: str = None,
-        name: str = None,
-        groups: list[str] = None,
+        oid: str | None = None,
+        email: str | None = None,
+        name: str | None = None,
+        groups: list[str] | None = None,
         locale: str = "en-US",
-        exp_offset: timedelta = None,
+        exp_offset: timedelta | None = None,
         audience: str = "test-client-id",
         issuer: str = "https://login.microsoftonline.com/test-tenant/v2.0",
         **extra_claims,
@@ -199,9 +199,12 @@ class TestJWTValidation:
         mock_get_jwks_client.return_value = mock_jwks
 
         # Mock the settings
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             result = await validate_token(test_token)
 
@@ -229,9 +232,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             with pytest.raises(jwt.ExpiredSignatureError):
                 await validate_token(test_token)
@@ -251,9 +257,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             with pytest.raises(jwt.InvalidAudienceError):
                 await validate_token(test_token)
@@ -273,9 +282,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             with pytest.raises(jwt.InvalidIssuerError):
                 await validate_token(test_token)
@@ -295,9 +307,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             with pytest.raises(jwt.PyJWTError):
                 await validate_token(tampered_token)
@@ -316,9 +331,7 @@ class TestJWTValidation:
             "aud": "test-client-id",
             "iss": "https://login.microsoftonline.com/test-tenant/v2.0",
         }
-        test_token = jwt.encode(
-            payload, TestTokenFactory.PRIVATE_KEY, algorithm="RS256"
-        )
+        test_token = jwt.encode(payload, TestTokenFactory.PRIVATE_KEY, algorithm="RS256")
 
         # Mock the JWKS client
         mock_jwks = MagicMock()
@@ -327,9 +340,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             with pytest.raises(jwt.MissingRequiredClaimError):
                 await validate_token(test_token)
@@ -351,9 +367,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             # First call
             result1 = await validate_token(test_token)
@@ -389,9 +408,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             result = await validate_token(test_token)
 
@@ -416,9 +438,12 @@ class TestJWTValidation:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             result = await validate_token(test_token)
 
@@ -497,9 +522,12 @@ class TestEntraAuthFlow:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             result = await validate_token(test_token)
 
@@ -529,9 +557,12 @@ class TestEntraAuthFlow:
         mock_jwks.get_signing_key_from_jwt.return_value = mock_signing_key
         mock_get_jwks_client.return_value = mock_jwks
 
-        with patch("app.auth.entra_provider._AUDIENCE", "test-client-id"), patch(
-            "app.auth.entra_provider._ISSUER",
-            "https://login.microsoftonline.com/test-tenant/v2.0",
+        with (
+            patch("app.auth.entra_provider._AUDIENCE", "test-client-id"),
+            patch(
+                "app.auth.entra_provider._ISSUER",
+                "https://login.microsoftonline.com/test-tenant/v2.0",
+            ),
         ):
             result = await validate_token(test_token)
 

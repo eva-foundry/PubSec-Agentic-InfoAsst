@@ -110,10 +110,20 @@ class TestCitationTool:
     async def test_resolves_citations(self) -> None:
         tool = CitationTool()
         search_results = [
-            {"file": "doc.pdf", "page": 1, "section": "S1",
-             "relevance_score": 0.9, "last_modified": "2026-04-10T00:00:00Z"},
-            {"file": "doc2.pdf", "page": 5, "section": "S2",
-             "relevance_score": 0.8, "last_modified": "2026-04-09T00:00:00Z"},
+            {
+                "file": "doc.pdf",
+                "page": 1,
+                "section": "S1",
+                "relevance_score": 0.9,
+                "last_modified": "2026-04-10T00:00:00Z",
+            },
+            {
+                "file": "doc2.pdf",
+                "page": 5,
+                "section": "S2",
+                "relevance_score": 0.8,
+                "last_modified": "2026-04-09T00:00:00Z",
+            },
         ]
         result = await tool.execute(search_results=search_results)
         citations = result["citations"]
@@ -163,9 +173,7 @@ class TestOrchestratorGrounded:
         # Every event must be valid JSON (already parsed, so this passed)
 
     @pytest.mark.asyncio
-    async def test_grounded_produces_expected_steps(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_grounded_produces_expected_steps(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="What are OAS benefits?",
@@ -183,9 +191,7 @@ class TestOrchestratorGrounded:
         assert "answer" in tools_used
 
     @pytest.mark.asyncio
-    async def test_grounded_streams_content(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_grounded_streams_content(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="What are OAS benefits?",
@@ -203,9 +209,7 @@ class TestOrchestratorGrounded:
             assert "message_id" in ce
 
     @pytest.mark.asyncio
-    async def test_grounded_emits_citations(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_grounded_emits_citations(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="What are OAS benefits?",
@@ -219,9 +223,7 @@ class TestOrchestratorGrounded:
         assert len(citation_events[0]["citations"]) > 0
 
     @pytest.mark.asyncio
-    async def test_provenance_complete_is_last(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_provenance_complete_is_last(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="What are OAS benefits?",
@@ -240,9 +242,7 @@ class TestOrchestratorGrounded:
         assert prov["sources_cited"] > 0
 
     @pytest.mark.asyncio
-    async def test_provenance_has_fingerprint(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_provenance_has_fingerprint(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="test",
@@ -256,9 +256,7 @@ class TestOrchestratorGrounded:
         assert fp["prompt_version"] == "v3.2"
 
     @pytest.mark.asyncio
-    async def test_provenance_has_explainability(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_provenance_has_explainability(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="test",
@@ -278,9 +276,7 @@ class TestOrchestratorGrounded:
 
 class TestOrchestratorUngrounded:
     @pytest.mark.asyncio
-    async def test_ungrounded_no_search_step(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_ungrounded_no_search_step(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="What is the capital of Canada?",
@@ -295,9 +291,7 @@ class TestOrchestratorUngrounded:
         assert "answer" in tools_used
 
     @pytest.mark.asyncio
-    async def test_ungrounded_streams_content(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_ungrounded_streams_content(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="Hello",
@@ -308,9 +302,7 @@ class TestOrchestratorUngrounded:
         assert len(content_events) > 0
 
     @pytest.mark.asyncio
-    async def test_ungrounded_low_confidence(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_ungrounded_low_confidence(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="Hello",
@@ -336,9 +328,7 @@ class TestOrchestratorUngrounded:
         assert events[-1].get("type") == "provenance_complete"
 
     @pytest.mark.asyncio
-    async def test_ungrounded_policies(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_ungrounded_policies(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="Hello",
@@ -356,9 +346,7 @@ class TestOrchestratorUngrounded:
 
 class TestOrchestratorProvenance:
     @pytest.mark.asyncio
-    async def test_first_event_is_provenance(
-        self, orchestrator: AgentOrchestrator
-    ) -> None:
+    async def test_first_event_is_provenance(self, orchestrator: AgentOrchestrator) -> None:
         events = await _collect_events(
             orchestrator,
             user_message="test",

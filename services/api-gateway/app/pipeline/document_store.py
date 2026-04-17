@@ -39,10 +39,7 @@ class DocumentStore:
 
     def list_by_workspace(self, workspace_id: str) -> list[DocumentRecord]:
         """List all document records for a workspace."""
-        return [
-            d for d in self._documents.values()
-            if d.workspace_id == workspace_id
-        ]
+        return [d for d in self._documents.values() if d.workspace_id == workspace_id]
 
     def update_status(self, doc_id: str, status: str, **kwargs) -> None:
         """Update the status of a document record plus any extra fields."""

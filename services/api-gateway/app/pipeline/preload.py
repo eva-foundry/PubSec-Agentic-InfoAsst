@@ -54,7 +54,10 @@ async def preload_sample_documents(
             )
             logger.info(
                 "Pre-loaded %s -> %s (status=%s, chunks=%d)",
-                filename, workspace_id, record.status, record.chunk_count,
+                filename,
+                workspace_id,
+                record.status,
+                record.chunk_count,
             )
             total += 1
 

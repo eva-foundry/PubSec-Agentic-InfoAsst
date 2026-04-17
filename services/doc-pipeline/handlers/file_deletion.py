@@ -3,6 +3,7 @@
 Deletes source blob, all chunk blobs, all search index entries,
 updates Cosmos status to DELETED, and creates an audit record.
 """
+
 from __future__ import annotations
 
 import logging
@@ -37,7 +38,9 @@ class AsyncBlobIterator(Protocol):
 class SearchIndexClient(Protocol):
     """Protocol for cleaning up search index entries."""
 
-    async def delete_documents_by_source(self, index_name: str, source_path: str) -> int: ...
+    async def delete_documents_by_source(
+        self, index_name: str, source_path: str
+    ) -> int: ...
 
 
 class AuditLogger(Protocol):
@@ -137,11 +140,17 @@ async def delete_file(
     # 3. Delete search index entries
     index_name = f"eva-workspace-{workspace_id}-index"
     try:
-        index_deleted = await search_client.delete_documents_by_source(index_name, blob_name)
+        index_deleted = await search_client.delete_documents_by_source(
+            index_name, blob_name
+        )
         summary["index_entries_deleted"] = index_deleted
         logger.info(
             "Search index entries deleted",
-            extra={"blob_name": blob_name, "index_name": index_name, "count": index_deleted},
+            extra={
+                "blob_name": blob_name,
+                "index_name": index_name,
+                "count": index_deleted,
+            },
         )
     except Exception:
         logger.warning(

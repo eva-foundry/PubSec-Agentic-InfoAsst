@@ -30,16 +30,58 @@ class _CaseSection(Enum):
 # Heading patterns that signal a structural section of a court decision.
 _SECTION_PATTERNS: list[tuple[re.Pattern[str], _CaseSection]] = [
     # English
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:INTRODUCTION|OVERVIEW)", re.I | re.M), _CaseSection.HEADER),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:BACKGROUND|FACTS|FACTUAL\s+BACKGROUND|STATEMENT\s+OF\s+FACTS)", re.I | re.M), _CaseSection.FACTS),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:ISSUES?|QUESTIONS?\s+(?:IN\s+ISSUE|PRESENTED|TO\s+BE\s+DETERMINED))", re.I | re.M), _CaseSection.ISSUES),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:ANALYSIS|REASONING|DISCUSSION|LAW\s+AND\s+ANALYSIS|APPLICABLE\s+LAW)", re.I | re.M), _CaseSection.ANALYSIS),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:DECISION|ORDER|CONCLUSION|DISPOSITION|JUDGMENT|REMEDY|RELIEF)", re.I | re.M), _CaseSection.DECISION),
+    (
+        re.compile(r"^\s*(?:I+\.?\s+)?(?:INTRODUCTION|OVERVIEW)", re.I | re.M),
+        _CaseSection.HEADER,
+    ),
+    (
+        re.compile(
+            r"^\s*(?:I+\.?\s+)?(?:BACKGROUND|FACTS|FACTUAL\s+BACKGROUND|STATEMENT\s+OF\s+FACTS)",
+            re.I | re.M,
+        ),
+        _CaseSection.FACTS,
+    ),
+    (
+        re.compile(
+            r"^\s*(?:I+\.?\s+)?(?:ISSUES?|QUESTIONS?\s+(?:IN\s+ISSUE|PRESENTED|TO\s+BE\s+DETERMINED))",
+            re.I | re.M,
+        ),
+        _CaseSection.ISSUES,
+    ),
+    (
+        re.compile(
+            r"^\s*(?:I+\.?\s+)?(?:ANALYSIS|REASONING|DISCUSSION|LAW\s+AND\s+ANALYSIS|APPLICABLE\s+LAW)",
+            re.I | re.M,
+        ),
+        _CaseSection.ANALYSIS,
+    ),
+    (
+        re.compile(
+            r"^\s*(?:I+\.?\s+)?(?:DECISION|ORDER|CONCLUSION|DISPOSITION|JUDGMENT|REMEDY|RELIEF)",
+            re.I | re.M,
+        ),
+        _CaseSection.DECISION,
+    ),
     # French
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:CONTEXTE|FAITS)", re.I | re.M), _CaseSection.FACTS),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:QUESTIONS?\s+EN\s+LITIGE)", re.I | re.M), _CaseSection.ISSUES),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:ANALYSE|RAISONNEMENT|MOTIFS)", re.I | re.M), _CaseSection.ANALYSIS),
-    (re.compile(r"^\s*(?:I+\.?\s+)?(?:D[ÉE]CISION|ORDONNANCE|DISPOSITIF|JUGEMENT)", re.I | re.M), _CaseSection.DECISION),
+    (
+        re.compile(r"^\s*(?:I+\.?\s+)?(?:CONTEXTE|FAITS)", re.I | re.M),
+        _CaseSection.FACTS,
+    ),
+    (
+        re.compile(r"^\s*(?:I+\.?\s+)?(?:QUESTIONS?\s+EN\s+LITIGE)", re.I | re.M),
+        _CaseSection.ISSUES,
+    ),
+    (
+        re.compile(r"^\s*(?:I+\.?\s+)?(?:ANALYSE|RAISONNEMENT|MOTIFS)", re.I | re.M),
+        _CaseSection.ANALYSIS,
+    ),
+    (
+        re.compile(
+            r"^\s*(?:I+\.?\s+)?(?:D[ÉE]CISION|ORDONNANCE|DISPOSITIF|JUGEMENT)",
+            re.I | re.M,
+        ),
+        _CaseSection.DECISION,
+    ),
 ]
 
 # ---------------------------------------------------------------------------
@@ -206,7 +248,9 @@ class CaseLawChunkingStrategy(ChunkingStrategy):
         chunks: list[Chunk] = []
         chunk_index = 0
 
-        def _make_chunk(node: _CaseNode, text: str, pages: list[int], cites: list[str]) -> None:
+        def _make_chunk(
+            node: _CaseNode, text: str, pages: list[int], cites: list[str]
+        ) -> None:
             nonlocal chunk_index
             if not text.strip():
                 return

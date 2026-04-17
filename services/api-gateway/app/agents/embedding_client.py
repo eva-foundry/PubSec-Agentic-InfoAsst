@@ -36,6 +36,7 @@ class AzureEmbeddingClient:
         if self.api_key:
             return {"api-key": self.api_key, "Content-Type": "application/json"}
         from .azure_client import _get_entra_token
+
         token = _get_entra_token()
         if token:
             return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}

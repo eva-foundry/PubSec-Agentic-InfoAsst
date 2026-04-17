@@ -17,6 +17,16 @@ jobs:
       - run: pip install ruff
       - run: ruff check services/
 
+  lint-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run lint --workspaces --if-present
+
   type-check-python:
     runs-on: ubuntu-latest
     steps:
@@ -59,9 +69,44 @@ jobs:
       - run: npm install
       - run: npm run test --workspaces --if-present
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Python dependency audit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip-audit -r services/api-gateway/requirements.txt --desc on
+
+      # Node dependency audit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm audit --audit-level=high
+
+      # Filesystem vulnerability scan
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          format: 'table'
+
+      # Secret scanning
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-containers:
     runs-on: ubuntu-latest
-    needs: [lint-python, type-check-python, type-check-ts, test-python, test-ts]
+    needs: [lint-python, lint-ts, type-check-python, type-check-ts, test-python, test-ts, security-scan]
     steps:
       - uses: actions/checkout@v4
       - run: docker build -t eva-api-gateway services/api-gateway/

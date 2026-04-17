@@ -22,9 +22,7 @@ from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
 class APIMSimulationMiddleware(BaseHTTPMiddleware):
     """Simulate Azure APIM gateway headers and telemetry recording."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         start = time.monotonic()
 
         # --- Correlation ID ---

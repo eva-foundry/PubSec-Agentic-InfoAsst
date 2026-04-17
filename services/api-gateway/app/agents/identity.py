@@ -50,12 +50,14 @@ class DelegationChain:
         purpose : str
             Human-readable description of why delegation occurred.
         """
-        self._chain.append({
-            "parent_id": parent_id,
-            "child_id": child_id,
-            "purpose": purpose,
-            "delegated_at": datetime.now(UTC).isoformat(),
-        })
+        self._chain.append(
+            {
+                "parent_id": parent_id,
+                "child_id": child_id,
+                "purpose": purpose,
+                "delegated_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     def get_chain(self) -> list[dict]:
         """Return the full delegation chain in chronological order."""

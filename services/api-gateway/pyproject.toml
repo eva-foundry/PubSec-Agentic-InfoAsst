@@ -6,20 +6,14 @@ requires-python = ">=3.12"
 
 [tool.ruff]
 target-version = "py312"
-line-length = 120
+line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
-ignore = [
-  "E501",  # line-too-long — not worth gating on for a transit repo
-  "E402",  # module-import-not-at-top-of-file — some modules import after sys.path setup
-]
 
 [tool.pyright]
 pythonVersion = "3.12"
-# `basic` for the transit window — catches obvious type bugs without gating CI
-# on the full `standard` sweep. Upstream review will re-enable stricter modes.
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -15,7 +15,7 @@ _BUSINESS_PROMPTS: dict[str, str] = {
         "references. When citing eligibility criteria, always reference the specific "
         "subsection (e.g., s. 3(1), s. 3(2)). Distinguish between full pension "
         "(40+ years residency) and partial pension (10-39 years, pro-rata "
-        "calculation). When discussing residency, specify \"after age 18\" as "
+        'calculation). When discussing residency, specify "after age 18" as '
         "required by the Act. Cross-reference the OAS Regulations (C.R.C., c. 1246) "
         "for evidence requirements."
     ),
@@ -177,15 +177,19 @@ class WorkspaceStore:
             ws_data = ws.model_dump()
             ws_data["business_prompt"] = bp
             ws_data["business_prompt_version"] = 1
-            ws_data["business_prompt_history"] = [
-                {
-                    "version": 1,
-                    "content": bp,
-                    "author": "system",
-                    "rationale": "Initial workspace business prompt",
-                    "created_at": ws.created_at,
-                },
-            ] if bp else []
+            ws_data["business_prompt_history"] = (
+                [
+                    {
+                        "version": 1,
+                        "content": bp,
+                        "author": "system",
+                        "rationale": "Initial workspace business prompt",
+                        "created_at": ws.created_at,
+                    },
+                ]
+                if bp
+                else []
+            )
             self._workspaces[ws.id] = Workspace(**ws_data)
 
     def list(self, workspace_grants: list[str]) -> list[Workspace]:

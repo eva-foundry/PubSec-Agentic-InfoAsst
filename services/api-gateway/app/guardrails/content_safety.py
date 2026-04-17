@@ -47,7 +47,10 @@ class ContentSafetyChecker:
                     endpoint=settings.content_safety_endpoint,
                     credential=AzureKeyCredential(settings.content_safety_key),
                 )
-                logger.info("Content Safety client initialized (endpoint: %s)", settings.content_safety_endpoint[:30] + "...")
+                logger.info(
+                    "Content Safety client initialized (endpoint: %s)",
+                    settings.content_safety_endpoint[:30] + "...",
+                )
             except ImportError:
                 logger.warning("azure-ai-contentsafety not installed — using pass-through mode")
             except Exception as exc:
@@ -84,7 +87,9 @@ class ContentSafetyChecker:
                 categories[item.category] = str(severity)
                 if severity >= self.threshold:
                     passed = False
-                    blocked_reason = f"{item.category}: severity {severity} >= threshold {self.threshold}"
+                    blocked_reason = (
+                        f"{item.category}: severity {severity} >= threshold {self.threshold}"
+                    )
 
             _audit.log_action(
                 subject=f"content-safety-{direction}",
@@ -128,4 +133,6 @@ class ContentSafetyChecker:
                 correlation_id=correlation_id,
                 trace_id="",
             )
-            return ContentSafetyResult(passed=True, blocked_reason=f"API error: {type(exc).__name__}")
+            return ContentSafetyResult(
+                passed=True, blocked_reason=f"API error: {type(exc).__name__}"
+            )

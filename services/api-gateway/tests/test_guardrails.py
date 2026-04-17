@@ -18,6 +18,7 @@ from app.guardrails.prompt_shield import PromptShield
 # Confidence scoring
 # ---------------------------------------------------------------------------
 
+
 class TestConfidenceScorer:
     def setup_method(self):
         self.scorer = ConfidenceScorer()
@@ -70,6 +71,7 @@ class TestConfidenceScorer:
 # Grounding enforcement
 # ---------------------------------------------------------------------------
 
+
 class TestGroundingEnforcer:
     def setup_method(self):
         self.enforcer = GroundingEnforcer()
@@ -112,6 +114,7 @@ class TestGroundingEnforcer:
 # Escalation tiers
 # ---------------------------------------------------------------------------
 
+
 class TestEscalationEngine:
     def setup_method(self):
         self.engine = EscalationEngine()
@@ -149,6 +152,7 @@ class TestEscalationEngine:
 # ---------------------------------------------------------------------------
 # Freshness checking
 # ---------------------------------------------------------------------------
+
 
 class TestFreshnessChecker:
     def setup_method(self):
@@ -194,6 +198,7 @@ class TestFreshnessChecker:
 # ---------------------------------------------------------------------------
 # Circuit breaker & degradation
 # ---------------------------------------------------------------------------
+
 
 class TestCircuitBreaker:
     def test_healthy_by_default(self):
@@ -287,6 +292,7 @@ class TestDegradationManager:
 # Prompt shield
 # ---------------------------------------------------------------------------
 
+
 class TestPromptShield:
     def setup_method(self):
         self.shield = PromptShield()
@@ -318,6 +324,7 @@ class TestPromptShield:
 # ---------------------------------------------------------------------------
 # Content safety (placeholder)
 # ---------------------------------------------------------------------------
+
 
 class TestContentSafety:
     @pytest.mark.asyncio

@@ -21,9 +21,7 @@ class CircuitBreaker:
 
     _failure_count: int = field(default=0, init=False, repr=False)
     _last_failure: datetime | None = field(default=None, init=False, repr=False)
-    _state: DependencyStatus = field(
-        default=DependencyStatus.HEALTHY, init=False, repr=False
-    )
+    _state: DependencyStatus = field(default=DependencyStatus.HEALTHY, init=False, repr=False)
 
     def record_success(self) -> None:
         """Record a successful call — reset failure count and state."""

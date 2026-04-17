@@ -83,7 +83,9 @@ class PolicyEngine:
             except (json.JSONDecodeError, OSError) as exc:
                 logger.error("Failed to load policy rules from %s: %s", rules_file, exc)
         else:
-            logger.warning("Policy rules file not found: %s — running with empty ruleset", rules_file)
+            logger.warning(
+                "Policy rules file not found: %s — running with empty ruleset", rules_file
+            )
 
     def evaluate(self, context: dict[str, Any], correlation_id: str = "") -> PolicyEvaluationResult:
         """Run all rules against the provided context."""

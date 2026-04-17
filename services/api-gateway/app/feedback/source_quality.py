@@ -56,7 +56,9 @@ class SourceQualityTracker:
         self._signals[(workspace_id, file_name)].append(signal)
         logger.debug(
             "SourceQuality: recorded %s for %s in workspace %s",
-            signal, file_name, workspace_id,
+            signal,
+            file_name,
+            workspace_id,
         )
 
     def get_quality_scores(self, workspace_id: str) -> list[dict]:
@@ -86,16 +88,18 @@ class SourceQualityTracker:
             acceptance_rate = accepted / total if total > 0 else 0.0
             correction_rate = corrected / total if total > 0 else 0.0
 
-            results.append({
-                "file_name": file_name,
-                "total_signals": total,
-                "accepted_count": accepted,
-                "rejected_count": rejected,
-                "corrected_count": corrected,
-                "acceptance_rate": round(acceptance_rate, 4),
-                "correction_rate": round(correction_rate, 4),
-                "quality_score": round(acceptance_rate, 4),
-            })
+            results.append(
+                {
+                    "file_name": file_name,
+                    "total_signals": total,
+                    "accepted_count": accepted,
+                    "rejected_count": rejected,
+                    "corrected_count": corrected,
+                    "acceptance_rate": round(acceptance_rate, 4),
+                    "correction_rate": round(correction_rate, 4),
+                    "quality_score": round(acceptance_rate, 4),
+                }
+            )
 
         # Sort worst quality first for easy identification
         results.sort(key=lambda r: r["quality_score"])
@@ -128,6 +132,8 @@ class SourceQualityTracker:
         ]
         logger.info(
             "SourceQuality: %d files flagged below %.2f in workspace %s",
-            len(flagged), threshold, workspace_id,
+            len(flagged),
+            threshold,
+            workspace_id,
         )
         return flagged

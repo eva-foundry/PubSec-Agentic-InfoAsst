@@ -146,7 +146,11 @@ class TestBookings:
         # Create
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-08-01",
+            },
             headers=CAROL,
         )
         assert create_resp.status_code == 201
@@ -177,7 +181,11 @@ class TestBookings:
     def test_booking_invalid_transition(self):
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-06-01",
+            },
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -193,7 +201,11 @@ class TestBookings:
     def test_booking_cancellation(self):
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-06-01",
+            },
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -213,7 +225,11 @@ class TestBookings:
         """Bob can't update Carol's booking."""
         create_resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-06-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-06-01",
+            },
             headers=CAROL,
         )
         booking_id = create_resp.json()["id"]
@@ -234,7 +250,11 @@ class TestTeams:
         """Create a booking as Carol and return its ID."""
         resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-08-01",
+            },
             headers=CAROL,
         )
         return resp.json()["id"]
@@ -245,7 +265,12 @@ class TestTeams:
         # Add a member
         resp = client.post(
             f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "alice@demo.gc.ca", "name": "Alice Chen", "user_id": "demo-alice", "role": "contributor"},
+            json={
+                "email": "alice@demo.gc.ca",
+                "name": "Alice Chen",
+                "user_id": "demo-alice",
+                "role": "contributor",
+            },
             headers=CAROL,
         )
         assert resp.status_code == 201
@@ -264,7 +289,12 @@ class TestTeams:
         # Add member
         client.post(
             f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "bob@demo.gc.ca", "name": "Bob Wilson", "user_id": "demo-bob", "role": "reader"},
+            json={
+                "email": "bob@demo.gc.ca",
+                "name": "Bob Wilson",
+                "user_id": "demo-bob",
+                "role": "reader",
+            },
             headers=CAROL,
         )
 
@@ -283,7 +313,12 @@ class TestTeams:
         # Add then remove
         client.post(
             f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "bob@demo.gc.ca", "name": "Bob Wilson", "user_id": "demo-bob", "role": "reader"},
+            json={
+                "email": "bob@demo.gc.ca",
+                "name": "Bob Wilson",
+                "user_id": "demo-bob",
+                "role": "reader",
+            },
             headers=CAROL,
         )
         resp = client.delete(f"/v1/eva/teams/{booking_id}/members/demo-bob", headers=CAROL)
@@ -321,7 +356,12 @@ class TestTeams:
         # Add Alice as contributor
         client.post(
             f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "alice@demo.gc.ca", "name": "Alice Chen", "user_id": "demo-alice", "role": "contributor"},
+            json={
+                "email": "alice@demo.gc.ca",
+                "name": "Alice Chen",
+                "user_id": "demo-alice",
+                "role": "contributor",
+            },
             headers=CAROL,
         )
 
@@ -339,7 +379,11 @@ class TestSurveys:
         """Create and activate a booking as Carol."""
         resp = client.post(
             "/v1/eva/bookings",
-            json={"workspace_id": "ws-sandbox", "start_date": "2026-05-01", "end_date": "2026-08-01"},
+            json={
+                "workspace_id": "ws-sandbox",
+                "start_date": "2026-05-01",
+                "end_date": "2026-08-01",
+            },
             headers=CAROL,
         )
         booking_id = resp.json()["id"]

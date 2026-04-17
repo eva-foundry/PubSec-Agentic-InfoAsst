@@ -90,9 +90,7 @@ class FeedbackPayload(BaseModel):
     workspace_id: str | None = None
 
 
-async def _orchestrator_stream(
-    user: UserContext, req: ChatRequest
-) -> AsyncIterator[str]:
+async def _orchestrator_stream(user: UserContext, req: ChatRequest) -> AsyncIterator[str]:
     """Run the agent orchestrator, yield NDJSON lines, and record to chat_store."""
     trace_id = f"trace-{uuid.uuid4()}"
     conversation_id = req.conversation_id or str(uuid.uuid4())
@@ -111,22 +109,26 @@ async def _orchestrator_stream(
 
     # Record the user message
     user_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-    await aio(chat_store.add(ChatHistoryRecord(
-        conversation_id=conversation_id,
-        message_id=user_msg_id,
-        workspace_id=req.workspace_id,
-        user_id=user.user_id,
-        role="user",
-        content_preview=req.message[:200],
-        content_hash=hashlib.sha256(req.message.encode()).hexdigest(),
-        citations=[],
-        provenance=None,
-        agent_steps=[],
-        confidence_score=0.0,
-        model="gpt-5.1-2026-04",
-        mode=req.mode,
-        created_at=now,
-    )))
+    await aio(
+        chat_store.add(
+            ChatHistoryRecord(
+                conversation_id=conversation_id,
+                message_id=user_msg_id,
+                workspace_id=req.workspace_id,
+                user_id=user.user_id,
+                role="user",
+                content_preview=req.message[:200],
+                content_hash=hashlib.sha256(req.message.encode()).hexdigest(),
+                citations=[],
+                provenance=None,
+                agent_steps=[],
+                confidence_score=0.0,
+                model="gpt-5.1-2026-04",
+                mode=req.mode,
+                created_at=now,
+            )
+        )
+    )
 
     # Collect streamed data for recording the assistant response
     full_content = ""
@@ -179,22 +181,26 @@ async def _orchestrator_stream(
     # Record the assistant message
     assistant_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
     assistant_now = datetime.now(UTC).isoformat()
-    await aio(chat_store.add(ChatHistoryRecord(
-        conversation_id=conversation_id,
-        message_id=assistant_msg_id,
-        workspace_id=req.workspace_id,
-        user_id=user.user_id,
-        role="assistant",
-        content_preview=full_content[:200],
-        content_hash=hashlib.sha256(full_content.encode()).hexdigest(),
-        citations=citations,
-        provenance=provenance,
-        agent_steps=agent_steps,
-        confidence_score=round(confidence_score, 4),
-        model="gpt-5.1-2026-04",
-        mode=req.mode,
-        created_at=assistant_now,
-    )))
+    await aio(
+        chat_store.add(
+            ChatHistoryRecord(
+                conversation_id=conversation_id,
+                message_id=assistant_msg_id,
+                workspace_id=req.workspace_id,
+                user_id=user.user_id,
+                role="assistant",
+                content_preview=full_content[:200],
+                content_hash=hashlib.sha256(full_content.encode()).hexdigest(),
+                citations=citations,
+                provenance=provenance,
+                agent_steps=agent_steps,
+                confidence_score=round(confidence_score, 4),
+                model="gpt-5.1-2026-04",
+                mode=req.mode,
+                created_at=assistant_now,
+            )
+        )
+    )
 
 
 @router.post("/chat")
@@ -216,9 +222,12 @@ async def list_conversations(
     user: UserContext = Depends(get_current_user),
 ) -> list[dict]:
     """Return conversation summaries (seeded + live)."""
-    summaries = await aio(chat_store.list_conversations(
-        workspace_id=workspace_id, user_id=user_id,
-    ))
+    summaries = await aio(
+        chat_store.list_conversations(
+            workspace_id=workspace_id,
+            user_id=user_id,
+        )
+    )
     return [s.model_dump() for s in summaries]
 
 
@@ -243,6 +252,7 @@ async def get_session_cost(request: Request) -> dict:
 
 class ChatCompareRequest(BaseModel):
     """Request body for compare mode — runs grounded + ungrounded in parallel."""
+
     message: str
     workspace_id: str | None = None
     conversation_id: str | None = None
@@ -314,14 +324,23 @@ async def compare_chat(
     overrides = req.overrides.model_dump() if req.overrides else None
 
     grounded_task = _collect_full_response(
-        user, req.message, req.workspace_id, "grounded", overrides,
+        user,
+        req.message,
+        req.workspace_id,
+        "grounded",
+        overrides,
     )
     ungrounded_task = _collect_full_response(
-        user, req.message, req.workspace_id, "ungrounded", overrides,
+        user,
+        req.message,
+        req.workspace_id,
+        "ungrounded",
+        overrides,
     )
 
     grounded_result, ungrounded_result = await asyncio.gather(
-        grounded_task, ungrounded_task,
+        grounded_task,
+        ungrounded_task,
     )
     return {"grounded": grounded_result, "ungrounded": ungrounded_result}
 

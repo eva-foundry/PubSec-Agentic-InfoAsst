@@ -94,11 +94,14 @@ def create_app() -> FastAPI:
 
             # Seed Cosmos if empty (first run)
             from .stores import workspace_store
-            existing = await workspace_store.list(["all"])
+            from .stores.compat import aio
+
+            existing = await aio(workspace_store.list(["all"]))
             if not existing:
                 logger.info("Cosmos containers empty — running seed data...")
                 from .stores import cosmos_manager
                 from .stores.azure.seed import seed_all_containers
+
                 await seed_all_containers(cosmos_manager)
                 logger.info("Cosmos seed data loaded.")
             else:
@@ -113,7 +116,9 @@ def create_app() -> FastAPI:
                 api_key=settings.azure_openai_api_key,
                 deployment=settings.azure_openai_embedding_deployment,
             )
-            logger.info("Using Azure OpenAI embeddings (%s)", settings.azure_openai_embedding_deployment)
+            logger.info(
+                "Using Azure OpenAI embeddings (%s)", settings.azure_openai_embedding_deployment
+            )
         else:
             embedding_client = MockEmbeddingClient()
             logger.info("Using mock embeddings (no Azure OpenAI credentials)")
@@ -134,8 +139,11 @@ def create_app() -> FastAPI:
             await preload_sample_documents(processor, ws_store)
             logger.info(
                 "Startup complete (mock mode). Vector store: %d workspaces with documents.",
-                sum(1 for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
-                    if vector_store.document_count(ws_id) > 0),
+                sum(
+                    1
+                    for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
+                    if vector_store.document_count(ws_id) > 0
+                ),
             )
         else:
             logger.info("Startup complete (Azure mode). Stores backed by Cosmos DB + AI Search.")
@@ -143,6 +151,7 @@ def create_app() -> FastAPI:
     @app.on_event("shutdown")
     async def shutdown():
         from .stores import API_MOCK, cosmos_manager
+
         if not API_MOCK and cosmos_manager is not None:
             await cosmos_manager.close()
             logger.info("Cosmos DB client closed.")

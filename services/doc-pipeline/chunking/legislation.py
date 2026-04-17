@@ -202,7 +202,9 @@ class LegislationChunkingStrategy(ChunkingStrategy):
         accum_xrefs: list[str] = []
         accum_node: _LegislativeNode | None = None
 
-        def _flush(node: _LegislativeNode, text: str, pages: list[int], xrefs: list[str]) -> None:
+        def _flush(
+            node: _LegislativeNode, text: str, pages: list[int], xrefs: list[str]
+        ) -> None:
             nonlocal chunk_index
             if not text.strip():
                 return

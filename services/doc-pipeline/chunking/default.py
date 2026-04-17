@@ -110,7 +110,13 @@ class DefaultChunkingStrategy(ChunkingStrategy):
                         # last forward as the new accumulator.
                         for i, tc_text in enumerate(table_chunks):
                             if i < len(table_chunks) - 1:
-                                _flush(tc_text, page_list, prev_section, prev_title, prev_subtitle)
+                                _flush(
+                                    tc_text,
+                                    page_list,
+                                    prev_section,
+                                    prev_title,
+                                    prev_subtitle,
+                                )
                             else:
                                 para_text = tc_text
                                 para_size = self.token_count(tc_text)
@@ -123,7 +129,9 @@ class DefaultChunkingStrategy(ChunkingStrategy):
                         sub_chunks: list[str] = []
                         current = ""
                         for sentence in sentences:
-                            candidate = (current + " " + sentence) if current else sentence
+                            candidate = (
+                                (current + " " + sentence) if current else sentence
+                            )
                             if self.token_count(candidate) <= self.target_size:
                                 current = candidate
                             else:
@@ -135,7 +143,13 @@ class DefaultChunkingStrategy(ChunkingStrategy):
 
                         for i, sc_text in enumerate(sub_chunks):
                             if i < len(sub_chunks) - 1:
-                                _flush(sc_text, page_list, prev_section, prev_title, prev_subtitle)
+                                _flush(
+                                    sc_text,
+                                    page_list,
+                                    prev_section,
+                                    prev_title,
+                                    prev_subtitle,
+                                )
                             else:
                                 para_text = sc_text
                                 para_size = self.token_count(sc_text)
@@ -145,7 +159,9 @@ class DefaultChunkingStrategy(ChunkingStrategy):
                 else:
                     # Normal flush — paragraph fits on its own but the
                     # accumulator is full or a boundary was crossed.
-                    _flush(chunk_text, page_list, prev_section, prev_title, prev_subtitle)
+                    _flush(
+                        chunk_text, page_list, prev_section, prev_title, prev_subtitle
+                    )
                     chunk_text = ""
                     chunk_size = 0
                     page_list = []
