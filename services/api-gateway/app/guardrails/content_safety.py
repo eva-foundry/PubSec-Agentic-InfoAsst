@@ -15,6 +15,17 @@ from .audit import AuditLogger
 logger = logging.getLogger("eva.guardrails.content_safety")
 _audit = AuditLogger()
 
+# Hoist azure SDK classes to module level so tests can patch
+# `app.guardrails.content_safety.ContentSafetyClient`. If the SDK isn't
+# installed at all, leave both None and the checker will fall back to
+# pass-through mode.
+try:
+    from azure.ai.contentsafety import ContentSafetyClient
+    from azure.core.credentials import AzureKeyCredential
+except ImportError:  # pragma: no cover — azure SDK absent in lean envs
+    ContentSafetyClient = None  # type: ignore[assignment,misc]
+    AzureKeyCredential = None  # type: ignore[assignment,misc]
+
 
 @dataclass
 class ContentSafetyResult:
@@ -39,10 +50,10 @@ class ContentSafetyChecker:
         self._client = None
 
         if settings.content_safety_endpoint and settings.content_safety_key:
+            if ContentSafetyClient is None or AzureKeyCredential is None:
+                logger.warning("azure-ai-contentsafety not installed — using pass-through mode")
+                return
             try:
-                from azure.ai.contentsafety import ContentSafetyClient
-                from azure.core.credentials import AzureKeyCredential
-
                 self._client = ContentSafetyClient(
                     endpoint=settings.content_safety_endpoint,
                     credential=AzureKeyCredential(settings.content_safety_key),
@@ -51,8 +62,6 @@ class ContentSafetyChecker:
                     "Content Safety client initialized (endpoint: %s)",
                     settings.content_safety_endpoint[:30] + "...",
                 )
-            except ImportError:
-                logger.warning("azure-ai-contentsafety not installed — using pass-through mode")
             except Exception as exc:
                 logger.error("Failed to initialize Content Safety client: %s", exc)
         else:

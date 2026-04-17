@@ -341,9 +341,12 @@ class TestMultipleConflictAccumulation:
             ),
         ]
         report = self.resolver.detect_conflicts(claims)
-        # act vs policy-001: -0.1, policy-001 vs policy-002: -0.25
-        assert report.confidence_penalty == pytest.approx(0.35, abs=1e-9)
-        assert report.conflicts_detected == 2
+        # Three distinct pairs → three conflicts:
+        #   act vs policy-001           → -0.1  (authority_hierarchy)
+        #   act vs policy-002           → -0.1  (authority_hierarchy)
+        #   policy-001 vs policy-002    → -0.25 (unresolved, equal authority)
+        assert report.confidence_penalty == pytest.approx(0.45, abs=1e-9)
+        assert report.conflicts_detected == 3
 
     def test_multiple_conflicts_report_structure(self):
         """ConflictReport correctly aggregates multiple conflicts."""
@@ -498,8 +501,10 @@ class TestAuditLogging:
             topic="eligibility",
             correlation_id="corr-123",
         )
-        mock_audit.log_action.assert_called()
-        call_args = mock_audit.log_action.call_args
+        # mock_audit IS the patched log_action method (the mock is the last
+        # attribute in the patch dotted path).
+        mock_audit.assert_called()
+        call_args = mock_audit.call_args
         assert call_args[1]["actor"] == "conflict-resolver"
         assert call_args[1]["action"] == "resolve"
         assert call_args[1]["correlation_id"] == "corr-123"
@@ -522,7 +527,7 @@ class TestAuditLogging:
             authority=SourceAuthority.POLICY_DIRECTIVE,
         )
         self.resolver.detect_conflicts([claim_a, claim_b])
-        call_args = mock_audit.log_action.call_args
+        call_args = mock_audit.call_args
         policy_decision = call_args[1]["policy_decision"]
         assert "authority_hierarchy" in policy_decision
         assert "act-001" in policy_decision
@@ -566,8 +571,10 @@ class TestConflictReportDataStructure:
             ),
         ]
         report = self.resolver.detect_conflicts(claims)
-        # act vs policy-001: resolved by authority
-        # policy-001 vs policy-002: unresolved (same authority, no dates)
-        assert report.conflicts_detected == 2
-        assert report.conflicts_resolved == 1
+        # Three distinct pairs:
+        #   act vs policy-001            → resolved by authority
+        #   act vs policy-002            → resolved by authority
+        #   policy-001 vs policy-002     → unresolved (same authority, no dates)
+        assert report.conflicts_detected == 3
+        assert report.conflicts_resolved == 2
         assert report.conflicts_unresolved == 1
