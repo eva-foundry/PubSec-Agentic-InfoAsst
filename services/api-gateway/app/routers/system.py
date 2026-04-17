@@ -79,8 +79,13 @@ async def get_provenance(
         },
         "trace_id": "otel-abc123def456",
         "explainability": {
-            "retrieval_summary": "5 sources retrieved; 2 selected; 3 excluded (low relevance, superseded, classification)",
-            "reasoning_summary": "Answer synthesized from OAS Act Section 4.1 and related regulations",
+            "retrieval_summary": (
+                "5 sources retrieved; 2 selected; "
+                "3 excluded (low relevance, superseded, classification)"
+            ),
+            "reasoning_summary": (
+                "Answer synthesized from OAS Act Section 4.1 and related regulations"
+            ),
             "negative_evidence": ["No amendments found after 2025-12-01"],
             "cross_language": None,
         },

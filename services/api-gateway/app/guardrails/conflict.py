@@ -209,7 +209,8 @@ class ConflictResolver:
             confidence_adj = -0.1  # Small penalty for having a conflict at all
             explanation = (
                 f"Conflict resolved by authority hierarchy: "
-                f"{higher.source_type} ({higher.authority.name}, authority={higher.authority.value}) "
+                f"{higher.source_type} ({higher.authority.name}, "
+                f"authority={higher.authority.value}) "
                 f"takes precedence over {lower.source_type} "
                 f"({lower.authority.name}, authority={lower.authority.value})."
             )

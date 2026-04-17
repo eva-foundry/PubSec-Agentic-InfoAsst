@@ -102,7 +102,10 @@ class ProvenanceRecord(BaseModel):
     agent_id: str = Field(description="Agent that produced the answer, e.g. 'eva-rag-agent'")
     delegation_chain: list[str] = Field(
         default_factory=list,
-        description="Ordered list of agents/tools invoked, e.g. ['user-request', 'orchestrator', 'search-tool']",
+        description=(
+            "Ordered list of agents/tools invoked, "
+            "e.g. ['user-request', 'orchestrator', 'search-tool']"
+        ),
     )
     sources_consulted: int = Field(
         default=0, ge=0, description="Total sources retrieved before filtering"
@@ -114,12 +117,18 @@ class ProvenanceRecord(BaseModel):
     )
     policies_applied: list[str] = Field(
         default_factory=list,
-        description="Guardrail policies enforced, e.g. ['grounding-required', 'protected-b-boundary']",
+        description=(
+            "Guardrail policies enforced, "
+            "e.g. ['grounding-required', 'protected-b-boundary']"
+        ),
     )
     confidence: float = Field(ge=0, le=1, description="Overall confidence score for the answer")
     confidence_factors: ConfidenceFactors
     escalation_tier: str = Field(
-        description="Escalation classification: 'auto-resolve' | 'flagged-for-review' | 'requires-human-decision'",
+        description=(
+            "Escalation classification: "
+            "'auto-resolve' | 'flagged-for-review' | 'requires-human-decision'"
+        ),
     )
     freshness: FreshnessInfo
     behavioral_fingerprint: BehavioralFingerprint
@@ -140,11 +149,17 @@ class ExplainabilityRecord(BaseModel):
     )
     negative_evidence: list[str] = Field(
         default_factory=list,
-        description="What the system looked for but did not find, e.g. ['No amendments found after 2025-12-01']",
+        description=(
+            "What the system looked for but did not find, "
+            "e.g. ['No amendments found after 2025-12-01']"
+        ),
     )
     cross_language: str | None = Field(
         default=None,
-        description="Cross-language handling, e.g. 'Query in French; sources in English; translated'",
+        description=(
+            "Cross-language handling, "
+            "e.g. 'Query in French; sources in English; translated'"
+        ),
     )
 
 

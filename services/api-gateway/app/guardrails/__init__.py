@@ -1,4 +1,8 @@
-"""EVA Guardrails Engine — confidence, grounding, escalation, freshness, degradation, safety, conflict resolution."""
+"""EVA Guardrails Engine.
+
+Covers confidence, grounding, escalation, freshness, degradation,
+content safety, and conflict resolution.
+"""
 
 from .audit import AuditLogger
 from .confidence import ConfidenceScorer

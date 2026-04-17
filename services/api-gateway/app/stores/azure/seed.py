@@ -99,7 +99,10 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "name": "OAS Act Legislation",
             "name_fr": "Legislation sur la Loi sur la SV",
             "description": "Protected B workspace for Old Age Security Act legislative analysis.",
-            "description_fr": "Espace de travail Protege B pour l'analyse legislative de la Loi sur la securite de la vieillesse.",
+            "description_fr": (
+                "Espace de travail Protege B pour l'analyse legislative de la Loi "
+                "sur la securite de la vieillesse."
+            ),
             "type": "legislation",
             "status": "active",
             "owner_id": "demo-carol",
@@ -128,7 +131,10 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "name": "EI Jurisprudence",
             "name_fr": "Jurisprudence de l'AE",
             "description": "Protected B workspace for Employment Insurance tribunal decisions.",
-            "description_fr": "Espace de travail Protege B pour les decisions du tribunal de l'assurance-emploi.",
+            "description_fr": (
+                "Espace de travail Protege B pour les decisions du tribunal de "
+                "l'assurance-emploi."
+            ),
             "type": "case_law",
             "status": "active",
             "owner_id": "demo-carol",
@@ -614,7 +620,10 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": "ws-oas-act",
             "user_id": "demo-alice",
             "role": "assistant",
-            "content_preview": "Based on the Old Age Security Act, eligibility requires Canadian residency of at least 10 years after age 18...",
+            "content_preview": (
+                "Based on the Old Age Security Act, eligibility requires Canadian "
+                "residency of at least 10 years after age 18..."
+            ),
             "content_hash": sha("oas-eligibility-answer-full"),
             "citations": [{"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3"}],
             "provenance": {"correlation_id": "corr-s1-1", "model": "gpt-5.1-2026-04"},
@@ -643,7 +652,10 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": "ws-ei-juris",
             "user_id": "demo-eve",
             "role": "user",
-            "content_preview": "Has the SST considered voluntary departure cases where the claimant had just cause?",
+            "content_preview": (
+                "Has the SST considered voluntary departure cases where the "
+                "claimant had just cause?"
+            ),
             "content_hash": sha("voluntary-departure-just-cause-question"),
             "citations": [],
             "provenance": None,
@@ -660,7 +672,10 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": "ws-ei-juris",
             "user_id": "demo-eve",
             "role": "assistant",
-            "content_preview": "The Social Security Tribunal has addressed voluntary departure with just cause in several decisions...",
+            "content_preview": (
+                "The Social Security Tribunal has addressed voluntary departure "
+                "with just cause in several decisions..."
+            ),
             "content_hash": sha("voluntary-departure-answer-full"),
             "citations": [
                 {"file": "ei-tribunal-decision-sample.txt", "page": 1, "section": "Analysis"}
@@ -691,7 +706,9 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": "ws-oas-act",
             "user_id": "demo-bob",
             "role": "user",
-            "content_preview": "Does the OAS Act apply to non-residents who lived in Canada for 8 years?",
+            "content_preview": (
+                "Does the OAS Act apply to non-residents who lived in Canada for 8 years?"
+            ),
             "content_hash": sha("non-resident-8-years-question"),
             "citations": [],
             "provenance": None,
@@ -708,7 +725,9 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": "ws-oas-act",
             "user_id": "demo-bob",
             "role": "assistant",
-            "content_preview": "I was unable to find sufficient information in the available sources...",
+            "content_preview": (
+                "I was unable to find sufficient information in the available sources..."
+            ),
             "content_hash": sha("non-resident-answer-low-confidence"),
             "citations": [{"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3(1)(b)"}],
             "provenance": {
@@ -742,7 +761,9 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": None,
             "user_id": "demo-alice",
             "role": "user",
-            "content_preview": "What is the general process for applying to government benefits in Canada?",
+            "content_preview": (
+                "What is the general process for applying to government benefits in Canada?"
+            ),
             "content_hash": sha("general-benefits-question"),
             "citations": [],
             "provenance": None,
@@ -759,7 +780,10 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "workspace_id": None,
             "user_id": "demo-alice",
             "role": "assistant",
-            "content_preview": "Generally, Canadian government benefits are administered through Service Canada...",
+            "content_preview": (
+                "Generally, Canadian government benefits are administered "
+                "through Service Canada..."
+            ),
             "content_hash": sha("general-benefits-ungrounded-answer"),
             "citations": [],
             "provenance": {"correlation_id": "corr-s4-1", "model": "gpt-5.1-2026-04"},

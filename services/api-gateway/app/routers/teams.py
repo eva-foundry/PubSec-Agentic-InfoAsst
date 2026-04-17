@@ -81,7 +81,10 @@ async def add_member(
     if payload.role not in _VALID_ROLES:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid role '{payload.role}'. Must be one of: {', '.join(sorted(_VALID_ROLES))}",
+            detail=(
+                f"Invalid role '{payload.role}'. "
+                f"Must be one of: {', '.join(sorted(_VALID_ROLES))}"
+            ),
         )
 
     member_user_id = payload.user_id or f"user-{uuid.uuid4().hex[:8]}"
@@ -113,7 +116,10 @@ async def update_member_role(
     if payload.role not in _VALID_ROLES:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid role '{payload.role}'. Must be one of: {', '.join(sorted(_VALID_ROLES))}",
+            detail=(
+                f"Invalid role '{payload.role}'. "
+                f"Must be one of: {', '.join(sorted(_VALID_ROLES))}"
+            ),
         )
 
     updated = await aio(team_store.update_role(booking_id, user_id, payload.role))

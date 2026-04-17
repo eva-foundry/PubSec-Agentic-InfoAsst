@@ -127,7 +127,9 @@ class TestInterviews:
             "/v1/eva/admin/interviews",
             json={
                 "client_id": "client-bdm",
-                "use_case_description": "Analyze the Employment Insurance Act and related regulations",
+                "use_case_description": (
+                    "Analyze the Employment Insurance Act and related regulations"
+                ),
                 "data_sources": ["legislation-db", "gazette"],
                 "expected_volume": "500 documents",
                 "compliance_requirements": "Protected B",
@@ -145,7 +147,9 @@ class TestInterviews:
             "/v1/eva/admin/interviews",
             json={
                 "client_id": "client-bdm",
-                "use_case_description": "Search tribunal decisions and court rulings for EI appeals",
+                "use_case_description": (
+                    "Search tribunal decisions and court rulings for EI appeals"
+                ),
                 "data_sources": ["canlii"],
             },
             headers=CAROL,

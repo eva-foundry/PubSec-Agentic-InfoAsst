@@ -45,7 +45,10 @@ async def trip_breaker(
     return {
         "service": service,
         "status": degradation_manager.get_status(service).value,
-        "message": f"Circuit breaker for '{service}' tripped (forced {breaker.failure_threshold} failures)",
+        "message": (
+            f"Circuit breaker for '{service}' tripped "
+            f"(forced {breaker.failure_threshold} failures)"
+        ),
     }
 
 

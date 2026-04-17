@@ -97,7 +97,8 @@ class ChatStore:
                 role="assistant",
                 content_preview=_preview(
                     "Based on the Old Age Security Act, eligibility requires Canadian residency "
-                    "of at least 10 years after age 18 for a partial pension, or 40 years for a full pension [1]. "
+                    "of at least 10 years after age 18 for a partial pension, "
+                    "or 40 years for a full pension [1]. "
                     "The applicant must be 65 years of age or older [1]."
                 ),
                 content_hash=_sha256("oas-eligibility-answer-full"),
@@ -145,8 +146,9 @@ class ChatStore:
                 user_id="demo-alice",
                 role="assistant",
                 content_preview=_preview(
-                    "The partial pension is calculated as 1/40th of the full pension for each complete year "
-                    "of residence in Canada after the age of 18 [1]. A minimum of 10 years of residence is required [1]."
+                    "The partial pension is calculated as 1/40th of the full pension "
+                    "for each complete year of residence in Canada after the age of 18 [1]. "
+                    "A minimum of 10 years of residence is required [1]."
                 ),
                 content_hash=_sha256("oas-partial-pension-answer-full"),
                 citations=[
@@ -183,7 +185,8 @@ class ChatStore:
                 user_id="demo-eve",
                 role="user",
                 content_preview=_preview(
-                    "Has the SST considered voluntary departure cases where the claimant had just cause?"
+                    "Has the SST considered voluntary departure cases where the "
+                    "claimant had just cause?"
                 ),
                 content_hash=_sha256("voluntary-departure-just-cause-question"),
                 citations=[],
@@ -201,8 +204,9 @@ class ChatStore:
                 user_id="demo-eve",
                 role="assistant",
                 content_preview=_preview(
-                    "The Social Security Tribunal has addressed voluntary departure with just cause in several "
-                    "decisions. In the sample decision provided, the Tribunal examined whether the claimant had "
+                    "The Social Security Tribunal has addressed voluntary departure "
+                    "with just cause in several decisions. In the sample decision "
+                    "provided, the Tribunal examined whether the claimant had "
                     "exhausted reasonable alternatives before leaving employment [1]."
                 ),
                 content_hash=_sha256("voluntary-departure-answer-full"),
@@ -266,9 +270,10 @@ class ChatStore:
                 user_id="demo-bob",
                 role="assistant",
                 content_preview=_preview(
-                    "I was unable to find sufficient information in the available sources to fully address "
-                    "this question. The sources indicate a minimum 10-year residency requirement, but the "
-                    "specific case of 8 years with non-resident status is not directly addressed."
+                    "I was unable to find sufficient information in the available "
+                    "sources to fully address this question. The sources indicate a "
+                    "minimum 10-year residency requirement, but the specific case of "
+                    "8 years with non-resident status is not directly addressed."
                 ),
                 content_hash=_sha256("non-resident-answer-low-confidence"),
                 citations=[
@@ -350,7 +355,8 @@ class ChatStore:
                 user_id="demo-alice",
                 role="assistant",
                 content_preview=_preview(
-                    "Generally, Canadian government benefits are administered through Service Canada. "
+                    "Generally, Canadian government benefits are administered "
+                    "through Service Canada. "
                     "The process typically involves submitting an application online or in person. "
                     "Please note this answer is not grounded in official ESDC documents."
                 ),
