@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import UserContext, get_current_user
 from ..config import get_settings
-from ..guardrails.degradation import DependencyStatus
 from ..stores import degradation_manager
 
 router = APIRouter()

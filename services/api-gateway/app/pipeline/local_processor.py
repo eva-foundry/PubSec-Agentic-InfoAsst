@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..stores.compat import aio
 from ..stores.vector_store import VectorDocument, VectorStore
@@ -102,7 +102,7 @@ class LocalDocumentProcessor:
         6. Return updated DocumentRecord (status: indexed)
         """
         doc_id = f"doc-{uuid.uuid4().hex[:8]}"
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         record = DocumentRecord(
             id=doc_id,
@@ -164,7 +164,7 @@ class LocalDocumentProcessor:
             # 5. Store in vector index (AI Search or in-memory)
             await aio(self.vector_store.add_documents(workspace_id, vector_docs))
 
-            indexed_at = datetime.now(timezone.utc).isoformat()
+            indexed_at = datetime.now(UTC).isoformat()
             await aio(self.document_store.update_status(
                 doc_id, "indexed",
                 chunk_count=len(vector_docs),

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models.admin import PromptVersion
 
@@ -53,7 +53,7 @@ class PromptStore:
                 "Initial query rewrite prompt",
             ),
         ]
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         for name, content, rationale in seeds:
             pv = PromptVersion(
                 id=str(uuid.uuid4()),
@@ -114,7 +114,7 @@ class PromptStore:
             content=content,
             author=author,
             rationale=rationale,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             is_active=True,
         )
         deactivated.append(new_pv)

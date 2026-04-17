@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ...models.admin import PromptVersion
 from .cosmos_client import CosmosClientManager
@@ -78,7 +78,7 @@ class CosmosPromptStore:
             content=content,
             author=author,
             rationale=rationale,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             is_active=True,
         )
         await self._cosmos.upsert(CONTAINER, new_pv.model_dump())

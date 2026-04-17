@@ -8,8 +8,8 @@ and participates in an auditable delegation chain.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Literal
 
 
@@ -54,7 +54,7 @@ class DelegationChain:
             "parent_id": parent_id,
             "child_id": child_id,
             "purpose": purpose,
-            "delegated_at": datetime.now(timezone.utc).isoformat(),
+            "delegated_at": datetime.now(UTC).isoformat(),
         })
 
     def get_chain(self) -> list[dict]:
@@ -90,5 +90,5 @@ def create_agent_identity(
         agent_id=f"agent-{agent_type[:3]}-{uuid.uuid4().hex[:12]}",
         agent_type=agent_type,
         scoped_permissions=permissions or [],
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )

@@ -59,8 +59,8 @@ class DirectChatTool(Tool):
         """
         query: str = kwargs["query"]
         system_prompt: str = kwargs.get("system_prompt", _DEFAULT_SYSTEM_PROMPT)
-        temperature: float = kwargs.get("temperature", 0.7)
-        max_tokens: int = kwargs.get("max_completion_tokens", 1024)
+        kwargs.get("temperature", 0.7)
+        kwargs.get("max_completion_tokens", 1024)
 
         if self._model_client is None:
             logger.warning("DirectChatTool: no model client configured — returning mock response")
@@ -75,10 +75,6 @@ class DirectChatTool(Tool):
             }
 
         # Build messages for a single-turn completion
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": query},
-        ]
 
         # Collect streamed tokens into a single response string
         content_parts: list[str] = []

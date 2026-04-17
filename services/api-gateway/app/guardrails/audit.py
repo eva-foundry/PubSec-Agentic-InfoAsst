@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 logger = logging.getLogger("eva.guardrails.audit")
 
@@ -29,7 +28,7 @@ class AuditLogger:
     ) -> None:
         """Log a structured audit entry."""
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "audit.subject": subject,
             "audit.actor": actor,
             "audit.action": action,

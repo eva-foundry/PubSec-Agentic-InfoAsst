@@ -7,12 +7,11 @@ API failures, and text truncation.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from app.guardrails.content_safety import ContentSafetyChecker, ContentSafetyResult
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -392,7 +391,7 @@ async def test_text_truncated_to_10k_chars(mock_azure_client):
 
         checker = ContentSafetyChecker()
         long_text = "a" * 15000
-        result = await checker.check_input(long_text)
+        await checker.check_input(long_text)
 
         # Verify analyze_text was called with truncated text
         call_args = mock_azure_client.analyze_text.call_args
@@ -415,7 +414,7 @@ async def test_text_not_truncated_if_under_10k(mock_azure_client):
 
         checker = ContentSafetyChecker()
         text = "short text"
-        result = await checker.check_input(text)
+        await checker.check_input(text)
 
         call_args = mock_azure_client.analyze_text.call_args
         request = call_args[0][0]

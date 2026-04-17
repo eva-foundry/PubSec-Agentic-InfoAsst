@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import pytest
 
+from app.explainability.builder import ExplainabilityBuilder
+from app.explainability.negative_evidence import NegativeEvidenceDetector
 from app.explainability.reasoning import ReasoningSummarizer
 from app.explainability.retrieval_path import RetrievalPathTracker
-from app.explainability.negative_evidence import NegativeEvidenceDetector
-from app.explainability.builder import ExplainabilityBuilder
-
 
 # ---------------------------------------------------------------------------
 # Reasoning summarizer

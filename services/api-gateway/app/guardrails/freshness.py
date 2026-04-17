@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from ..provenance.models import FreshnessInfo
 
@@ -19,7 +19,7 @@ class FreshnessChecker:
         ignored for age calculations but a list consisting entirely of
         ``None`` values produces a clean (no-warning) result.
         """
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
 
         parsed: list[datetime] = []
         for d in source_dates:

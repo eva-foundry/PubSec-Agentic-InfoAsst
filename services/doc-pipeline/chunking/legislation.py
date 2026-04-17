@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from .base import Chunk, ChunkMetadata, ChunkingStrategy
+from .base import Chunk, ChunkingStrategy, ChunkMetadata
 
 # ---------------------------------------------------------------------------
 # Legislative structure detection

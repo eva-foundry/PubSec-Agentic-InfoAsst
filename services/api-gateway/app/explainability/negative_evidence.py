@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 
-
 # Regex for date-like patterns: YYYY, YYYY-MM, YYYY-MM-DD
 _DATE_PATTERN = re.compile(
     r"\b((?:19|20)\d{2})(?:[-/](0[1-9]|1[0-2])(?:[-/](0[1-9]|[12]\d|3[01]))?)?\b"

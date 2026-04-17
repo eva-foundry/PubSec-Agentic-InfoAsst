@@ -6,15 +6,14 @@ The pluggable extraction engine abstraction comes in a later session.
 """
 from __future__ import annotations
 
-import json
 import logging
 from typing import Protocol
 
 from opentelemetry import trace
-
-from handlers.file_uploaded import FileType
 from shared.blob_helpers import download_blob, upload_chunk
 from shared.status import PipelineState, StatusTracker
+
+from handlers.file_uploaded import FileType
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
@@ -29,7 +28,7 @@ class BlobContainerClient(Protocol):
     """Protocol for blob container operations."""
 
     async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
-    async def download_blob(self, blob: str) -> "BlobDownloader": ...
+    async def download_blob(self, blob: str) -> BlobDownloader: ...
 
 
 class BlobDownloader(Protocol):

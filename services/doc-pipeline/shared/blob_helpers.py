@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Protocol
 
 from opentelemetry import trace
@@ -20,7 +20,7 @@ class BlobContainerClient(Protocol):
     """Protocol for Azure Blob container operations (async)."""
 
     async def upload_blob(self, name: str, data: bytes, overwrite: bool = False) -> None: ...
-    async def download_blob(self, blob: str) -> "BlobDownloader": ...
+    async def download_blob(self, blob: str) -> BlobDownloader: ...
     async def delete_blob(self, blob: str) -> None: ...
 
 
@@ -44,13 +44,13 @@ class BlobServiceProtocol(Protocol):
 class BlobLister(Protocol):
     """Protocol for listing blobs by prefix."""
 
-    def list_blobs(self, name_starts_with: str | None = None) -> "AsyncBlobIterator": ...
+    def list_blobs(self, name_starts_with: str | None = None) -> AsyncBlobIterator: ...
 
 
 class AsyncBlobIterator(Protocol):
     """Protocol for async iteration over blob items."""
 
-    def __aiter__(self) -> "AsyncBlobIterator": ...
+    def __aiter__(self) -> AsyncBlobIterator: ...
     async def __anext__(self) -> object: ...
 
 
@@ -118,7 +118,7 @@ def generate_sas_url(
     """
     from azure.storage.blob import BlobSasPermissions, generate_blob_sas
 
-    expiry = datetime.now(timezone.utc) + timedelta(hours=expiry_hours)
+    expiry = datetime.now(UTC) + timedelta(hours=expiry_hours)
 
     sas_token = generate_blob_sas(
         account_name=account_name,

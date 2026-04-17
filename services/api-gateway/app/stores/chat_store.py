@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import hashlib
 import random
-import uuid
 from collections import defaultdict
 
 from pydantic import BaseModel, Field
@@ -67,7 +66,7 @@ class ChatStore:
 
     def _seed(self) -> None:
         """Pre-populate 4 past conversations with varied confidence and workspaces."""
-        rng = random.Random(99)
+        random.Random(99)
 
         # ---- conv-seed-1: 4 messages in ws-oas-act, high confidence ----
         conv1 = "conv-seed-1"

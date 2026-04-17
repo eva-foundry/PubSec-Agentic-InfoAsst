@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from .correlation import generate_correlation_id, get_correlation_id_from_headers
 from .models import (
     AgentStep,
     BehavioralFingerprint,
@@ -10,7 +11,6 @@ from .models import (
     ProvenanceRecord,
 )
 from .tracker import ProvenanceTracker
-from .correlation import generate_correlation_id, get_correlation_id_from_headers
 
 __all__ = [
     "AgentStep",

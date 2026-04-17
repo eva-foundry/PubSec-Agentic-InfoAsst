@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from app.guardrails.confidence import ConfidenceScorer
-from app.guardrails.grounding import GroundingEnforcer
+from app.guardrails.content_safety import ContentSafetyChecker
+from app.guardrails.degradation import CircuitBreaker, DegradationManager, DependencyStatus
 from app.guardrails.escalation import EscalationEngine, EscalationTier
 from app.guardrails.freshness import FreshnessChecker
-from app.guardrails.degradation import CircuitBreaker, DegradationManager, DependencyStatus
+from app.guardrails.grounding import GroundingEnforcer
 from app.guardrails.prompt_shield import PromptShield
-from app.guardrails.content_safety import ContentSafetyChecker
-
 
 # ---------------------------------------------------------------------------
 # Confidence scoring
@@ -226,7 +225,7 @@ class TestCircuitBreaker:
         cb.record_failure()
         assert cb.status == DependencyStatus.DOWN
         # Simulate time passing
-        cb._last_failure = datetime.now(timezone.utc) - timedelta(seconds=2)
+        cb._last_failure = datetime.now(UTC) - timedelta(seconds=2)
         assert cb.status == DependencyStatus.DEGRADED
 
     def test_is_open(self):

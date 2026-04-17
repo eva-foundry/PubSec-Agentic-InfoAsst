@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import uuid
-from datetime import datetime, timedelta, timezone
 import random
+import uuid
+from datetime import UTC, datetime, timedelta
 
 from .cosmos_client import CosmosClientManager
 
@@ -290,7 +290,7 @@ async def _seed_model_registry(cosmos: CosmosClientManager) -> None:
 
 
 async def _seed_prompts(cosmos: CosmosClientManager) -> None:
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     prompts = [
         {"id": str(uuid.uuid4()), "prompt_name": "rag-system", "version": 1, "is_active": True,
          "content": (
@@ -337,7 +337,7 @@ async def _seed_telemetry(cosmos: CosmosClientManager) -> None:
         "reasoning-premium": {"prompt": 0.003, "completion": 0.012},
     }
 
-    base = datetime(2026, 4, 1, 8, 0, 0, tzinfo=timezone.utc)
+    base = datetime(2026, 4, 1, 8, 0, 0, tzinfo=UTC)
     for i in range(60):
         ws = rng.choices(workspaces, weights=workspace_weights, k=1)[0]
         dep = rng.choices(deployments, weights=deployment_weights, k=1)[0]
@@ -363,7 +363,8 @@ async def _seed_telemetry(cosmos: CosmosClientManager) -> None:
 
 async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
     """Seed 4 past conversations matching the in-memory chat store."""
-    sha = lambda t: hashlib.sha256(t.encode()).hexdigest()
+    def sha(t):
+        return hashlib.sha256(t.encode()).hexdigest()
 
     records = [
         # conv-seed-1: OAS Act, high confidence

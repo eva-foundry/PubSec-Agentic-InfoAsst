@@ -6,11 +6,10 @@ updates Cosmos status to DELETED, and creates an audit record.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from opentelemetry import trace
-
 from shared.blob_helpers import delete_blobs
 from shared.status import PipelineState, StatusTracker
 
@@ -27,11 +26,11 @@ class BlobContainerClient(Protocol):
     """Protocol for blob container operations."""
 
     async def delete_blob(self, blob: str) -> None: ...
-    def list_blobs(self, name_starts_with: str | None = None) -> "AsyncBlobIterator": ...
+    def list_blobs(self, name_starts_with: str | None = None) -> AsyncBlobIterator: ...
 
 
 class AsyncBlobIterator(Protocol):
-    def __aiter__(self) -> "AsyncBlobIterator": ...
+    def __aiter__(self) -> AsyncBlobIterator: ...
     async def __anext__(self) -> object: ...
 
 
@@ -101,7 +100,7 @@ async def delete_file(
         "blob_name": blob_name,
         "workspace_id": workspace_id,
         "deleted_by": deleted_by,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "source_deleted": False,
         "chunks_deleted": 0,
         "index_entries_deleted": 0,

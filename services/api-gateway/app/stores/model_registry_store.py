@@ -5,7 +5,7 @@ Every change is versioned with author, rationale, timestamp, and field-level dif
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..models.admin import ModelConfig
 
@@ -250,7 +250,7 @@ class ModelRegistryStore:
         data = m.model_dump()
         history = list(data.get("change_history", []))
         version = len(history) + 1
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Record each changed field
         for field, new_value in updates.items():

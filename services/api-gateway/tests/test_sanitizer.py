@@ -6,9 +6,7 @@ Ensures ITSG-33 AU-2/AU-3 compliance (no PII in logs) and CLAUDE.md AUD02/AUD05.
 
 from __future__ import annotations
 
-import pytest
-
-from app.core.sanitizer import sanitize_for_audit, hash_for_audit
+from app.core.sanitizer import hash_for_audit, sanitize_for_audit
 
 
 class TestSINRedaction:

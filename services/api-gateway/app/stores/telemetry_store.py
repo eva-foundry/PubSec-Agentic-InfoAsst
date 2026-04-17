@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from pydantic import BaseModel, Field
 
@@ -18,7 +18,7 @@ class APIMTelemetryRecord(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     correlation_id: str = ""
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     workspace_id: str = ""
     session_id: str = ""
     client_id: str = "eva-agentic"
@@ -82,7 +82,7 @@ class TelemetryStore:
         clients = ["eva-agentic", "eva-portal", "eva-batch"]
         client_weights = [0.6, 0.3, 0.1]
 
-        base = datetime(2026, 4, 1, 8, 0, 0, tzinfo=timezone.utc)
+        base = datetime(2026, 4, 1, 8, 0, 0, tzinfo=UTC)
 
         for i in range(60):
             ws = rng.choices(workspaces, weights=workspace_weights, k=1)[0]
@@ -132,7 +132,7 @@ class TelemetryStore:
         self, ws_id: str, days: int = 30
     ) -> list[APIMTelemetryRecord]:
         """Return records for a workspace within the last N days."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         return [
             r
             for r in self._records
@@ -141,7 +141,7 @@ class TelemetryStore:
 
     def summary(self, days: int = 30) -> dict:
         """Aggregated FinOps summary for the ops dashboard."""
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         records = [r for r in self._records if r.timestamp >= cutoff]
 
         if not records:

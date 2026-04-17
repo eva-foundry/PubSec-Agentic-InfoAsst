@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ...models.admin import ModelConfig
 from .cosmos_client import CosmosClientManager
@@ -42,7 +42,7 @@ class CosmosModelRegistryStore:
         data = existing.model_dump()
         history = list(data.get("change_history", []))
         version = len(history) + 1
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         for field, new_value in updates.items():
             if field == "change_history":
