@@ -307,27 +307,17 @@ class AgentOrchestrator:
             ):
                 yield line
 
-        # Explainability record — emitted BEFORE provenance_complete so that
-        # provenance_complete is always the last event on the stream (the UI
-        # treats it as the close marker).
-        if tracker.explainability:
-            yield (
-                json.dumps({
-                    "type": "explainability",
-                    "explainability": tracker.explainability.model_dump(),
-                })
-                + "\n"
-            )
-
         # Final provenance record — always the last event on the stream.
+        # Explainability rides on the same event so both consumers (UI
+        # close-marker + audit viewer) see it atomically.
         provenance = tracker.build()
-        yield (
-            json.dumps({
-                "type": "provenance_complete",
-                "provenance": provenance.model_dump(),
-            })
-            + "\n"
-        )
+        final_event: dict = {
+            "type": "provenance_complete",
+            "provenance": provenance.model_dump(),
+        }
+        if tracker.explainability:
+            final_event["explainability"] = tracker.explainability.model_dump()
+        yield json.dumps(final_event) + "\n"
 
     # ------------------------------------------------------------------
     # Grounded mode (RAG)
