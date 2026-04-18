@@ -146,6 +146,9 @@ class TelemetryStore:
                 "cost_by_workspace": {},
                 "cost_by_model": {},
                 "cost_by_client": {},
+                "forecast_cad": 0.0,
+                "waste_score": 0.0,
+                "chargeback_coverage": 0.0,
             }
 
         total_cost = sum(r.cost_cad for r in records)
@@ -182,6 +185,24 @@ class TelemetryStore:
             cost_by_client[c]["cost_cad"] = round(cost_by_client[c]["cost_cad"] + r.cost_cad, 6)
             cost_by_client[c]["queries"] += 1
 
+        # --- Forecast: linear EOM projection at current daily burn ---
+        forecast_cad = round((total_cost / days) * 30, 4) if days > 0 else 0.0
+
+        # --- Chargeback coverage: share of spend attributed to a workspace ---
+        tagged_cost = sum(r.cost_cad for r in records if r.workspace_id)
+        chargeback_coverage = round(tagged_cost / total_cost, 4) if total_cost > 0 else 0.0
+
+        # --- Waste score: concentration-based proxy (0 = healthy, 100 = wasteful).
+        # The top 10% most-expensive queries represent a fraction C of total cost;
+        # in a uniform workload C would be ~0.10. We scale (C - 0.10) into 0..100
+        # so pay-as-you-go spend clustered on a few outlier queries surfaces as
+        # wasteful. Bounded to [0, 100].
+        sorted_costs = sorted((r.cost_cad for r in records), reverse=True)
+        top_n = max(1, len(sorted_costs) // 10)
+        top_spend = sum(sorted_costs[:top_n])
+        concentration = top_spend / total_cost if total_cost > 0 else 0.0
+        waste_score = round(max(0.0, min(100.0, (concentration - 0.10) * 500)), 1)
+
         return {
             "period_days": days,
             "total_cost_cad": round(total_cost, 4),
@@ -191,6 +212,9 @@ class TelemetryStore:
             "cost_by_workspace": cost_by_workspace,
             "cost_by_model": cost_by_model,
             "cost_by_client": cost_by_client,
+            "forecast_cad": forecast_cad,
+            "waste_score": waste_score,
+            "chargeback_coverage": chargeback_coverage,
         }
 
     def session_cost(self, session_id: str) -> dict:

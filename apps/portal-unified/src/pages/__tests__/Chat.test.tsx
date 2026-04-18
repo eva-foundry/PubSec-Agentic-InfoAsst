@@ -58,7 +58,7 @@ describe("Chat: NDJSON streaming", () => {
   it("surfaces the degradation banner when the stream emits a nested degradation event", async () => {
     primeAuth();
     server.use(
-      http.post("http://localhost:8000/v1/eva/chat", () => {
+      http.post("*/v1/eva/chat", () => {
         const events = [
           {
             type: "provenance",
