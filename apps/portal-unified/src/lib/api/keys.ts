@@ -68,6 +68,7 @@ export const qk = {
     deployments: () => [...qk.ops.all, "deployments"] as const,
     traces: (conversationId?: string) => [...qk.ops.all, "traces", conversationId ?? "all"] as const,
     audit: () => [...qk.ops.all, "audit"] as const,
-    drift: () => [...qk.ops.all, "drift"] as const,
+    drift: (workspaceId: string | null, window: string) =>
+      [...qk.ops.all, "drift", workspaceId ?? "all", window] as const,
   },
 } as const;
