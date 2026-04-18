@@ -47,6 +47,7 @@ from ..pipeline.document_store import DocumentStore as DocumentStore  # noqa: E4
 from .booking_store import BookingStore as BookingStore  # noqa: E402
 from .chat_store import ChatStore as ChatStore  # noqa: E402
 from .client_store import ClientStore as ClientStore  # noqa: E402
+from .deployment_store import DeploymentStore as DeploymentStore  # noqa: E402
 from .model_registry_store import ModelRegistryStore as ModelRegistryStore  # noqa: E402
 from .prompt_store import PromptStore as PromptStore  # noqa: E402
 from .survey_store import SurveyStore as SurveyStore  # noqa: E402
@@ -106,6 +107,7 @@ if TYPE_CHECKING:
     vector_store: VectorStore
     document_store: DocumentStore
     chat_store: ChatStore
+    deployment_store: DeploymentStore
 elif API_MOCK:
     workspace_store = WorkspaceStore()
     booking_store = BookingStore()
@@ -118,6 +120,7 @@ elif API_MOCK:
     vector_store = VectorStore()
     document_store = DocumentStore()
     chat_store = ChatStore()
+    deployment_store = DeploymentStore()
 else:
     workspace_store = _LazyStore("workspace_store")
     booking_store = _LazyStore("booking_store")
@@ -130,6 +133,8 @@ else:
     vector_store = _LazyStore("vector_store")
     document_store = _LazyStore("document_store")
     chat_store = _LazyStore("chat_store")
+    # Deployment store is local-only for now; no Cosmos variant yet.
+    deployment_store = DeploymentStore()
 
 
 async def initialize_azure_stores() -> None:
@@ -199,6 +204,7 @@ __all__ = [
     "vector_store",
     "document_store",
     "chat_store",
+    "deployment_store",
     "degradation_manager",
     "cosmos_manager",
     "initialize_azure_stores",
@@ -213,5 +219,6 @@ __all__ = [
     "TelemetryStore",
     "VectorStore",
     "DocumentStore",
+    "DeploymentStore",
     "DegradationManager",
 ]

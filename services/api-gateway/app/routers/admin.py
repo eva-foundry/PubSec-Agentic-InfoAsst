@@ -26,12 +26,14 @@ from ..models.admin import (
 from ..stores import (
     booking_store,
     client_store,
+    deployment_store,
     model_registry_store,
     prompt_store,
     team_store,
     workspace_store,
 )
 from ..stores.compat import aio
+from ..stores.deployment_store import DeploymentRecord
 
 router = APIRouter()
 
@@ -696,3 +698,36 @@ async def update_valves(
         "status": "updated",
         "updated_by": user.user_id,
     }
+
+
+# ---------------------------------------------------------------------------
+# Deployment rollback (Phase F — closes #17)
+# ---------------------------------------------------------------------------
+
+
+class DeploymentRollbackRequest(BaseModel):
+    """Rationale for a deployment rollback — required for the audit trail."""
+
+    rationale: str = Field(min_length=3)
+
+
+@router.post("/admin/deployments/{version}/rollback", response_model=DeploymentRecord)
+async def rollback_deployment(
+    version: str,
+    body: DeploymentRollbackRequest,
+    user: UserContext = Depends(get_current_user),
+) -> DeploymentRecord:
+    """Promote ``version`` to active, mark the current active rolled-back.
+
+    Admin-only. Appends the rationale + actor to each record's notes so the
+    audit trail survives subsequent rollbacks.
+    """
+    _require_admin(user)
+    try:
+        return deployment_store.rollback(
+            target_version=version,
+            actor=user.user_id,
+            rationale=body.rationale,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e)) from e

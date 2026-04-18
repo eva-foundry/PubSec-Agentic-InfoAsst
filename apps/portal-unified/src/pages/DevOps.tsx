@@ -1,10 +1,20 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Rocket, RotateCcw } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Rocket, RotateCcw, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
+import { toast } from "sonner";
 import { useDeployments } from "@/lib/api/hooks/useOps";
+import { useRollbackDeployment } from "@/lib/api/hooks/useAdmin";
+import { useAuth } from "@/contexts/AuthContext";
+import type { DeploymentRecord } from "@/lib/api/types";
 
 const statusToneClass: Record<string, string> = {
   active: "border-success/40 text-success",
@@ -15,6 +25,35 @@ const statusToneClass: Record<string, string> = {
 
 export default function DevOps() {
   const deployments = useDeployments();
+  const rollback = useRollbackDeployment();
+  const { user } = useAuth();
+  const canRollback = user?.role === "admin";
+
+  const [target, setTarget] = useState<DeploymentRecord | null>(null);
+  const [rationale, setRationale] = useState("");
+
+  const openRollback = (d: DeploymentRecord) => {
+    setTarget(d);
+    setRationale("");
+  };
+
+  const submit = () => {
+    if (!target || rationale.trim().length < 3) return;
+    rollback.mutate(
+      { version: target.version, rationale: rationale.trim() },
+      {
+        onSuccess: () => {
+          toast.success(`Rolled back to ${target.version}`);
+          setTarget(null);
+        },
+        onError: (e) => {
+          toast.error(
+            e instanceof Error ? e.message : "Rollback failed",
+          );
+        },
+      },
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -58,35 +97,85 @@ export default function DevOps() {
               </tr>
             </thead>
             <tbody>
-              {deployments.data.map((d) => (
-                <tr key={d.version} className="border-b border-border last:border-0">
-                  <td className="p-3 font-mono">{d.version}</td>
-                  <td className="p-3 text-muted-foreground font-mono text-xs">
-                    {new Date(d.deployed_at).toLocaleString()}
-                  </td>
-                  <td className="p-3">{d.deployed_by}</td>
-                  <td className="p-3">
-                    <Badge variant="outline" className={cn(statusToneClass[d.status] ?? "")}>
-                      {d.status}
-                    </Badge>
-                  </td>
-                  <td className="p-3 text-muted-foreground text-xs">{d.notes}</td>
-                  <td className="p-3 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                      title="Rollback endpoint pending (Phase F)"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Rollback
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {deployments.data.map((d) => {
+                const isActive = d.status === "active";
+                const isFailed = d.status === "failed";
+                const disabled = !canRollback || isActive || isFailed;
+                const disabledReason = !canRollback
+                  ? "Admin role required"
+                  : isActive
+                    ? "Already the active build"
+                    : isFailed
+                      ? "Cannot roll back to a failed build"
+                      : undefined;
+                return (
+                  <tr key={d.version} className="border-b border-border last:border-0">
+                    <td className="p-3 font-mono">{d.version}</td>
+                    <td className="p-3 text-muted-foreground font-mono text-xs">
+                      {new Date(d.deployed_at).toLocaleString()}
+                    </td>
+                    <td className="p-3">{d.deployed_by}</td>
+                    <td className="p-3">
+                      <Badge variant="outline" className={cn(statusToneClass[d.status] ?? "")}>
+                        {d.status}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-muted-foreground text-xs max-w-[320px] truncate" title={d.notes}>
+                      {d.notes}
+                    </td>
+                    <td className="p-3 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openRollback(d)}
+                        disabled={disabled}
+                        title={disabledReason}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Rollback
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
+
+      <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Roll back to {target?.version}</DialogTitle>
+            <DialogDescription>
+              Promotes this version to active and marks the current build rolled-back.
+              The rationale is appended to both records' notes for the audit trail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="rollback-rationale">Rationale</Label>
+            <Textarea
+              id="rollback-rationale"
+              value={rationale}
+              onChange={(e) => setRationale(e.target.value)}
+              placeholder="e.g. calibration regression on answer grounding"
+              rows={3}
+              minLength={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTarget(null)} disabled={rollback.isPending}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submit}
+              disabled={rationale.trim().length < 3 || rollback.isPending}
+            >
+              {rollback.isPending && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
+              Confirm rollback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
