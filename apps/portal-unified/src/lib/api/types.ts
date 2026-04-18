@@ -372,18 +372,26 @@ export interface FeedbackSummary {
   period_end: string;
 }
 
+export interface FinOpsBreakdownEntry {
+  cost_cad: number;
+  queries: number;
+  cost_per_query?: number;
+  model_name?: string;
+}
+
 export interface FinOpsSummary {
   period_days: number;
   total_cost_cad: number;
   query_count: number;
   avg_latency_ms: number;
   avg_tokens: number;
-  cost_by_workspace: Record<string, number>;
-  cost_by_model: Record<string, number>;
-  cost_by_client: Record<string, number>;
-  forecast_cad?: number;
-  waste_score?: number;
-  chargeback_coverage?: number;
+  // Backend nests each breakdown; a flat map would lose queries + cost_per_query.
+  cost_by_workspace: Record<string, FinOpsBreakdownEntry>;
+  cost_by_model: Record<string, FinOpsBreakdownEntry>;
+  cost_by_client: Record<string, FinOpsBreakdownEntry>;
+  forecast_cad: number;
+  waste_score: number;
+  chargeback_coverage: number;
 }
 
 export interface SessionCost {

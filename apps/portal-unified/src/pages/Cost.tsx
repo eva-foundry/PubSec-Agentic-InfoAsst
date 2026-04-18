@@ -6,7 +6,7 @@ import { AlertTriangle, Coins, Sparkles, TrendingDown, TrendingUp } from "lucide
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { useFinOpsMetrics } from "@/lib/api/hooks/useOps";
-import type { FinOpsSummary } from "@/lib/api/types";
+import type { FinOpsBreakdownEntry } from "@/lib/api/types";
 
 const tooltipStyle = {
   background: "hsl(var(--popover))",
@@ -18,16 +18,11 @@ const tooltipStyle = {
 const cad = (value: number): string =>
   value.toLocaleString("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 });
 
-const forecastEom = (summary: FinOpsSummary): number => {
-  if (summary.forecast_cad !== undefined) return summary.forecast_cad;
-  if (summary.period_days <= 0) return 0;
-  const perDay = summary.total_cost_cad / summary.period_days;
-  return perDay * 30;
-};
-
-const toBarSeries = (map: Record<string, number>): Array<{ label: string; spend: number }> =>
+const toBarSeries = (
+  map: Record<string, FinOpsBreakdownEntry>,
+): Array<{ label: string; spend: number }> =>
   Object.entries(map)
-    .map(([label, spend]) => ({ label, spend: Number(spend) || 0 }))
+    .map(([label, entry]) => ({ label, spend: Number(entry?.cost_cad) || 0 }))
     .sort((a, b) => b.spend - a.spend);
 
 export default function Cost() {
@@ -45,24 +40,22 @@ export default function Cost() {
       },
       {
         label: "Forecast (EOM)",
-        value: cad(forecastEom(data)),
-        delta: data.forecast_cad === undefined ? "projected" : "from backend",
+        value: cad(data.forecast_cad),
+        delta: "linear projection at current burn",
         trend: "flat" as const,
         icon: TrendingUp,
       },
       {
         label: "Waste score",
-        value: data.waste_score !== undefined ? `${data.waste_score.toFixed(1)} / 100` : "—",
-        delta: data.waste_score !== undefined ? "" : "needs backend field",
+        value: `${data.waste_score.toFixed(1)} / 100`,
+        delta: "cost concentration · 0 healthy, 100 wasteful",
         trend: "down" as const,
         icon: TrendingDown,
       },
       {
         label: "Chargeback coverage",
-        value: data.chargeback_coverage !== undefined
-          ? `${Math.round(data.chargeback_coverage * 100)}%`
-          : "—",
-        delta: data.chargeback_coverage !== undefined ? "" : "needs backend field",
+        value: `${Math.round(data.chargeback_coverage * 100)}%`,
+        delta: "share of spend tagged to a workspace",
         trend: "flat" as const,
         icon: Sparkles,
       },
