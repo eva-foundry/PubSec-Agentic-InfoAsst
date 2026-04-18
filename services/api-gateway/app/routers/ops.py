@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import random
 from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from ..auth import UserContext, get_current_user
 from ..models.drift import (
@@ -16,7 +18,8 @@ from ..models.drift import (
     ModelDriftPoint,
     PromptDriftPoint,
 )
-from ..stores import audit_store, deployment_store
+from ..models.eval_run import EvalChallengeRequest, EvalRunStarted
+from ..stores import audit_store, deployment_store, eval_run_store
 from ..stores.audit_store import AuditEntry
 from ..stores.compat import aio
 from ..stores.deployment_store import DeploymentRecord
@@ -682,3 +685,44 @@ async def audit_log(
         end=end,
         limit=min(max(limit, 1), 1000),
     )
+
+
+# ---------------------------------------------------------------------------
+# Red-team / adversarial evaluation runner (Phase F — closes #15)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/ops/eval/challenges", response_model=EvalRunStarted)
+async def start_eval_run(
+    body: EvalChallengeRequest,
+    user: UserContext = Depends(get_current_user),
+) -> EvalRunStarted:
+    """Kick off an adversarial test run against the selected attack categories."""
+    _require_ops(user)
+    try:
+        record = eval_run_store.create(
+            test_set_id=body.test_set_id,
+            categories=body.categories,
+            workspace_id=body.workspace_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    return EvalRunStarted(run_id=record.run_id, status="queued", total_probes=record.total)
+
+
+@router.get("/ops/eval/results")
+async def stream_eval_results(
+    run_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> StreamingResponse:
+    """Stream probe verdicts + a terminal summary as NDJSON."""
+    _require_ops(user)
+    record = eval_run_store.get(run_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
+
+    def generate():
+        for event in eval_run_store.events(record):
+            yield json.dumps(event) + "\n"
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
