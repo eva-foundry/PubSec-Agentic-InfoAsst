@@ -56,8 +56,10 @@ export const useToggleModel = () => {
   const client = useApiClient();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (modelId: string) =>
-      client.post<ModelConfig>(`/v1/eva/admin/models/${modelId}/toggle`),
+    mutationFn: ({ modelId, isActive }: { modelId: string; isActive: boolean }) =>
+      client.post<ModelConfig>(`/v1/eva/admin/models/${modelId}/toggle`, undefined, {
+        query: { is_active: isActive },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.admin.models() }),
   });
 };
