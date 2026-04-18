@@ -7,7 +7,8 @@ from datetime import UTC
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import UserContext, get_current_user
-from ..stores import deployment_store
+from ..stores import audit_store, deployment_store
+from ..stores.audit_store import AuditEntry
 from ..stores.compat import aio
 from ..stores.deployment_store import DeploymentRecord
 
@@ -351,3 +352,37 @@ async def deployment_history(
     """Chronological list of platform deployments, newest first."""
     _require_ops(user)
     return deployment_store.list_all()
+
+
+# ---------------------------------------------------------------------------
+# Audit log (Phase F — closes #14)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/ops/audit", response_model=list[AuditEntry])
+async def audit_log(
+    user: UserContext = Depends(get_current_user),
+    actor: str | None = None,
+    action: str | None = None,
+    decision: str | None = None,
+    policy: str | None = None,
+    start: str | None = None,
+    end: str | None = None,
+    limit: int = 200,
+) -> list[AuditEntry]:
+    """Governance/audit events newest-first, with optional filters.
+
+    Sources: guardrail decisions + admin mutations (model toggle, deployment
+    rollback, prompt rollback, workspace provision). Retention is in-memory
+    for demo; production backs this with Log Analytics + Cosmos DB.
+    """
+    _require_ops(user)
+    return audit_store.query(
+        actor=actor,
+        action=action,
+        decision=decision,
+        policy=policy,
+        start=start,
+        end=end,
+        limit=min(max(limit, 1), 1000),
+    )

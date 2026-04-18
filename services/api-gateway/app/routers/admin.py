@@ -24,6 +24,7 @@ from ..models.admin import (
     WorkspaceProvisionRequest,
 )
 from ..stores import (
+    audit_store,
     booking_store,
     client_store,
     deployment_store,
@@ -506,6 +507,15 @@ async def toggle_model(
     )
     if model is None:
         raise HTTPException(status_code=404, detail=f"Model '{model_id}' not found")
+    audit_store.record(
+        actor=user.user_id,
+        action="model.toggle",
+        target=model_id,
+        subject=model.model_name,
+        decision="allow",
+        policy="model-registry",
+        rationale=f"Model {action} via admin portal",
+    )
     return model
 
 
@@ -724,10 +734,20 @@ async def rollback_deployment(
     """
     _require_admin(user)
     try:
-        return deployment_store.rollback(
+        record = deployment_store.rollback(
             target_version=version,
             actor=user.user_id,
             rationale=body.rationale,
         )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
+    audit_store.record(
+        actor=user.user_id,
+        action="deployment.rollback",
+        target=version,
+        subject="api-gateway",
+        decision="allow",
+        policy="deploy-change-advisory",
+        rationale=body.rationale,
+    )
+    return record

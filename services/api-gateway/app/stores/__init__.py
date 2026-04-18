@@ -44,6 +44,7 @@ degradation_manager.register("cosmos", failure_threshold=5, reset_timeout=60)
 # ---------------------------------------------------------------------------
 
 from ..pipeline.document_store import DocumentStore as DocumentStore  # noqa: E402
+from .audit_store import AuditStore as AuditStore  # noqa: E402
 from .booking_store import BookingStore as BookingStore  # noqa: E402
 from .chat_store import ChatStore as ChatStore  # noqa: E402
 from .client_store import ClientStore as ClientStore  # noqa: E402
@@ -108,6 +109,7 @@ if TYPE_CHECKING:
     document_store: DocumentStore
     chat_store: ChatStore
     deployment_store: DeploymentStore
+    audit_store: AuditStore
 elif API_MOCK:
     workspace_store = WorkspaceStore()
     booking_store = BookingStore()
@@ -121,6 +123,7 @@ elif API_MOCK:
     document_store = DocumentStore()
     chat_store = ChatStore()
     deployment_store = DeploymentStore()
+    audit_store = AuditStore()
 else:
     workspace_store = _LazyStore("workspace_store")
     booking_store = _LazyStore("booking_store")
@@ -133,8 +136,9 @@ else:
     vector_store = _LazyStore("vector_store")
     document_store = _LazyStore("document_store")
     chat_store = _LazyStore("chat_store")
-    # Deployment store is local-only for now; no Cosmos variant yet.
+    # Deployment + audit stores are local-only for now; no Cosmos variants yet.
     deployment_store = DeploymentStore()
+    audit_store = AuditStore()
 
 
 async def initialize_azure_stores() -> None:
@@ -205,6 +209,7 @@ __all__ = [
     "document_store",
     "chat_store",
     "deployment_store",
+    "audit_store",
     "degradation_manager",
     "cosmos_manager",
     "initialize_azure_stores",
@@ -220,5 +225,6 @@ __all__ = [
     "VectorStore",
     "DocumentStore",
     "DeploymentStore",
+    "AuditStore",
     "DegradationManager",
 ]

@@ -1,29 +1,18 @@
 import { useMemo, useState } from "react";
 import { FRAMEWORKS } from "@/lib/site-content";
-
-// Audit log endpoint (GET /v1/eva/ops/audit) is tracked as Phase F.
-// Until it ships, the audit log table surfaces an empty state rather
-// than scripted rows — the compliance framework is honest about gaps.
-interface AuditEvent {
-  id: string;
-  time: string;
-  actor: string;
-  subject: string;
-  purpose: string;
-  decision: "allow" | "deny" | "hitl-required";
-  policy: string;
-}
-const AUDIT_LOG: AuditEvent[] = [];
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Download, Search, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { toast } from "sonner";
+import { useAuditLog } from "@/lib/api/hooks/useOps";
+import type { AuditEntry } from "@/lib/api/types";
 
 const HITL = { auto: 1284, flagged: 92, human: 31 };
 const CONTROLS = ["GV-1.1", "GV-1.2", "MP-2.1", "MS-1.1", "MS-2.7", "MG-3.1", "MG-4.1", "OP-1.1", "OP-2.3", "AC-1", "AU-2", "AU-12"];
@@ -42,20 +31,27 @@ const FINGERPRINTS = [
 
 type Decision = "all" | "allow" | "deny" | "hitl-required";
 
-function downloadCSV(rows: typeof AUDIT_LOG) {
-  const header = ["time", "actor", "subject", "purpose", "decision", "policy"].join(",");
-  const body = rows.map((r) =>
-    [r.time, r.actor, r.subject, r.purpose, r.decision, r.policy].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
-  ).join("\n");
+function downloadCSV(rows: AuditEntry[]) {
+  const header = ["timestamp", "actor", "action", "target", "subject", "decision", "policy", "rationale"].join(",");
+  const body = rows
+    .map((r) =>
+      [r.timestamp, r.actor, r.action, r.target, r.subject, r.decision, r.policy, r.rationale]
+        .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
+        .join(","),
+    )
+    .join("\n");
   const blob = new Blob([header + "\n" + body], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
+  a.href = url;
+  a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   URL.revokeObjectURL(url);
 }
 
-function exportEvidenceBundle(rows: typeof AUDIT_LOG) {
+function exportEvidenceBundle(rows: AuditEntry[]) {
   const bundle = {
     generatedAt: new Date().toISOString(),
     frameworks: FRAMEWORKS,
@@ -67,8 +63,11 @@ function exportEvidenceBundle(rows: typeof AUDIT_LOG) {
   const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `evidence-bundle-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a); a.click(); a.remove();
+  a.href = url;
+  a.download = `evidence-bundle-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   URL.revokeObjectURL(url);
   toast.success("Evidence bundle exported");
 }
@@ -77,16 +76,23 @@ export default function Compliance() {
   const [query, setQuery] = useState("");
   const [decision, setDecision] = useState<Decision>("all");
 
-  const filtered = useMemo(
-    () => AUDIT_LOG
-      .filter((r) => decision === "all" || r.decision === decision)
-      .filter((r) => {
-        const q = query.toLowerCase();
-        return !q || r.actor.toLowerCase().includes(q) || r.subject.toLowerCase().includes(q) ||
-          r.purpose.toLowerCase().includes(q) || r.policy.toLowerCase().includes(q);
-      }),
-    [query, decision],
-  );
+  // Server-side decision filter keeps payload small; text search is client-side
+  // because the backend doesn't yet accept a full-text parameter.
+  const audit = useAuditLog(decision === "all" ? {} : { decision });
+  const entries = audit.data ?? [];
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    if (!q) return entries;
+    return entries.filter(
+      (r) =>
+        r.actor.toLowerCase().includes(q) ||
+        r.target.toLowerCase().includes(q) ||
+        r.subject.toLowerCase().includes(q) ||
+        r.rationale.toLowerCase().includes(q) ||
+        r.policy.toLowerCase().includes(q),
+    );
+  }, [entries, query]);
 
   return (
     <div className="space-y-6">
@@ -118,7 +124,7 @@ export default function Compliance() {
       <div className="ui-card rounded-lg overflow-hidden">
         <div className="p-4 border-b border-border flex items-center gap-2 flex-wrap">
           <h2 className="font-bold">Audit log</h2>
-          <Badge variant="outline" className="text-[10px]">{filtered.length} of {AUDIT_LOG.length} events</Badge>
+          <Badge variant="outline" className="text-[10px]">{filtered.length} of {entries.length} events</Badge>
           <div className="ml-auto flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <Select value={decision} onValueChange={(v) => setDecision(v as Decision)}>
               <SelectTrigger className="h-8 w-[140px] text-xs" aria-label="Filter by decision"><SelectValue /></SelectTrigger>
@@ -144,9 +150,22 @@ export default function Compliance() {
             </Button>
           </div>
         </div>
-        {filtered.length === 0 ? (
+        {audit.isLoading ? (
+          <div className="p-4 space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+          </div>
+        ) : audit.isError ? (
           <div className="p-6">
-            <EmptyState title="No matching audit events" description="Adjust your filters to see logged decisions." />
+            <EmptyState title="Could not load audit log" description={audit.error?.message} />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              title={entries.length === 0 ? "No audit events yet" : "No matching audit events"}
+              description={entries.length === 0
+                ? "Governance events will appear as admins toggle models, roll back deployments, and the guardrail denies queries."
+                : "Adjust your filters to see logged decisions."}
+            />
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -155,19 +174,21 @@ export default function Compliance() {
                 <tr>
                   <th scope="col" className="text-left p-3 font-medium">Time</th>
                   <th scope="col" className="text-left p-3 font-medium">Actor</th>
-                  <th scope="col" className="text-left p-3 font-medium">Subject</th>
-                  <th scope="col" className="text-left p-3 font-medium">Purpose</th>
+                  <th scope="col" className="text-left p-3 font-medium">Action</th>
+                  <th scope="col" className="text-left p-3 font-medium">Target</th>
                   <th scope="col" className="text-left p-3 font-medium">Decision</th>
                   <th scope="col" className="text-left p-3 font-medium">Policy</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((a) => (
-                  <tr key={a.id} className="border-b border-border last:border-0">
-                    <td className="p-3 font-mono text-muted-foreground">{a.time}</td>
+                  <tr key={a.id} className="border-b border-border last:border-0" title={a.rationale}>
+                    <td className="p-3 font-mono text-muted-foreground whitespace-nowrap">
+                      {new Date(a.timestamp).toLocaleString()}
+                    </td>
                     <td className="p-3 font-mono">{a.actor}</td>
-                    <td className="p-3 font-mono">{a.subject}</td>
-                    <td className="p-3">{a.purpose}</td>
+                    <td className="p-3 font-mono">{a.action}</td>
+                    <td className="p-3 font-mono">{a.target}</td>
                     <td className="p-3">
                       <Badge
                         variant="outline"
