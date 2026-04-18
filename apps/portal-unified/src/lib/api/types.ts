@@ -451,12 +451,25 @@ export interface DeploymentRecord {
 
 export interface AuditEntry {
   id: string;
-  action: string;
-  actor: string;
-  target: string;
   timestamp: string;
+  actor: string;
+  action: string;
+  target: string;
+  subject: string;
+  decision: "allow" | "deny" | "hitl-required" | string;
+  policy: string;
+  rationale: string;
   correlation_id: string | null;
-  [k: string]: unknown;
+}
+
+export interface AuditFilters {
+  actor?: string;
+  action?: string;
+  decision?: string;
+  policy?: string;
+  start?: string;
+  end?: string;
+  limit?: number;
 }
 
 export interface SystemInfo {

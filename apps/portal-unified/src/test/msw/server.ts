@@ -10,6 +10,7 @@ import {
   ADMIN_MODELS_FIXTURE,
   ADMIN_PROMPTS_FIXTURE,
   AIOPS_FIXTURE,
+  AUDIT_ENTRIES_FIXTURE,
   CORPUS_HEALTH_FIXTURE,
   DEPLOYMENTS_FIXTURE,
   EVAL_ARENA_FIXTURE,
@@ -60,6 +61,14 @@ export const opsHandlers = [
   http.get(`*/v1/eva/ops/corpus-health`, () => HttpResponse.json(CORPUS_HEALTH_FIXTURE)),
   http.get(`*/v1/eva/ops/evaluation-arena`, () => HttpResponse.json(EVAL_ARENA_FIXTURE)),
   http.get(`*/v1/eva/ops/deployments`, () => HttpResponse.json(DEPLOYMENTS_FIXTURE)),
+  http.get(`*/v1/eva/ops/audit`, ({ request }) => {
+    const url = new URL(request.url);
+    const decision = url.searchParams.get("decision");
+    const data = decision
+      ? AUDIT_ENTRIES_FIXTURE.filter((e) => e.decision === decision)
+      : AUDIT_ENTRIES_FIXTURE;
+    return HttpResponse.json(data);
+  }),
 ];
 
 export const adminHandlers = [

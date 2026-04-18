@@ -4,6 +4,7 @@
 
 import type {
   AIOpsMetrics,
+  AuditEntry,
   CorpusHealth,
   DeploymentRecord,
   EvalArenaEntry,
@@ -124,6 +125,33 @@ export const ADMIN_MODELS_FIXTURE: ModelConfig[] = [
 export const ADMIN_PROMPTS_FIXTURE = [
   { name: "rag-system", active_version: 3 },
   { name: "ungrounded-system", active_version: 1 },
+];
+
+export const AUDIT_ENTRIES_FIXTURE: AuditEntry[] = [
+  {
+    id: "au-0001",
+    timestamp: "2026-04-15T09:42:10Z",
+    actor: "demo-dave",
+    action: "model.toggle",
+    target: "m-gpt-51",
+    subject: "gpt-5.1",
+    decision: "allow",
+    policy: "model-registry",
+    rationale: "enable reasoning-premium for Legal workspace",
+    correlation_id: null,
+  },
+  {
+    id: "au-0002",
+    timestamp: "2026-04-13T14:05:41Z",
+    actor: "system-guardrail",
+    action: "guardrail.decision",
+    target: "conv-abc123",
+    subject: "prompt-injection-probe",
+    decision: "deny",
+    policy: "prompt-injection-defense-v1",
+    rationale: "matched known-bad pattern",
+    correlation_id: null,
+  },
 ];
 
 export const SYSTEM_INFO_FIXTURE: SystemInfo = {
