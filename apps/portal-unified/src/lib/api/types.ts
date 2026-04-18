@@ -453,6 +453,43 @@ export interface LiveOpsMetrics {
   [k: string]: unknown;
 }
 
+export interface EvalChallengeRequest {
+  test_set_id: string;
+  categories: string[];
+  workspace_id: string;
+}
+
+export interface EvalRunStarted {
+  run_id: string;
+  status: string;
+  total_probes: number;
+}
+
+export type EvalProbeResult = "pass" | "fail" | "flag";
+
+export interface EvalProbeEvent {
+  type: "probe";
+  id: string;
+  run_id: string;
+  category: string;
+  prompt: string;
+  result: EvalProbeResult;
+  ms: number;
+}
+
+export interface EvalCompleteEvent {
+  type: "complete";
+  run_id: string;
+  status: "complete";
+  total: number;
+  passed: number;
+  failed: number;
+  flagged: number;
+  pass_rate: number;
+}
+
+export type EvalStreamEvent = EvalProbeEvent | EvalCompleteEvent;
+
 export interface Incident {
   id: string;
   title: string;
