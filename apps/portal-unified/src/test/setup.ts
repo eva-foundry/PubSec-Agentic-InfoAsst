@@ -1,5 +1,14 @@
 import "@testing-library/jest-dom";
 import "@/lib/i18n";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { server } from "@/test/msw/server";
+
+// Global MSW lifecycle — every test gets the default handlers for
+// /auth, /workspaces, /conversations, /ops, /admin, /system.
+// Per-test overrides via server.use() still work.
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 // matchMedia
 Object.defineProperty(window, "matchMedia", {

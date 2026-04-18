@@ -6,12 +6,23 @@ import {
   DEMO_USERS_FIXTURE,
   WORKSPACES_FIXTURE,
 } from "./chat-fixtures";
+import {
+  ADMIN_MODELS_FIXTURE,
+  ADMIN_PROMPTS_FIXTURE,
+  AIOPS_FIXTURE,
+  CORPUS_HEALTH_FIXTURE,
+  DEPLOYMENTS_FIXTURE,
+  EVAL_ARENA_FIXTURE,
+  FINOPS_FIXTURE,
+  LIVEOPS_FIXTURE,
+  OPS_HEALTH_FIXTURE,
+  SYSTEM_INFO_FIXTURE,
+} from "./fixtures";
 import type { ChatEvent } from "@/lib/api/types";
 
-// Wildcard `*` origin so handlers match any VITE_API_BASE_URL the client
-// resolves in tests (dev-machine .env.local may override it).
-const API = "*";
-
+// Use wildcard `*` origin so handlers match any VITE_API_BASE_URL
+// the client resolves in test mode (.env.local can override to a
+// non-localhost host; MSW should still intercept).
 const ndjsonStream = (events: ChatEvent[]): ReadableStream<Uint8Array> => {
   const encoder = new TextEncoder();
   return new ReadableStream({
@@ -25,14 +36,52 @@ const ndjsonStream = (events: ChatEvent[]): ReadableStream<Uint8Array> => {
 };
 
 export const chatHandlers = [
-  http.post(`${API}/v1/eva/chat`, () =>
+  http.post(`*/v1/eva/chat`, () =>
     new HttpResponse(ndjsonStream(CHAT_FIXTURE_EVENTS), {
       headers: { "content-type": "application/x-ndjson" },
     }),
   ),
-  http.get(`${API}/v1/eva/workspaces`, () => HttpResponse.json(WORKSPACES_FIXTURE)),
-  http.get(`${API}/v1/eva/conversations`, () => HttpResponse.json(CONVERSATIONS_FIXTURE)),
-  http.get(`${API}/v1/eva/auth/demo/users`, () => HttpResponse.json(DEMO_USERS_FIXTURE)),
+  http.get(`*/v1/eva/workspaces`, () => HttpResponse.json(WORKSPACES_FIXTURE)),
+  http.get(`*/v1/eva/conversations`, () => HttpResponse.json(CONVERSATIONS_FIXTURE)),
+  http.get(`*/v1/eva/auth/demo/users`, () => HttpResponse.json(DEMO_USERS_FIXTURE)),
+  http.post(`*/v1/eva/auth/demo/login`, async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    const user = DEMO_USERS_FIXTURE.find((u) => u.email === body?.email);
+    if (!user) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json(user);
+  }),
 ];
 
-export const server = setupServer(...chatHandlers);
+export const opsHandlers = [
+  http.get(`*/v1/eva/ops/health`, () => HttpResponse.json(OPS_HEALTH_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/finops`, () => HttpResponse.json(FINOPS_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/aiops`, () => HttpResponse.json(AIOPS_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/liveops`, () => HttpResponse.json(LIVEOPS_FIXTURE)),
+  http.get(`*/v1/eva/ops/corpus-health`, () => HttpResponse.json(CORPUS_HEALTH_FIXTURE)),
+  http.get(`*/v1/eva/ops/evaluation-arena`, () => HttpResponse.json(EVAL_ARENA_FIXTURE)),
+  http.get(`*/v1/eva/ops/deployments`, () => HttpResponse.json(DEPLOYMENTS_FIXTURE)),
+];
+
+export const adminHandlers = [
+  http.get(`*/v1/eva/admin/models`, () => HttpResponse.json(ADMIN_MODELS_FIXTURE)),
+  http.get(`*/v1/eva/admin/prompts`, () => HttpResponse.json(ADMIN_PROMPTS_FIXTURE)),
+  http.post(`*/v1/eva/admin/models/:id/toggle`, async ({ params }) => {
+    const id = params.id as string;
+    const model = ADMIN_MODELS_FIXTURE.find((m) => m.id === id);
+    if (!model) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ ...model, is_active: !model.is_active });
+  }),
+];
+
+export const systemHandlers = [
+  http.get(`*/v1/eva/system/info`, () => HttpResponse.json(SYSTEM_INFO_FIXTURE)),
+];
+
+export const defaultHandlers = [
+  ...chatHandlers,
+  ...opsHandlers,
+  ...adminHandlers,
+  ...systemHandlers,
+];
+
+export const server = setupServer(...defaultHandlers);
