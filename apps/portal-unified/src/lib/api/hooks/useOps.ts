@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useApiClient } from "@/contexts/ApiProvider";
 import type {
   AIOpsMetrics,
+  AuditEntry,
+  AuditFilters,
   CorpusHealth,
   DeploymentRecord,
   EvalArenaEntry,
@@ -73,6 +75,25 @@ export const useDeployments = () => {
   return useQuery({
     queryKey: qk.ops.deployments(),
     queryFn: () => client.get<DeploymentRecord[]>("/v1/eva/ops/deployments"),
+  });
+};
+
+export const useAuditLog = (filters: AuditFilters = {}) => {
+  const client = useApiClient();
+  return useQuery({
+    queryKey: [...qk.ops.audit(), filters] as const,
+    queryFn: () =>
+      client.get<AuditEntry[]>("/v1/eva/ops/audit", {
+        query: {
+          actor: filters.actor,
+          action: filters.action,
+          decision: filters.decision,
+          policy: filters.policy,
+          start: filters.start,
+          end: filters.end,
+          limit: filters.limit,
+        },
+      }),
   });
 };
 
