@@ -5,7 +5,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { WORKSPACES, AUDIT_LOG, DOCUMENTS } from "@/lib/mock-data";
+import { useWorkspaces } from "@/lib/api/hooks/useWorkspaces";
 import { NAV, GENERAL_NAV } from "@/lib/nav-config";
 import { fuzzyScore } from "@/lib/cmdk/fuzzy";
 import { usePaletteMemory, PINNED_LIMIT } from "@/lib/cmdk/persistence";
@@ -15,7 +15,7 @@ import { useCustomizer } from "@/contexts/ThemeCustomizer";
 import { useShortcuts } from "@/components/ShortcutsOverlay";
 import { useCoachmarkTour } from "@/components/CoachmarkTour";
 import {
-  Building2, FileText, ScrollText, ArrowRight, Pin, Clock, Trash2, Zap, type LucideIcon,
+  Building2, ArrowRight, Pin, Clock, Trash2, Zap, type LucideIcon,
 } from "lucide-react";
 
 interface Ctx { open: () => void; close: () => void; }
@@ -62,6 +62,7 @@ function Inner({
   const [query, setQuery] = useState("");
   const { recent, pinned, pushRecent, togglePin, clearRecent } = usePaletteMemory();
   const { theme, setTheme, portal, setPortal } = useCustomizer();
+  const workspacesQuery = useWorkspaces();
   const { open: openShortcuts } = useShortcuts();
   const { start: startTour } = useCoachmarkTour();
 
@@ -135,36 +136,22 @@ function Inner({
         };
       });
 
-    const workspaceEntries: Entry[] = WORKSPACES.map((w) => {
+    const workspaceEntries: Entry[] = (workspacesQuery.data ?? []).map((w) => {
       const id = `ws:${w.id}`;
+      const archetype = w.archetype ?? w.type ?? "workspace";
       return {
-        id, label: w.name, hint: `${w.archetype} · ${w.docs} docs`, icon: Building2,
+        id,
+        label: w.name,
+        hint: `${archetype} · ${w.document_count} docs`,
+        icon: Building2,
         onSelect: () => go("/my-workspace", id),
-        haystack: `${w.name} ${w.archetype} ${w.assurance}`, group: "workspaces",
+        haystack: `${w.name} ${archetype} ${w.data_classification}`,
+        group: "workspaces",
       };
     });
 
-    const docEntries: Entry[] = DOCUMENTS.map((d) => {
-      const ws = WORKSPACES.find((w) => w.id === d.workspaceId);
-      const id = `doc:${d.id}`;
-      return {
-        id, label: d.title, hint: `${d.kind} · ${ws?.name ?? d.workspaceId} · ${d.pages}p`, icon: FileText,
-        onSelect: () => go("/catalog", id),
-        haystack: `${d.title} ${d.kind} ${ws?.name ?? ""}`, group: "documents",
-      };
-    });
-
-    const auditEntries: Entry[] = AUDIT_LOG.map((a) => {
-      const id = `aud:${a.id}`;
-      return {
-        id, label: `${a.actor} → ${a.subject}`, hint: `${a.decision} · ${a.policy}`, icon: ScrollText,
-        onSelect: () => go("/compliance", id),
-        haystack: `${a.actor} ${a.subject} ${a.purpose} ${a.decision} ${a.policy}`, group: "audit",
-      };
-    });
-
-    return [...actionEntries, ...navEntries, ...workspaceEntries, ...docEntries, ...auditEntries];
-  }, [t, go, runAction, navigate, theme, setTheme, portal, setPortal, openShortcuts, startTour]);
+    return [...actionEntries, ...navEntries, ...workspaceEntries];
+  }, [t, go, runAction, navigate, theme, setTheme, portal, setPortal, openShortcuts, startTour, workspacesQuery.data]);
 
   const entryById = useMemo(() => {
     const map = new Map<string, Entry>();
