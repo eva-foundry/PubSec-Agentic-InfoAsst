@@ -1,0 +1,134 @@
+// Deterministic fixtures for ops/admin/system endpoints consumed by the
+// wired pages. Field names match the backend Pydantic models exactly
+// (snake_case, no translation at the wire).
+
+import type {
+  AIOpsMetrics,
+  CorpusHealth,
+  DeploymentRecord,
+  EvalArenaEntry,
+  FinOpsSummary,
+  LiveOpsMetrics,
+  ModelConfig,
+  OpsHealth,
+  SystemInfo,
+} from "@/lib/api/types";
+
+export const FINOPS_FIXTURE: FinOpsSummary = {
+  period_days: 30,
+  total_cost_cad: 1842.5,
+  query_count: 1284,
+  avg_latency_ms: 1742,
+  avg_tokens: 1180,
+  cost_by_workspace: {
+    "ws-oas-act": { cost_cad: 920.1, queries: 640, cost_per_query: 1.4377 },
+    "ws-ei-juris": { cost_cad: 640.25, queries: 440, cost_per_query: 1.4551 },
+    "ws-faq": { cost_cad: 282.15, queries: 204, cost_per_query: 1.3831 },
+  },
+  cost_by_model: {
+    "chat-default": { cost_cad: 1300.4, queries: 1100, model_name: "gpt-5-mini" },
+    "reasoning-premium": { cost_cad: 540.2, queries: 180, model_name: "gpt-5.1" },
+    "embeddings-default": { cost_cad: 1.9, queries: 4, model_name: "text-embedding-3-small" },
+  },
+  cost_by_client: {
+    "eva-agentic": { cost_cad: 1100, queries: 820 },
+    "eva-portal": { cost_cad: 550, queries: 340 },
+    "eva-batch": { cost_cad: 192.5, queries: 124 },
+  },
+  forecast_cad: 1842.5,
+  waste_score: 12.4,
+  chargeback_coverage: 0.96,
+};
+
+export const AIOPS_FIXTURE: AIOpsMetrics = {
+  avg_confidence: 0.82,
+  groundedness: 0.91,
+  calibration_gap: 0.04,
+  escalation_rate: 0.07,
+};
+
+export const LIVEOPS_FIXTURE: LiveOpsMetrics = {
+  uptime_percent: 99.94,
+  incident_count: 2,
+  sla_breach_count: 0,
+};
+
+export const OPS_HEALTH_FIXTURE: OpsHealth = {
+  services: [
+    { name: "api-gateway", status: "healthy", latency_ms: 42 },
+    { name: "orchestrator", status: "healthy", latency_ms: 180 },
+    { name: "vector-search", status: "degraded", latency_ms: 540 },
+    { name: "document-extraction", status: "healthy", latency_ms: 95 },
+  ],
+};
+
+export const CORPUS_HEALTH_FIXTURE: CorpusHealth = {
+  total_documents: 4821,
+  stale_documents: 142,
+  orphaned_chunks: 7,
+};
+
+export const EVAL_ARENA_FIXTURE: EvalArenaEntry[] = [
+  { model_id: "m-gpt51", model_name: "gpt-5.1 + rag-answer v3.4.1", elo_score: 1542, match_count: 115, win_rate: 0.73 },
+  { model_id: "m-opus47", model_name: "claude-opus-4.7 + rag-answer v3.4.1", elo_score: 1518, match_count: 115, win_rate: 0.69 },
+  { model_id: "m-gpt51-old", model_name: "gpt-5.1 + rag-answer v3.4.0", elo_score: 1486, match_count: 115, win_rate: 0.62 },
+];
+
+export const DEPLOYMENTS_FIXTURE: DeploymentRecord[] = [
+  { version: "v1.8.2", deployed_at: "2026-04-16T11:48:00Z", deployed_by: "bob", status: "active", notes: "cache shedding under p99>600ms" },
+  { version: "v1.8.1", deployed_at: "2026-04-12T08:00:00Z", deployed_by: "alice", status: "rolled-back", notes: "reranker timeout bump" },
+  { version: "v1.8.0", deployed_at: "2026-04-09T09:32:00Z", deployed_by: "carol", status: "rolled-back", notes: "initial v1.8 cut" },
+];
+
+export const ADMIN_MODELS_FIXTURE: ModelConfig[] = [
+  {
+    id: "m-gpt-5-mini",
+    model_name: "gpt-5-mini",
+    provider: "azure-openai",
+    deployment_name: "chat-default",
+    capabilities: ["chat", "rag"],
+    classification_ceiling: "protected_b",
+    parameter_overrides: {},
+    is_active: true,
+    access_grants: ["all"],
+    endpoint: "https://eva-openai.openai.azure.com",
+    location: "canadacentral",
+    sku: "GlobalStandard",
+    capacity: 200,
+    model_version: "2025-08-07",
+    status: "deployed",
+    cost_model: "pay-as-you-go",
+    change_history: [],
+  },
+  {
+    id: "m-gpt-51",
+    model_name: "gpt-5.1",
+    provider: "azure-openai",
+    deployment_name: "reasoning-premium",
+    capabilities: ["chat", "reasoning"],
+    classification_ceiling: "protected_b",
+    parameter_overrides: { temperature: 0.2 },
+    is_active: false,
+    access_grants: ["admin-only"],
+    endpoint: "https://eva-openai.openai.azure.com",
+    location: "canadacentral",
+    sku: "GlobalStandard",
+    capacity: 50,
+    model_version: "2025-11-01",
+    status: "provisioned",
+    cost_model: "provisioned",
+    change_history: [],
+  },
+];
+
+export const ADMIN_PROMPTS_FIXTURE = [
+  { name: "rag-system", active_version: 3 },
+  { name: "ungrounded-system", active_version: 1 },
+];
+
+export const SYSTEM_INFO_FIXTURE: SystemInfo = {
+  version: "0.1.0",
+  git_sha: "0eebf44",
+  env: "dev",
+  features: { streaming: true, demo_auth: true },
+};
