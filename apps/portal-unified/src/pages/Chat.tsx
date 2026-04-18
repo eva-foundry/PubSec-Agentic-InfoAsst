@@ -33,7 +33,7 @@ interface AssistantMessage {
   provenance: ProvenanceRecord | null;
   explainability: ExplainabilityRecord | null;
   feedback: Feedback;
-  degradation: { notice_en: string; notice_fr: string; reason: string } | null;
+  degradation: { notice_en: string; notice_fr: string; service: string } | null;
 }
 
 interface UserMessage {
@@ -118,21 +118,26 @@ export default function Chat() {
           }
           case "content":
             return { ...m, text: m.text + ev.delta };
-          case "degradation":
+          case "citations":
+            return { ...m, citations: ev.citations };
+          case "degradation": {
+            const d = ev.degradation;
             return {
               ...m,
               degradation: {
-                notice_en: ev.notice_en,
-                notice_fr: ev.notice_fr,
-                reason: ev.reason,
+                service: d.service,
+                notice_en:
+                  d.notice_en ?? `Service ${d.service} is ${d.status}.`,
+                notice_fr:
+                  d.notice_fr ?? `Le service ${d.service} est ${d.status}.`,
               },
             };
+          }
           case "provenance_complete":
             return {
               ...m,
               provenance: ev.provenance,
-              explainability: ev.explainability,
-              citations: ev.citations,
+              explainability: ev.explainability ?? null,
               state: "done",
             };
           default:
@@ -279,7 +284,7 @@ export default function Chat() {
           <span className="font-medium">
             {language === "fr" ? activeDegradation.notice_fr : activeDegradation.notice_en}
           </span>
-          <span className="text-muted-foreground">{activeDegradation.reason}</span>
+          <span className="text-muted-foreground">service: {activeDegradation.service}</span>
         </div>
       )}
 

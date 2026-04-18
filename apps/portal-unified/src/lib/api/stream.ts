@@ -69,16 +69,13 @@ export async function* streamNdjson<T>(url: string, init: StreamInit): AsyncIter
   }
 }
 
-const synthDegradation = (reason: string): {
-  type: "degradation";
-  mode: "offline";
-  reason: string;
-  notice_en: string;
-  notice_fr: string;
-} => ({
-  type: "degradation",
-  mode: "offline",
-  reason,
-  notice_en: "Connection to the assistant was interrupted. Try again.",
-  notice_fr: "La connexion à l'assistant a été interrompue. Veuillez réessayer.",
+const synthDegradation = (reason: string) => ({
+  type: "degradation" as const,
+  degradation: {
+    status: "unavailable" as const,
+    service: "gateway",
+    reason,
+    notice_en: "Connection to the assistant was interrupted. Try again.",
+    notice_fr: "La connexion à l'assistant a été interrompue. Veuillez réessayer.",
+  },
 });
