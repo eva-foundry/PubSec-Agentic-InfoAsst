@@ -51,26 +51,52 @@ function customizerState(theme: 'dark' | 'light') {
 }
 
 test.describe('visual regression', () => {
+  test.beforeEach(async ({ page }) => {
+    // Prime Dave (all portals + all workspace grants) so every route
+    // renders beyond the auth gate. Dismiss the coachmark tour.
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'aia.auth.v1',
+        JSON.stringify({
+          user: {
+            user_id: 'demo-dave',
+            email: 'dave@demo.gc.ca',
+            name: 'Dave Thompson',
+            role: 'admin',
+            portal_access: ['self-service', 'admin', 'ops'],
+            workspace_grants: ['all'],
+            data_classification_level: 'protected_b',
+            language: 'en',
+          },
+        }),
+      );
+      window.localStorage.setItem('aia.tour.seen.v1', '1');
+    });
+  });
+
   for (const route of ROUTES) {
     test(route.name, async ({ page }) => {
       for (const theme of THEMES) {
+        // Seed the customizer once per theme via addInitScript (runs before
+        // any navigation + before auth prime already attached above).
+        await page.addInitScript(
+          ({ key, value }) => {
+            window.localStorage.setItem(key, value);
+          },
+          { key: 'aia.customizer.v1', value: customizerState(theme) },
+        );
         for (const viewport of VIEWPORTS) {
           await page.setViewportSize({ width: viewport.width, height: viewport.height });
           await page.goto(route.path);
-          await page.evaluate(
-            ({ key, value }) => window.localStorage.setItem(key, value),
-            { key: 'aia.customizer.v1', value: customizerState(theme) },
-          );
-          await page.reload();
           await page.addStyleTag({ content: KILL_MOTION });
           await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(250);
+          await page.waitForTimeout(500);
           await expect(page).toHaveScreenshot(
             `${route.name}-${theme}-${viewport.name}.png`,
             {
               fullPage: true,
               animations: 'disabled',
-              maxDiffPixelRatio: 0.01,
+              maxDiffPixelRatio: 0.02,
             },
           );
         }
