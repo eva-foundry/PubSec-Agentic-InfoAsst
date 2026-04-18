@@ -131,16 +131,19 @@ export interface ChatMessage {
 }
 
 // Discriminated union over NDJSON chat stream events.
+// Wire shape mirrors app/agents/orchestrator.py exactly.
 export type ChatEvent =
   | ChatProvenanceEvent
   | ChatAgentStepEvent
   | ChatContentEvent
+  | ChatCitationsEvent
   | ChatDegradationEvent
   | ChatProvenanceCompleteEvent;
 
 export interface ChatProvenanceEvent {
   type: "provenance";
   correlation_id: string;
+  trace_id: string;
   conversation_id: string;
   message_id: string;
 }
@@ -152,21 +155,32 @@ export interface ChatAgentStepEvent extends AgentStep {
 export interface ChatContentEvent {
   type: "content";
   delta: string;
+  conversation_id?: string;
+  message_id?: string;
 }
 
+export interface ChatCitationsEvent {
+  type: "citations";
+  citations: Citation[];
+}
+
+// The backend nests the degradation payload under a `degradation` key.
+// Fields inside are open (status + service always, notice_en/fr when
+// the dependency can degrade gracefully).
 export interface ChatDegradationEvent {
   type: "degradation";
-  mode: string;
-  reason: string;
-  notice_en: string;
-  notice_fr: string;
+  degradation: {
+    status: "partial" | "unavailable" | string;
+    service: string;
+    notice_en?: string;
+    notice_fr?: string;
+  };
 }
 
 export interface ChatProvenanceCompleteEvent {
   type: "provenance_complete";
   provenance: ProvenanceRecord;
-  explainability: ExplainabilityRecord;
-  citations: Citation[];
+  explainability?: ExplainabilityRecord;
 }
 
 // ---------- workspace portal ----------
