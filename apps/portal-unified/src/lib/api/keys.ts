@@ -40,7 +40,7 @@ export const qk = {
     all: ["chat"] as const,
     conversations: () => [...qk.chat.all, "conversations"] as const,
     conversation: (id: string) => [...qk.chat.all, "conversation", id] as const,
-    sessionCost: (conversationId: string) => [...qk.chat.all, "session-cost", conversationId] as const,
+    sessionCost: () => [...qk.chat.all, "session-cost"] as const,
   },
   admin: {
     all: ["admin"] as const,

@@ -132,6 +132,7 @@ const request = async <T>(
     method,
     headers,
     signal: overrides?.signal,
+    credentials: "include",
   };
   if (body !== undefined) {
     init.body = body instanceof FormData ? body : JSON.stringify(body);
@@ -169,6 +170,7 @@ export const createApiClient = (opts: ApiClientOptions): ApiClient => {
         headers: plain,
         body: JSON.stringify(body),
         signal: init?.signal,
+        credentials: "include",
       });
     },
   };

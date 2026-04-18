@@ -3,6 +3,7 @@ export type StreamInit = {
   headers?: Record<string, string>;
   body?: BodyInit | null;
   signal?: AbortSignal;
+  credentials?: RequestCredentials;
 };
 
 export async function* streamNdjson<T>(url: string, init: StreamInit): AsyncIterable<T> {
@@ -13,6 +14,7 @@ export async function* streamNdjson<T>(url: string, init: StreamInit): AsyncIter
       headers: init.headers,
       body: init.body,
       signal: init.signal,
+      credentials: init.credentials,
     });
   } catch (err) {
     if ((err as { name?: string }).name === "AbortError") return;
