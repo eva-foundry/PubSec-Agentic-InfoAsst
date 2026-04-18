@@ -4,6 +4,7 @@
 
 import type {
   AIOpsMetrics,
+  ArchetypeDefinition,
   AuditEntry,
   CorpusHealth,
   DeploymentRecord,
@@ -151,6 +152,33 @@ export const AUDIT_ENTRIES_FIXTURE: AuditEntry[] = [
     policy: "prompt-injection-defense-v1",
     rationale: "matched known-bad pattern",
     correlation_id: null,
+  },
+];
+
+export const ARCHETYPES_FIXTURE: ArchetypeDefinition[] = [
+  {
+    key: "kb",
+    name: "Knowledge Base",
+    name_fr: "Base de connaissances",
+    description: "FAQ-style retrieval over a curated corpus.",
+    description_fr: "Recuperation de type FAQ sur un corpus organise.",
+    assurance: "Advisory",
+    cost_band: "$49-$120/mo",
+    sample_questions: ["What is the parental leave policy?"],
+    sample_questions_fr: ["Quelle est la politique de conge parental?"],
+    default_capacity: 25,
+  },
+  {
+    key: "decision",
+    name: "Decision Support",
+    name_fr: "Aide a la decision",
+    description: "Rule-engine-backed answers with mandatory HITL gates.",
+    description_fr: "Reponses soutenues par un moteur de regles avec controles humains obligatoires.",
+    assurance: "Decision-informing",
+    cost_band: "$480-$2.4K/mo",
+    sample_questions: ["Approve cross-border data transfer for EU customer?"],
+    sample_questions_fr: ["Approuver le transfert de donnees transfrontalier pour un client UE?"],
+    default_capacity: 8,
   },
 ];
 

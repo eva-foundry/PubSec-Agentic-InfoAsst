@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .middleware.apim_simulation import APIMSimulationMiddleware
 from .routers import (
     admin,
+    archetypes,
     auth,
     bookings,
     chat,
@@ -63,6 +64,7 @@ def create_app() -> FastAPI:
 
     # Portal 1 — Self-Service
     app.include_router(workspaces.router, prefix="/v1/eva", tags=["workspaces"])
+    app.include_router(archetypes.router, prefix="/v1/eva", tags=["archetypes"])
     app.include_router(bookings.router, prefix="/v1/eva", tags=["bookings"])
     app.include_router(teams.router, prefix="/v1/eva", tags=["teams"])
     app.include_router(surveys.router, prefix="/v1/eva", tags=["surveys"])
