@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatEvent } from "./types";
+import type { ChatRequest, ChatEvent, EvalStreamEvent } from "./types";
 import { streamNdjson } from "./stream";
 
 export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
@@ -44,6 +44,7 @@ export type ApiClient = {
   put: <T>(path: string, body?: unknown, init?: RequestOverrides) => Promise<T>;
   del: <T>(path: string, init?: RequestOverrides) => Promise<T>;
   streamChat: (body: ChatRequest, init?: { signal?: AbortSignal }) => AsyncIterable<ChatEvent>;
+  streamEvalResults: (runId: string, init?: { signal?: AbortSignal }) => AsyncIterable<EvalStreamEvent>;
   baseUrl: string;
 };
 
@@ -172,6 +173,24 @@ export const createApiClient = (opts: ApiClientOptions): ApiClient => {
         signal: init?.signal,
         credentials: "include",
       });
+    },
+    streamEvalResults: (runId, init) => {
+      const h = new Headers({ accept: "application/x-ndjson" });
+      applyContextHeaders(h, opts);
+      const plain: Record<string, string> = {};
+      h.forEach((v, k) => {
+        plain[k] = v;
+      });
+      const qs = `?run_id=${encodeURIComponent(runId)}`;
+      return streamNdjson<EvalStreamEvent>(
+        buildUrl(opts.baseUrl, `/v1/eva/ops/eval/results${qs}`),
+        {
+          method: "GET",
+          headers: plain,
+          signal: init?.signal,
+          credentials: "include",
+        },
+      );
     },
   };
   return client;

@@ -50,6 +50,7 @@ from .booking_store import BookingStore as BookingStore  # noqa: E402
 from .chat_store import ChatStore as ChatStore  # noqa: E402
 from .client_store import ClientStore as ClientStore  # noqa: E402
 from .deployment_store import DeploymentStore as DeploymentStore  # noqa: E402
+from .eval_run_store import EvalRunStore as EvalRunStore  # noqa: E402
 from .model_registry_store import ModelRegistryStore as ModelRegistryStore  # noqa: E402
 from .prompt_store import PromptStore as PromptStore  # noqa: E402
 from .survey_store import SurveyStore as SurveyStore  # noqa: E402
@@ -112,6 +113,7 @@ if TYPE_CHECKING:
     deployment_store: DeploymentStore
     audit_store: AuditStore
     archetype_store: ArchetypeStore
+    eval_run_store: EvalRunStore
 elif API_MOCK:
     workspace_store = WorkspaceStore()
     booking_store = BookingStore()
@@ -127,6 +129,7 @@ elif API_MOCK:
     deployment_store = DeploymentStore()
     audit_store = AuditStore()
     archetype_store = ArchetypeStore()
+    eval_run_store = EvalRunStore()
 else:
     workspace_store = _LazyStore("workspace_store")
     booking_store = _LazyStore("booking_store")
@@ -144,6 +147,7 @@ else:
     deployment_store = DeploymentStore()
     audit_store = AuditStore()
     archetype_store = ArchetypeStore()
+    eval_run_store = EvalRunStore()
 
 
 async def initialize_azure_stores() -> None:
@@ -216,6 +220,7 @@ __all__ = [
     "deployment_store",
     "audit_store",
     "archetype_store",
+    "eval_run_store",
     "degradation_manager",
     "cosmos_manager",
     "initialize_azure_stores",
@@ -233,5 +238,6 @@ __all__ = [
     "DeploymentStore",
     "AuditStore",
     "ArchetypeStore",
+    "EvalRunStore",
     "DegradationManager",
 ]
