@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FRAMEWORKS } from "@/lib/mock-data";
+import { FRAMEWORKS } from "@/lib/site-content";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { HowItWorksDemo } from "@/components/HowItWorksDemo";

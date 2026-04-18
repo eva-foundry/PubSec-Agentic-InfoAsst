@@ -1,4 +1,4 @@
-import { PRICING } from "@/lib/mock-data";
+import { PRICING } from "@/lib/site-content";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

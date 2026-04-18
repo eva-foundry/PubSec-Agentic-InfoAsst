@@ -3,12 +3,10 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
-import es from "@/locales/es.json";
 
 export const SUPPORTED_LANGS = [
   { code: "en", label: "English" },
   { code: "fr", label: "Français" },
-  { code: "es", label: "Español" },
 ] as const;
 
 export type LangCode = typeof SUPPORTED_LANGS[number]["code"];
@@ -20,7 +18,6 @@ i18n
     resources: {
       en: { translation: en },
       fr: { translation: fr },
-      es: { translation: es },
     },
     fallbackLng: "en",
     supportedLngs: SUPPORTED_LANGS.map((l) => l.code),

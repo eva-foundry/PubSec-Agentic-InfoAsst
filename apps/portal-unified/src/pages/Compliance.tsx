@@ -1,5 +1,19 @@
 import { useMemo, useState } from "react";
-import { AUDIT_LOG, FRAMEWORKS } from "@/lib/mock-data";
+import { FRAMEWORKS } from "@/lib/site-content";
+
+// Audit log endpoint (GET /v1/eva/ops/audit) is tracked as Phase F.
+// Until it ships, the audit log table surfaces an empty state rather
+// than scripted rows — the compliance framework is honest about gaps.
+interface AuditEvent {
+  id: string;
+  time: string;
+  actor: string;
+  subject: string;
+  purpose: string;
+  decision: "allow" | "deny" | "hitl-required";
+  policy: string;
+}
+const AUDIT_LOG: AuditEvent[] = [];
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
