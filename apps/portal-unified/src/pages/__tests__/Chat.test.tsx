@@ -1,13 +1,10 @@
-import { afterAll, afterEach, beforeAll, describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { renderWithProviders, screen, waitFor } from "@/test/utils";
 import userEvent from "@testing-library/user-event";
 import Chat from "@/pages/Chat";
 import { server } from "@/test/msw/server";
 import { http, HttpResponse } from "msw";
-
-beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+// MSW lifecycle is set up globally in src/test/setup.ts.
 
 const primeAuth = () => {
   const user = {
