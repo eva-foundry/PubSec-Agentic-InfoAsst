@@ -3,10 +3,30 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, AlertCircle, Search } from "lucide-react";
+import {
+  CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
-import { useLiveOpsMetrics, useOpsHealth } from "@/lib/api/hooks/useOps";
+import { useIncidents, useLiveOpsMetrics, useOpsHealth } from "@/lib/api/hooks/useOps";
 import type { OpsHealth } from "@/lib/api/types";
+
+const SEVERITY_TONE: Record<string, string> = {
+  "sev-1": "border-danger/40 text-danger",
+  "sev-2": "border-warning/40 text-warning",
+  "sev-3": "border-product/40 text-product",
+};
+
+const STATUS_TONE: Record<string, string> = {
+  ongoing: "border-danger/40 text-danger",
+  monitoring: "border-warning/40 text-warning",
+  resolved: "border-success/40 text-success",
+};
+
+const shortHour = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getHours().toString().padStart(2, "0")}:00`;
+};
 
 type ServiceStatus = "healthy" | "degraded" | "down";
 
@@ -25,7 +45,13 @@ const normalize = (s: string): ServiceStatus => {
 
 export default function LiveOps() {
   const liveops = useLiveOpsMetrics();
+  const liveopsHourly = useLiveOpsMetrics("hour", 24);
+  const incidents = useIncidents();
   const health = useOpsHealth();
+  const latencySeries = (liveopsHourly.data?.latency_24h ?? []).map((p) => ({
+    ...p,
+    hour: shortHour(p.hour),
+  }));
   const [statusFilter, setStatusFilter] = useState<"all" | ServiceStatus>("all");
   const [query, setQuery] = useState("");
 
@@ -139,16 +165,68 @@ export default function LiveOps() {
         )}
       </div>
 
-      <div className="ui-card rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertCircle className="h-4 w-4 text-warning" />
-          <h2 className="font-bold">Latency & incidents</h2>
-          <Badge variant="outline" className="ml-auto text-[10px]">backend gap</Badge>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="ui-card rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="h-4 w-4 text-warning" />
+            <h2 className="font-bold">24h latency</h2>
+            <Badge variant="outline" className="ml-auto text-[10px]">p50 · p99</Badge>
+          </div>
+          {liveopsHourly.isLoading ? (
+            <Skeleton className="h-[220px] w-full" />
+          ) : liveopsHourly.isError || latencySeries.length === 0 ? (
+            <EmptyState title="Latency series unavailable" description={liveopsHourly.error?.message} />
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={latencySeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+                <Line type="monotone" dataKey="p50_ms" stroke="hsl(var(--product))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="p99_ms" stroke="hsl(var(--warning))" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
-        <EmptyState
-          title="Incident feed and latency time-series pending"
-          description="Today /ops/metrics/liveops only returns rollup scalars. Incident timeline + 24h latency charts are tracked as Phase F."
-        />
+
+        <div className="ui-card rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="h-4 w-4 text-warning" />
+            <h2 className="font-bold">Incident feed</h2>
+            <Badge variant="outline" className="ml-auto text-[10px]">
+              {incidents.data?.length ?? 0} rows
+            </Badge>
+          </div>
+          {incidents.isLoading ? (
+            <Skeleton className="h-[220px] w-full" />
+          ) : incidents.isError ? (
+            <EmptyState title="Incidents unavailable" description={incidents.error?.message} />
+          ) : (incidents.data?.length ?? 0) === 0 ? (
+            <EmptyState title="No incidents recorded" description="The incident feed is empty." />
+          ) : (
+            <ul className="space-y-2 text-xs">
+              {incidents.data!.map((i) => (
+                <li key={i.id} className="flex items-start gap-2 pb-2 border-b border-border last:border-0">
+                  <Badge variant="outline" className={SEVERITY_TONE[i.severity] ?? ""}>{i.severity}</Badge>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium truncate">{i.title}</div>
+                      <Badge variant="outline" className={cn("ml-auto", STATUS_TONE[i.status] ?? "")}>
+                        {i.status}
+                      </Badge>
+                    </div>
+                    <div className="text-muted-foreground mt-0.5">
+                      {i.service} · {new Date(i.started_at).toLocaleString()}
+                    </div>
+                    {i.summary && <div className="text-muted-foreground mt-0.5 truncate">{i.summary}</div>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

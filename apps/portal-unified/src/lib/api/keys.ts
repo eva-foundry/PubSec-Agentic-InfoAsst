@@ -28,6 +28,8 @@ export const qk = {
     all: ["documents"] as const,
     status: (workspaceId: string) => [...qk.documents.all, "status", workspaceId] as const,
     content: (documentId: string) => [...qk.documents.all, "content", documentId] as const,
+    list: (workspaceId: string | null, q: string, kind: string) =>
+      [...qk.documents.all, "list", workspaceId ?? "all", q, kind] as const,
   },
   surveys: {
     all: ["surveys"] as const,
@@ -60,8 +62,13 @@ export const qk = {
     all: ["ops"] as const,
     health: () => [...qk.ops.all, "health"] as const,
     finops: (days: number) => [...qk.ops.all, "finops", days] as const,
-    aiops: () => [...qk.ops.all, "aiops"] as const,
-    liveops: () => [...qk.ops.all, "liveops"] as const,
+    aiops: (days: number = 14) => [...qk.ops.all, "aiops", days] as const,
+    calibration: (limit: number = 500) =>
+      [...qk.ops.all, "calibration", limit] as const,
+    liveops: (granularity: string = "rollup", hours: number = 24) =>
+      [...qk.ops.all, "liveops", granularity, hours] as const,
+    incidents: (status?: string) =>
+      [...qk.ops.all, "incidents", status ?? "all"] as const,
     corpusHealth: () => [...qk.ops.all, "corpus-health"] as const,
     feedbackAnalytics: () => [...qk.ops.all, "feedback-analytics"] as const,
     evalArena: () => [...qk.ops.all, "eval-arena"] as const,

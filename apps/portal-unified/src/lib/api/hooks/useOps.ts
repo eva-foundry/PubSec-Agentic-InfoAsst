@@ -4,6 +4,7 @@ import type {
   AIOpsMetrics,
   AuditEntry,
   AuditFilters,
+  CalibrationResponse,
   CorpusHealth,
   DeploymentRecord,
   DriftMetrics,
@@ -11,6 +12,7 @@ import type {
   EvalArenaEntry,
   FeedbackSummary,
   FinOpsSummary,
+  Incident,
   LiveOpsMetrics,
   OpsHealth,
 } from "@/lib/api/types";
@@ -32,19 +34,48 @@ export const useFinOpsMetrics = (days = 30) => {
   });
 };
 
-export const useAIOpsMetrics = () => {
+export const useAIOpsMetrics = (days: number = 14) => {
   const client = useApiClient();
   return useQuery({
-    queryKey: qk.ops.aiops(),
-    queryFn: () => client.get<AIOpsMetrics>("/v1/eva/ops/metrics/aiops"),
+    queryKey: qk.ops.aiops(days),
+    queryFn: () =>
+      client.get<AIOpsMetrics>("/v1/eva/ops/metrics/aiops", { query: { days } }),
   });
 };
 
-export const useLiveOpsMetrics = () => {
+export const useCalibrationSamples = (limit: number = 500) => {
   const client = useApiClient();
   return useQuery({
-    queryKey: qk.ops.liveops(),
-    queryFn: () => client.get<LiveOpsMetrics>("/v1/eva/ops/metrics/liveops"),
+    queryKey: qk.ops.calibration(limit),
+    queryFn: () =>
+      client.get<CalibrationResponse>("/v1/eva/ops/metrics/calibration", {
+        query: { limit },
+      }),
+  });
+};
+
+export const useLiveOpsMetrics = (
+  granularity: "rollup" | "hour" = "rollup",
+  hours: number = 24,
+) => {
+  const client = useApiClient();
+  return useQuery({
+    queryKey: qk.ops.liveops(granularity, hours),
+    queryFn: () =>
+      client.get<LiveOpsMetrics>("/v1/eva/ops/metrics/liveops", {
+        query: granularity === "hour" ? { granularity, hours } : {},
+      }),
+  });
+};
+
+export const useIncidents = (status?: "ongoing" | "monitoring" | "resolved") => {
+  const client = useApiClient();
+  return useQuery({
+    queryKey: qk.ops.incidents(status),
+    queryFn: () =>
+      client.get<Incident[]>("/v1/eva/ops/incidents", {
+        query: status ? { status } : {},
+      }),
   });
 };
 
