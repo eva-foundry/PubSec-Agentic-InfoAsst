@@ -208,6 +208,19 @@ export interface Workspace {
   archetype?: string;
 }
 
+export interface ArchetypeDefinition {
+  key: string;
+  name: string;
+  name_fr: string;
+  description: string;
+  description_fr: string;
+  assurance: "Advisory" | "Decision-informing";
+  cost_band: string;
+  sample_questions: string[];
+  sample_questions_fr: string[];
+  default_capacity: number;
+}
+
 export interface Booking {
   id: string;
   workspace_id: string;
