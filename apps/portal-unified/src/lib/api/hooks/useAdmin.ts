@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/contexts/ApiProvider";
-import type { Client, Interview, ModelConfig, PromptVersion, WorkspaceProvisionPlan } from "@/lib/api/types";
+import type {
+  Client,
+  DeploymentRecord,
+  Interview,
+  ModelConfig,
+  PromptVersion,
+  WorkspaceProvisionPlan,
+} from "@/lib/api/types";
 import { qk } from "@/lib/api/keys";
 
 export const useAdminClients = () => {
@@ -93,5 +100,18 @@ export const useRollbackPrompt = () => {
       client.post<PromptVersion>(`/v1/eva/admin/prompts/${name}/rollback`, { version }),
     onSuccess: (_data, vars) =>
       qc.invalidateQueries({ queryKey: qk.admin.promptVersions(vars.name) }),
+  });
+};
+
+export const useRollbackDeployment = () => {
+  const client = useApiClient();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ version, rationale }: { version: string; rationale: string }) =>
+      client.post<DeploymentRecord>(
+        `/v1/eva/admin/deployments/${version}/rollback`,
+        { rationale },
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.ops.deployments() }),
   });
 };
