@@ -14,6 +14,7 @@ import {
   AUDIT_ENTRIES_FIXTURE,
   CORPUS_HEALTH_FIXTURE,
   DEPLOYMENTS_FIXTURE,
+  DRIFT_METRICS_FIXTURE,
   EVAL_ARENA_FIXTURE,
   FINOPS_FIXTURE,
   LIVEOPS_FIXTURE,
@@ -60,6 +61,11 @@ export const opsHandlers = [
   http.get(`*/v1/eva/ops/metrics/finops`, () => HttpResponse.json(FINOPS_FIXTURE)),
   http.get(`*/v1/eva/ops/metrics/aiops`, () => HttpResponse.json(AIOPS_FIXTURE)),
   http.get(`*/v1/eva/ops/metrics/liveops`, () => HttpResponse.json(LIVEOPS_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/drift`, ({ request }) => {
+    const url = new URL(request.url);
+    const window = url.searchParams.get("window") ?? "30d";
+    return HttpResponse.json({ ...DRIFT_METRICS_FIXTURE, window });
+  }),
   http.get(`*/v1/eva/ops/corpus-health`, () => HttpResponse.json(CORPUS_HEALTH_FIXTURE)),
   http.get(`*/v1/eva/ops/evaluation-arena`, () => HttpResponse.json(EVAL_ARENA_FIXTURE)),
   http.get(`*/v1/eva/ops/deployments`, () => HttpResponse.json(DEPLOYMENTS_FIXTURE)),

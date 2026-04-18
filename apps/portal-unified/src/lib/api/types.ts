@@ -485,6 +485,42 @@ export interface AuditFilters {
   limit?: number;
 }
 
+export type DriftWindow = "7d" | "30d" | "90d";
+
+export interface ModelDriftPoint {
+  day: string;
+  psi: number;
+  confidence_delta: number;
+}
+
+export interface PromptDriftPoint {
+  day: string;
+  lexical_shift: number;
+  token_mix_delta: number;
+}
+
+export interface CorpusDriftPoint {
+  day: string;
+  refresh_count: number;
+  stale_pct: number;
+}
+
+export interface DriftAlert {
+  type: "model" | "prompt" | "corpus" | string;
+  severity: "info" | "warning" | "critical" | string;
+  message: string;
+  since: string;
+}
+
+export interface DriftMetrics {
+  workspace_id: string | null;
+  window: DriftWindow;
+  model: ModelDriftPoint[];
+  prompt: PromptDriftPoint[];
+  corpus: CorpusDriftPoint[];
+  alerts: DriftAlert[];
+}
+
 export interface SystemInfo {
   version: string;
   git_sha: string;
