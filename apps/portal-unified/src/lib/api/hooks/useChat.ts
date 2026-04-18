@@ -39,14 +39,13 @@ export const useConversation = (conversationId: string | null) => {
   });
 };
 
-export const useSessionCost = (sessionId: string | null) => {
+// Backend reads the eva_session_id cookie set by APIMSimulationMiddleware;
+// no query parameter. credentials: "include" on the client forwards it.
+export const useSessionCost = () => {
   const client = useApiClient();
   return useQuery({
-    queryKey: qk.chat.sessionCost(sessionId ?? "__none__"),
-    queryFn: () => client.get<SessionCost>("/v1/eva/session/cost", {
-      query: { session_id: sessionId! },
-    }),
-    enabled: !!sessionId,
+    queryKey: qk.chat.sessionCost(),
+    queryFn: () => client.get<SessionCost>("/v1/eva/session/cost"),
   });
 };
 
