@@ -71,6 +71,19 @@ export const adminHandlers = [
     if (!model) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ ...model, is_active: !model.is_active });
   }),
+  http.post(`*/v1/eva/admin/deployments/:version/rollback`, async ({ params, request }) => {
+    const body = (await request.json()) as { rationale?: string };
+    if (!body?.rationale || body.rationale.length < 3) {
+      return HttpResponse.json({ detail: "rationale too short" }, { status: 422 });
+    }
+    return HttpResponse.json({
+      version: params.version as string,
+      deployed_at: "2026-04-12T08:00:00Z",
+      deployed_by: "ci-pipeline",
+      status: "active",
+      notes: `rolled back by test: ${body.rationale}`,
+    });
+  }),
 ];
 
 export const systemHandlers = [

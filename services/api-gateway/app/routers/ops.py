@@ -7,7 +7,9 @@ from datetime import UTC
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import UserContext, get_current_user
+from ..stores import deployment_store
 from ..stores.compat import aio
+from ..stores.deployment_store import DeploymentRecord
 
 router = APIRouter()
 
@@ -342,31 +344,10 @@ async def evaluation_arena(user: UserContext = Depends(get_current_user)) -> dic
     }
 
 
-@router.get("/ops/deployments")
-async def deployment_history(user: UserContext = Depends(get_current_user)) -> dict:
+@router.get("/ops/deployments", response_model=list[DeploymentRecord])
+async def deployment_history(
+    user: UserContext = Depends(get_current_user),
+) -> list[DeploymentRecord]:
+    """Chronological list of platform deployments, newest first."""
     _require_ops(user)
-    return {
-        "current": {
-            "api_gateway": "0.1.0",
-            "agent_orchestrator": "0.1.0",
-            "ingestion_pipeline": "0.1.0",
-            "prompt_version": "v3.2",
-            "guardrail_rules": "v1.4",
-        },
-        "recent_deployments": [
-            {
-                "component": "api_gateway",
-                "version": "0.1.0",
-                "deployed_at": "2026-04-14T08:00:00Z",
-                "deployed_by": "ci-pipeline",
-                "status": "success",
-            },
-            {
-                "component": "prompt_version",
-                "version": "v3.2",
-                "deployed_at": "2026-04-01T10:00:00Z",
-                "deployed_by": "demo-dave",
-                "status": "success",
-            },
-        ],
-    }
+    return deployment_store.list_all()
