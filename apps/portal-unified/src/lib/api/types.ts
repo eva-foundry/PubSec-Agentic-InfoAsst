@@ -267,19 +267,18 @@ export interface ExitSurvey {
   completed_at: string;
 }
 
+// Wire shape mirrors DocumentRecord in app/pipeline/document_store.py.
 export interface Document {
   id: string;
   workspace_id: string;
-  filename: string;
-  content_type: string;
-  size_bytes: number;
-  status: "uploading" | "processing" | "indexed" | "failed" | "deleted";
+  file_name: string;
+  file_size: number;
+  status: "uploaded" | "processing" | "chunking" | "embedding" | "indexed" | "error" | string;
   chunk_count: number;
-  data_classification: Classification;
+  error_message: string | null;
   uploaded_by: string;
   uploaded_at: string;
-  processed_at: string | null;
-  error_message: string | null;
+  indexed_at: string | null;
 }
 
 // ---------- admin ----------
@@ -413,19 +412,56 @@ export interface SessionCost {
   queries: number;
 }
 
+export interface AIOpsQualityPoint {
+  day: string;
+  groundedness: number;
+  relevance: number;
+  coherence: number;
+}
+
 export interface AIOpsMetrics {
   avg_confidence: number;
   groundedness: number;
   calibration_gap: number;
   escalation_rate: number;
+  days?: number;
+  timeseries?: AIOpsQualityPoint[];
   [k: string]: unknown;
+}
+
+export interface CalibrationSample {
+  predicted: number;
+  actual: number;
+}
+
+export interface CalibrationResponse {
+  samples: CalibrationSample[];
+  count: number;
+}
+
+export interface LatencyHourPoint {
+  hour: string;
+  p50_ms: number;
+  p99_ms: number;
 }
 
 export interface LiveOpsMetrics {
   uptime_percent: number;
   incident_count: number;
   sla_breach_count: number;
+  latency_24h?: LatencyHourPoint[];
   [k: string]: unknown;
+}
+
+export interface Incident {
+  id: string;
+  title: string;
+  status: "ongoing" | "monitoring" | "resolved" | string;
+  severity: "sev-1" | "sev-2" | "sev-3" | string;
+  started_at: string;
+  resolved_at: string | null;
+  service: string;
+  summary: string;
 }
 
 export interface OpsHealth {

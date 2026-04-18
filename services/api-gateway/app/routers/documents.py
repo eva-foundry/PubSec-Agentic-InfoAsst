@@ -39,6 +39,45 @@ def _get_processor():
     )
 
 
+@router.get("/documents")
+async def list_documents(
+    workspace_id: str | None = None,
+    q: str | None = None,
+    kind: str | None = None,
+    limit: int = 50,
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """List documents the user can access, with optional filters.
+
+    Scope: defaults to all workspaces the user has grants for. A `workspace_id`
+    narrows further but must be one the user can access. `q` matches on file
+    name (case-insensitive substring). `kind` matches on file extension
+    (e.g. 'pdf', 'docx').
+    """
+    from ..stores import document_store, workspace_store
+
+    if workspace_id is not None:
+        if "all" not in user.workspace_grants and workspace_id not in user.workspace_grants:
+            return []
+        docs = await aio(document_store.list_by_workspace(workspace_id))
+    else:
+        all_workspaces = await aio(workspace_store.list(user.workspace_grants))
+        allowed_ids = {ws.id for ws in all_workspaces}
+        all_docs = await aio(document_store.list_all())
+        docs = [d for d in all_docs if d.workspace_id in allowed_ids]
+
+    if q:
+        needle = q.lower()
+        docs = [d for d in docs if needle in d.file_name.lower()]
+    if kind:
+        suffix = f".{kind.lstrip('.').lower()}"
+        docs = [d for d in docs if d.file_name.lower().endswith(suffix)]
+
+    docs.sort(key=lambda d: d.uploaded_at, reverse=True)
+    capped = max(1, min(limit, 500))
+    return [d.model_dump() for d in docs[:capped]]
+
+
 @router.post("/documents/upload", status_code=201)
 async def upload_document(
     file: UploadFile,

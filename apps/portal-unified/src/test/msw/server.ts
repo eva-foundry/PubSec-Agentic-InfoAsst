@@ -10,13 +10,18 @@ import {
   ADMIN_MODELS_FIXTURE,
   ADMIN_PROMPTS_FIXTURE,
   AIOPS_FIXTURE,
+  AIOPS_TIMESERIES_FIXTURE,
   ARCHETYPES_FIXTURE,
   AUDIT_ENTRIES_FIXTURE,
+  CALIBRATION_FIXTURE,
   CORPUS_HEALTH_FIXTURE,
   DEPLOYMENTS_FIXTURE,
+  DOCUMENTS_FIXTURE,
   DRIFT_METRICS_FIXTURE,
   EVAL_ARENA_FIXTURE,
   FINOPS_FIXTURE,
+  INCIDENTS_FIXTURE,
+  LATENCY_24H_FIXTURE,
   LIVEOPS_FIXTURE,
   OPS_HEALTH_FIXTURE,
   SYSTEM_INFO_FIXTURE,
@@ -46,6 +51,15 @@ export const chatHandlers = [
   ),
   http.get(`*/v1/eva/workspaces`, () => HttpResponse.json(WORKSPACES_FIXTURE)),
   http.get(`*/v1/eva/archetypes`, () => HttpResponse.json(ARCHETYPES_FIXTURE)),
+  http.get(`*/v1/eva/documents`, ({ request }) => {
+    const url = new URL(request.url);
+    const workspaceId = url.searchParams.get("workspace_id");
+    const q = (url.searchParams.get("q") ?? "").toLowerCase();
+    let rows = DOCUMENTS_FIXTURE;
+    if (workspaceId) rows = rows.filter((d) => d.workspace_id === workspaceId);
+    if (q) rows = rows.filter((d) => d.file_name.toLowerCase().includes(q));
+    return HttpResponse.json(rows);
+  }),
   http.get(`*/v1/eva/conversations`, () => HttpResponse.json(CONVERSATIONS_FIXTURE)),
   http.get(`*/v1/eva/auth/demo/users`, () => HttpResponse.json(DEMO_USERS_FIXTURE)),
   http.post(`*/v1/eva/auth/demo/login`, async ({ request }) => {
@@ -59,8 +73,29 @@ export const chatHandlers = [
 export const opsHandlers = [
   http.get(`*/v1/eva/ops/health`, () => HttpResponse.json(OPS_HEALTH_FIXTURE)),
   http.get(`*/v1/eva/ops/metrics/finops`, () => HttpResponse.json(FINOPS_FIXTURE)),
-  http.get(`*/v1/eva/ops/metrics/aiops`, () => HttpResponse.json(AIOPS_FIXTURE)),
-  http.get(`*/v1/eva/ops/metrics/liveops`, () => HttpResponse.json(LIVEOPS_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/aiops`, ({ request }) => {
+    const days = Number(new URL(request.url).searchParams.get("days") ?? 14);
+    return HttpResponse.json({
+      ...AIOPS_FIXTURE,
+      days,
+      timeseries: AIOPS_TIMESERIES_FIXTURE,
+    });
+  }),
+  http.get(`*/v1/eva/ops/metrics/calibration`, () => HttpResponse.json(CALIBRATION_FIXTURE)),
+  http.get(`*/v1/eva/ops/metrics/liveops`, ({ request }) => {
+    const granularity = new URL(request.url).searchParams.get("granularity");
+    if (granularity === "hour") {
+      return HttpResponse.json({ ...LIVEOPS_FIXTURE, latency_24h: LATENCY_24H_FIXTURE });
+    }
+    return HttpResponse.json(LIVEOPS_FIXTURE);
+  }),
+  http.get(`*/v1/eva/ops/incidents`, ({ request }) => {
+    const status = new URL(request.url).searchParams.get("status");
+    const rows = status
+      ? INCIDENTS_FIXTURE.filter((i) => i.status === status)
+      : INCIDENTS_FIXTURE;
+    return HttpResponse.json(rows);
+  }),
   http.get(`*/v1/eva/ops/metrics/drift`, ({ request }) => {
     const url = new URL(request.url);
     const window = url.searchParams.get("window") ?? "30d";
