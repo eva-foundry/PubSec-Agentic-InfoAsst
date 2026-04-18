@@ -173,7 +173,6 @@ export default function Chat() {
           <SelectContent>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="fr">Français</SelectItem>
-            <SelectItem value="es">Español</SelectItem>
           </SelectContent>
         </Select>
       </div>
