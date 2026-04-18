@@ -8,7 +8,9 @@ import {
 } from "./chat-fixtures";
 import type { ChatEvent } from "@/lib/api/types";
 
-const API = "http://localhost:8000";
+// Wildcard `*` origin so handlers match any VITE_API_BASE_URL the client
+// resolves in tests (dev-machine .env.local may override it).
+const API = "*";
 
 const ndjsonStream = (events: ChatEvent[]): ReadableStream<Uint8Array> => {
   const encoder = new TextEncoder();
