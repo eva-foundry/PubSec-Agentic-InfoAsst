@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { AUDIT_LOG, FRAMEWORKS } from "@/lib/mock-data";
+import { FRAMEWORKS } from "@/lib/site-content";
+import { AUDIT_LOG } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
