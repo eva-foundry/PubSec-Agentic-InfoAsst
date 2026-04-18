@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ATTACK_CATEGORIES, TEST_SETS } from "@/lib/mock-data";
+import { ATTACK_CATEGORIES, TEST_SETS } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";

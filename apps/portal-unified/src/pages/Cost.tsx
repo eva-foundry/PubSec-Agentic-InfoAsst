@@ -1,30 +1,12 @@
-import { COST_DATA, TOKEN_DATA } from "@/lib/mock-data";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend, Line, ComposedChart } from "recharts";
+import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingDown, TrendingUp, Coins, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle, Coins, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
-
-const KPIS = [
-  { label: "MTD cost", value: "$18,420", delta: "+12%", trend: "up", icon: Coins },
-  { label: "Forecast (EOM)", value: "$26,800", delta: "on track", trend: "flat", icon: TrendingUp },
-  { label: "Waste score", value: "7.4 / 100", delta: "-2.1", trend: "down", icon: TrendingDown },
-  { label: "Chargeback coverage", value: "96%", delta: "+3%", trend: "up", icon: Sparkles },
-];
-
-const TEAMS = [
-  { team: "Engineering", spend: 4820 },
-  { team: "Legal", spend: 6210 },
-  { team: "HR", spend: 1340 },
-  { team: "Sales", spend: 2110 },
-  { team: "Vendor Risk", spend: 3940 },
-];
-
-const ALERTS = [
-  { workspace: "Legal Contract Archive", budget: "$5,000/mo", spend: "$6,210", anomaly: "spike", severity: "high" },
-  { workspace: "Engineering Runbooks", budget: "$5,000/mo", spend: "$4,820", anomaly: "—", severity: "ok" },
-  { workspace: "Vendor Risk Decisions", budget: "$3,000/mo", spend: "$3,940", anomaly: "exceeded", severity: "high" },
-  { workspace: "Sales BI Dashboard", budget: "$2,500/mo", spend: "$2,110", anomaly: "—", severity: "ok" },
-];
+import { Button } from "@/components/ui/button";
+import { useFinOpsMetrics } from "@/lib/api/hooks/useOps";
+import type { FinOpsSummary } from "@/lib/api/types";
 
 const tooltipStyle = {
   background: "hsl(var(--popover))",
@@ -33,126 +15,188 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
+const cad = (value: number): string =>
+  value.toLocaleString("en-CA", { style: "currency", currency: "CAD", maximumFractionDigits: 0 });
+
+const forecastEom = (summary: FinOpsSummary): number => {
+  if (summary.forecast_cad !== undefined) return summary.forecast_cad;
+  if (summary.period_days <= 0) return 0;
+  const perDay = summary.total_cost_cad / summary.period_days;
+  return perDay * 30;
+};
+
+const toBarSeries = (map: Record<string, number>): Array<{ label: string; spend: number }> =>
+  Object.entries(map)
+    .map(([label, spend]) => ({ label, spend: Number(spend) || 0 }))
+    .sort((a, b) => b.spend - a.spend);
+
 export default function Cost() {
+  const { data, isLoading, isError, refetch } = useFinOpsMetrics(30);
+
+  const kpis = useMemo(() => {
+    if (!data) return null;
+    return [
+      {
+        label: `MTD cost (last ${data.period_days}d)`,
+        value: cad(data.total_cost_cad),
+        delta: `${data.query_count.toLocaleString()} queries`,
+        trend: "flat" as const,
+        icon: Coins,
+      },
+      {
+        label: "Forecast (EOM)",
+        value: cad(forecastEom(data)),
+        delta: data.forecast_cad === undefined ? "projected" : "from backend",
+        trend: "flat" as const,
+        icon: TrendingUp,
+      },
+      {
+        label: "Waste score",
+        value: data.waste_score !== undefined ? `${data.waste_score.toFixed(1)} / 100` : "—",
+        delta: data.waste_score !== undefined ? "" : "needs backend field",
+        trend: "down" as const,
+        icon: TrendingDown,
+      },
+      {
+        label: "Chargeback coverage",
+        value: data.chargeback_coverage !== undefined
+          ? `${Math.round(data.chargeback_coverage * 100)}%`
+          : "—",
+        delta: data.chargeback_coverage !== undefined ? "" : "needs backend field",
+        trend: "flat" as const,
+        icon: Sparkles,
+      },
+    ];
+  }, [data]);
+
+  const byWorkspace = useMemo(() => (data ? toBarSeries(data.cost_by_workspace) : []), [data]);
+  const byClient = useMemo(() => (data ? toBarSeries(data.cost_by_client) : []), [data]);
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-3xl font-extrabold">Cost Command Center</h1>
+        <EmptyState
+          title="Could not load FinOps metrics"
+          description="The backend FinOps endpoint returned an error."
+          action={<Button onClick={() => refetch()}>Retry</Button>}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-extrabold">Cost Command Center</h1>
-        <p className="mt-2 text-muted-foreground">FinOps for agentic AI — outcomes, attribution, anomalies.</p>
+        <p className="mt-2 text-muted-foreground">
+          FinOps for agentic AI — attribution from APIM telemetry via <code>/ops/metrics/finops</code>.
+        </p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {KPIS.map((k) => (
-          <div key={k.label} className="ui-card rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">{k.label}</div>
-              <k.icon className="h-4 w-4 text-product" />
-            </div>
-            <div className="mt-2 text-2xl font-extrabold">{k.value}</div>
-            <div className={`mt-1 text-xs ${k.trend === "up" ? "text-warning" : k.trend === "down" ? "text-success" : "text-muted-foreground"}`}>{k.delta}</div>
-          </div>
-        ))}
+        {isLoading || !kpis
+          ? Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="ui-card rounded-lg p-4">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="mt-3 h-7 w-28" />
+                <Skeleton className="mt-2 h-3 w-20" />
+              </div>
+            ))
+          : kpis.map((k) => (
+              <div key={k.label} className="ui-card rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground">{k.label}</div>
+                  <k.icon className="h-4 w-4 text-product" />
+                </div>
+                <div className="mt-2 text-2xl font-extrabold">{k.value}</div>
+                {k.delta && (
+                  <div className="mt-1 text-xs text-muted-foreground">{k.delta}</div>
+                )}
+              </div>
+            ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="ui-card rounded-lg p-4 lg:col-span-2">
           <h2 className="text-sm font-bold mb-1">Cost attribution by workspace</h2>
-          <p className="text-xs text-muted-foreground mb-3">30-day stacked area</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            MTD spend per workspace · daily time-series pending backend enhancement
+          </p>
           <div className="h-64">
-            {COST_DATA.length === 0 ? (
-              <EmptyState title="No cost data yet" description="Spend telemetry will appear here once workspaces start producing traffic." />
+            {isLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : byWorkspace.length === 0 ? (
+              <EmptyState
+                title="No cost data yet"
+                description="Spend telemetry will appear once workspaces start producing traffic."
+              />
             ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={COST_DATA}>
-                <defs>
-                  {["HR", "Engineering", "Legal", "BI", "Vendor"].map((k, i) => (
-                    <linearGradient key={k} id={`g${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={`hsl(var(--${i % 2 ? "accent" : "product"}))`} stopOpacity={0.6} />
-                      <stop offset="100%" stopColor={`hsl(var(--${i % 2 ? "accent" : "product"}))`} stopOpacity={0.05} />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval={4} />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${v.toFixed(0)}`} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Area type="monotone" dataKey="HR" stackId="1" stroke="hsl(var(--accent))" fill="url(#g0)" />
-                <Area type="monotone" dataKey="Engineering" stackId="1" stroke="hsl(var(--product))" fill="url(#g1)" />
-                <Area type="monotone" dataKey="Legal" stackId="1" stroke="hsl(var(--accent))" fill="url(#g2)" />
-                <Area type="monotone" dataKey="BI" stackId="1" stroke="hsl(var(--product))" fill="url(#g3)" />
-                <Area type="monotone" dataKey="Vendor" stackId="1" stroke="hsl(var(--accent))" fill="url(#g4)" />
-              </AreaChart>
-            </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byWorkspace}>
+                  <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => cad(v)} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => cad(v)} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="spend" name="MTD spend" fill="hsl(var(--product))" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
         <div className="ui-card rounded-lg p-4">
-          <h2 className="text-sm font-bold mb-1">Per-team breakdown</h2>
+          <h2 className="text-sm font-bold mb-1">Cost by client</h2>
           <p className="text-xs text-muted-foreground mb-3">MTD spend</p>
           <div className="h-64">
-            {TEAMS.length === 0 ? (
-              <EmptyState title="No team spend" description="Per-team attribution requires at least one chargeback tag." />
+            {isLoading ? (
+              <Skeleton className="h-full w-full" />
+            ) : byClient.length === 0 ? (
+              <EmptyState title="No client spend" description="Per-client attribution requires at least one chargeback tag." />
             ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={TEAMS}>
-                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="team" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `$${v.toLocaleString()}`} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="spend" name="MTD spend (USD)" fill="hsl(var(--product))" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byClient}>
+                  <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => cad(v)} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => cad(v)} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey="spend" name="MTD spend" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Token economics chart */}
-      <div className="ui-card rounded-lg p-4">
-        <h2 className="text-sm font-bold mb-1">Token economics</h2>
-        <p className="text-xs text-muted-foreground mb-3">Input vs output tokens (M) and cache-hit rate · 14d</p>
-        <div className="h-64">
-          {TOKEN_DATA.length === 0 ? (
-            <EmptyState title="No token telemetry" description="Token usage will appear once the gateway begins logging requests." />
-          ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={TOKEN_DATA}>
-              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} label={{ value: "Tokens (M)", angle: -90, position: "insideLeft", style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" } }} />
-              <YAxis yAxisId="right" orientation="right" domain={[0, 1]} tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number, name: string) => name === "Cache hit" ? `${(v * 100).toFixed(0)}%` : `${v.toFixed(2)}M`} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar yAxisId="left" dataKey="input" name="Input" stackId="t" fill="hsl(var(--accent))" />
-              <Bar yAxisId="left" dataKey="output" name="Output" stackId="t" fill="hsl(var(--product))" radius={[4, 4, 0, 0]} />
-              <Line yAxisId="right" type="monotone" dataKey="cached" name="Cache hit" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
-            </ComposedChart>
-          </ResponsiveContainer>
-          )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="ui-card rounded-lg p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Outcome metric</div>
-          <div className="mt-2 text-2xl font-extrabold gradient-text">$0.82</div>
-          <div className="text-xs text-muted-foreground">per resolved query</div>
-        </div>
-        <div className="ui-card rounded-lg p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Outcome metric</div>
-          <div className="mt-2 text-2xl font-extrabold gradient-text">$1.14</div>
-          <div className="text-xs text-muted-foreground">per citation-accurate answer</div>
-        </div>
-        <div className="ui-card rounded-lg p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Token economics</div>
-          <div className="mt-2 flex items-baseline gap-3">
-            <div><div className="text-lg font-extrabold">62%</div><div className="text-[10px] text-muted-foreground">cache hit</div></div>
-            <div><div className="text-lg font-extrabold">1.4M</div><div className="text-[10px] text-muted-foreground">in / day</div></div>
-            <div><div className="text-lg font-extrabold">380k</div><div className="text-[10px] text-muted-foreground">out / day</div></div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Avg latency</div>
+          <div className="mt-2 text-2xl font-extrabold">
+            {isLoading || !data ? "—" : `${Math.round(data.avg_latency_ms)} ms`}
           </div>
+          <div className="text-xs text-muted-foreground">across {data?.query_count ?? 0} queries</div>
+        </div>
+        <div className="ui-card rounded-lg p-4">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Avg tokens / query</div>
+          <div className="mt-2 text-2xl font-extrabold">
+            {isLoading || !data ? "—" : Math.round(data.avg_tokens).toLocaleString()}
+          </div>
+          <div className="text-xs text-muted-foreground">prompt + completion</div>
+        </div>
+        <div className="ui-card rounded-lg p-4">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Cost per query</div>
+          <div className="mt-2 text-2xl font-extrabold gradient-text">
+            {isLoading || !data || data.query_count === 0
+              ? "—"
+              : (data.total_cost_cad / data.query_count).toLocaleString("en-CA", {
+                  style: "currency",
+                  currency: "CAD",
+                  maximumFractionDigits: 4,
+                })}
+          </div>
+          <div className="text-xs text-muted-foreground">avg, last {data?.period_days ?? 30}d</div>
         </div>
       </div>
 
@@ -160,22 +204,14 @@ export default function Cost() {
         <div className="p-4 border-b border-border flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <h2 className="font-bold">Budget alerts</h2>
+          <Badge variant="outline" className="ml-auto text-[10px]">backend gap</Badge>
         </div>
-        <table className="w-full text-sm">
-          <thead className="bg-muted/30 border-b border-border">
-            <tr><th className="text-left p-3 font-medium">Workspace</th><th className="text-left p-3 font-medium">Budget</th><th className="text-left p-3 font-medium">Spend</th><th className="text-left p-3 font-medium">Anomaly</th></tr>
-          </thead>
-          <tbody>
-            {ALERTS.map((a) => (
-              <tr key={a.workspace} className="border-b border-border last:border-0">
-                <td className="p-3 font-medium">{a.workspace}</td>
-                <td className="p-3 text-muted-foreground">{a.budget}</td>
-                <td className="p-3 font-mono">{a.spend}</td>
-                <td className="p-3"><Badge variant="outline" className={a.severity === "high" ? "border-danger/40 text-danger" : "border-success/40 text-success"}>{a.anomaly}</Badge></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="p-4">
+          <EmptyState
+            title="Budget alerts pending backend enhancement"
+            description="Per-workspace budgets and anomaly detection will surface here once the budgets endpoint ships."
+          />
+        </div>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ export default defineConfig({
   outputDir: 'test-results',
 
   use: {
-    baseURL: 'http://localhost:8080',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -25,7 +25,7 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev --workspace=@eva/portal-unified',
-    port: 8080,
+    port: 5173,
     timeout: 30_000,
     reuseExistingServer: !process.env.CI,
   },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "framer-motion";
-import { AGENTIC_STEPS } from "@/lib/mock-data";
+import { AGENTIC_STEPS } from "@/lib/site-content";
 import { MessageSquare, GitBranch, Cpu, ShieldCheck, Sparkles, Database, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 

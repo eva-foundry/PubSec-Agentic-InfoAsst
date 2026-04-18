@@ -1,4 +1,5 @@
 import { useCustomizer } from "@/contexts/ThemeCustomizer";
+import { useAuth } from "@/contexts/AuthContext";
 import { NavLink } from "@/components/NavLink";
 import { NAV, GENERAL_NAV, PORTAL_LABEL_KEYS } from "@/lib/nav-config";
 import { useTranslation } from "react-i18next";
@@ -36,16 +37,29 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+const initialsOf = (name: string): string => {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "??";
+};
+
 export function SidebarFooter() {
   const { portal } = useCustomizer();
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const displayName = user?.name ?? "—";
+  const displayEmail = user?.email ?? "";
+  const tenantTag = user?.workspace_grants?.[0] ?? user?.role ?? "guest";
+
   return (
     <div className="border-t border-sidebar-border p-3 text-xs">
       <div className="flex items-center gap-2.5">
-        <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-accent grid place-items-center text-[11px] font-bold text-white">JM</div>
+        <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-accent grid place-items-center text-[11px] font-bold text-white">
+          {initialsOf(displayName)}
+        </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">Jordan Mehta</div>
-          <div className="truncate text-muted-foreground text-[11px]">jordan@acme.com</div>
+          <div className="truncate font-medium">{displayName}</div>
+          <div className="truncate text-muted-foreground text-[11px]">{displayEmail}</div>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
@@ -53,7 +67,7 @@ export function SidebarFooter() {
           <span className="h-1.5 w-1.5 rounded-full bg-product" aria-hidden />
           {t(PORTAL_LABEL_KEYS[portal])}
         </span>
-        <span className="rounded border border-border px-1.5 py-0.5 font-medium text-foreground">acme-prod</span>
+        <span className="rounded border border-border px-1.5 py-0.5 font-medium text-foreground">{tenantTag}</span>
       </div>
     </div>
   );

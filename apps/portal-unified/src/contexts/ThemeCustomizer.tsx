@@ -7,7 +7,7 @@ export type Radius = "sharp" | "default" | "rounded";
 export type Spacing = "compact" | "default" | "spacious";
 export type Density = "reader" | "analyst";
 export type PortalMode = "workspace" | "admin" | "ops";
-export type Lang = "en" | "fr" | "es";
+export type Lang = "en" | "fr";
 export type ThemeMode = "dark" | "light";
 
 const ACCENTS: Record<AccentKey, { hsl: string; hex: string }> = {
