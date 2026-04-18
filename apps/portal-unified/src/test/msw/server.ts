@@ -10,6 +10,7 @@ import {
   ADMIN_MODELS_FIXTURE,
   ADMIN_PROMPTS_FIXTURE,
   AIOPS_FIXTURE,
+  ARCHETYPES_FIXTURE,
   AUDIT_ENTRIES_FIXTURE,
   CORPUS_HEALTH_FIXTURE,
   DEPLOYMENTS_FIXTURE,
@@ -43,6 +44,7 @@ export const chatHandlers = [
     }),
   ),
   http.get(`*/v1/eva/workspaces`, () => HttpResponse.json(WORKSPACES_FIXTURE)),
+  http.get(`*/v1/eva/archetypes`, () => HttpResponse.json(ARCHETYPES_FIXTURE)),
   http.get(`*/v1/eva/conversations`, () => HttpResponse.json(CONVERSATIONS_FIXTURE)),
   http.get(`*/v1/eva/auth/demo/users`, () => HttpResponse.json(DEMO_USERS_FIXTURE)),
   http.post(`*/v1/eva/auth/demo/login`, async ({ request }) => {

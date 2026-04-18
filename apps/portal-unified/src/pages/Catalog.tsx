@@ -1,4 +1,3 @@
-import { ARCHETYPES } from "@/lib/site-content";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -8,11 +7,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useArchetypes } from "@/lib/api/hooks/useWorkspaces";
 
 type Assurance = "all" | "Advisory" | "Decision-informing";
 
@@ -25,20 +26,24 @@ export default function Catalog() {
   const [name, setName] = useState("");
   const steps = ["Archetype", "Data sources", "Team", "Policies", "Confirm"];
 
-  const filtered = useMemo(
-    () => ARCHETYPES
+  const archetypes = useArchetypes();
+  const entries = archetypes.data ?? [];
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return entries
       .filter((a) => assurance === "all" || a.assurance === assurance)
       .filter((a) =>
-        a.name.toLowerCase().includes(query.toLowerCase()) ||
-        a.desc.toLowerCase().includes(query.toLowerCase())
-      ),
-    [query, assurance],
-  );
+        !q ||
+        a.name.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q)
+      );
+  }, [entries, query, assurance]);
 
   const finishWizard = () => {
     setOpen(false);
     setStep(0);
-    toast.success(`Workspace${name ? ` “${name}”` : ""} created`, { description: "Mock — no backend wired yet." });
+    toast.success(`Workspace${name ? ` "${name}"` : ""} created`, { description: "Mock — no backend wired yet." });
     setName("");
   };
 
@@ -110,13 +115,25 @@ export default function Catalog() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <EmptyState title="No archetypes match" description="Clear filters to see all 5 archetypes." />
+      {archetypes.isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-60 w-full" />)}
+        </div>
+      ) : archetypes.isError ? (
+        <EmptyState
+          title="Could not load archetypes"
+          description={archetypes.error?.message ?? "Try refreshing the page."}
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          title={entries.length === 0 ? "No archetypes published yet" : "No archetypes match"}
+          description={entries.length === 0 ? "Ops has not published any archetypes." : "Clear filters to see all archetypes."}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((a, i) => (
             <motion.div
-              key={a.id}
+              key={a.key}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
@@ -131,21 +148,21 @@ export default function Catalog() {
                 </div>
                 <Badge variant="outline" className={a.assurance === "Decision-informing" ? "border-product/40 text-product" : ""}>{a.assurance}</Badge>
               </div>
-              <p className="text-sm text-muted-foreground">{a.desc}</p>
+              <p className="text-sm text-muted-foreground">{a.description}</p>
               <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <div className="text-muted-foreground">Monthly cost</div>
-                  <div className="font-semibold">{a.cost}</div>
+                  <div className="font-semibold">{a.cost_band}</div>
                 </div>
                 <div>
-                  <div className="text-muted-foreground">Assurance</div>
-                  <div className="font-semibold">{a.assurance}</div>
+                  <div className="text-muted-foreground">Default capacity</div>
+                  <div className="font-semibold">{a.default_capacity} docs</div>
                 </div>
               </div>
               <div className="mt-4">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Sample questions</div>
                 <ul className="space-y-1 text-xs text-muted-foreground">
-                  {a.samples.map((q) => <li key={q} className="truncate">· {q}</li>)}
+                  {a.sample_questions.map((q) => <li key={q} className="truncate">· {q}</li>)}
                 </ul>
               </div>
               <div className="mt-4 pt-3 border-t border-border flex gap-2">
