@@ -171,11 +171,17 @@ export const opsHandlers = [
 export const adminHandlers = [
   http.get(`*/v1/eva/admin/models`, () => HttpResponse.json(ADMIN_MODELS_FIXTURE)),
   http.get(`*/v1/eva/admin/prompts`, () => HttpResponse.json(ADMIN_PROMPTS_FIXTURE)),
-  http.post(`*/v1/eva/admin/models/:id/toggle`, async ({ params }) => {
+  http.post(`*/v1/eva/admin/models/:id/toggle`, async ({ params, request }) => {
     const id = params.id as string;
     const model = ADMIN_MODELS_FIXTURE.find((m) => m.id === id);
     if (!model) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ ...model, is_active: !model.is_active });
+    // Mirror the real backend: is_active must be provided as a query param.
+    const raw = new URL(request.url).searchParams.get("is_active");
+    if (raw === null) {
+      return HttpResponse.json({ detail: "is_active required" }, { status: 422 });
+    }
+    const isActive = raw === "true" || raw === "1";
+    return HttpResponse.json({ ...model, is_active: isActive });
   }),
   http.post(`*/v1/eva/admin/deployments/:version/rollback`, async ({ params, request }) => {
     const body = (await request.json()) as { rationale?: string };

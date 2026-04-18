@@ -72,7 +72,7 @@ export default function Models() {
                     </div>
                     <Switch
                       checked={m.is_active}
-                      onCheckedChange={() => toggle.mutate(m.id)}
+                      onCheckedChange={(next) => toggle.mutate({ modelId: m.id, isActive: next })}
                       disabled={toggle.isPending}
                       aria-label={`Enable ${m.model_name}`}
                     />
