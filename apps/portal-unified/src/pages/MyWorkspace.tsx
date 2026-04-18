@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CHAT_THREADS } from "@/lib/mock-data";
+import { useConversations } from "@/lib/api/hooks/useChat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,12 +52,13 @@ export default function MyWorkspace() {
     [docs, docQuery],
   );
 
+  const conversations = useConversations();
   const filteredConvos = useMemo(
-    () => CHAT_THREADS.filter((t) =>
+    () => (conversations.data ?? []).filter((t) =>
       t.title.toLowerCase().includes(convoQuery.toLowerCase()) ||
-      t.workspace.toLowerCase().includes(convoQuery.toLowerCase())
+      (t.workspace_id ?? "").toLowerCase().includes(convoQuery.toLowerCase())
     ),
-    [convoQuery],
+    [convoQuery, conversations.data],
   );
 
   const invite = (e: React.FormEvent) => {
@@ -122,7 +123,9 @@ export default function MyWorkspace() {
                 <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
                 <div className="min-w-0 flex-1">
                   <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-xs text-muted-foreground">{t.workspace} · {t.updated}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t.workspace_id ?? "—"} · {new Date(t.updated_at).toLocaleDateString()}
+                  </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>Open</Button>
               </div>
