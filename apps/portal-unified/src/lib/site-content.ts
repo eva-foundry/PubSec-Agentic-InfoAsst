@@ -1,13 +1,8 @@
-// Static content — catalog templates, marketing copy, compliance frameworks,
-// red-team category definitions. These are editorial assets, not API data.
-
-export const ARCHETYPES = [
-  { id: "kb", name: "Knowledge Base", desc: "FAQ-style retrieval over a curated corpus.", cost: "$49–$120/mo", assurance: "Advisory", samples: ["What is the parental leave policy?", "How do I request a new laptop?"] },
-  { id: "policy", name: "Policy Library", desc: "Hierarchical document retrieval with section-level citations.", cost: "$120–$340/mo", assurance: "Decision-informing", samples: ["Which runbook applies to a Postgres failover?", "Show me incident severity definitions."] },
-  { id: "case", name: "Case Archive", desc: "Citation graphs + precedent ranking across long-form documents.", cost: "$340–$1.2K/mo", assurance: "Decision-informing", samples: ["Find precedents for force-majeure clauses in SaaS contracts.", "Summarize prior rulings on data-residency."] },
-  { id: "bi", name: "BI Copilot", desc: "Dashboard interpretation, metric explanations, anomaly drill-downs.", cost: "$220–$680/mo", assurance: "Advisory", samples: ["Why did Q1 ARR dip in EMEA?", "Explain the churn cohort chart."] },
-  { id: "decision", name: "Decision Support", desc: "Rule-engine-backed answers with mandatory HITL gates.", cost: "$480–$2.4K/mo", assurance: "Decision-informing", samples: ["Should we onboard vendor X under SOC2 type-1 only?", "Approve cross-border data transfer for EU customer?"] },
-];
+// Static content — marketing copy, compliance frameworks, red-team category
+// definitions. These are editorial assets, not API data.
+//
+// ARCHETYPES used to live here; they are now served by /v1/eva/archetypes so
+// ops can publish/retire archetypes without a UI release. See useArchetypes().
 
 export const PRICING = [
   {
