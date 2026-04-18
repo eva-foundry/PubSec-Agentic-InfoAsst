@@ -6,6 +6,8 @@ import type {
   AuditFilters,
   CorpusHealth,
   DeploymentRecord,
+  DriftMetrics,
+  DriftWindow,
   EvalArenaEntry,
   FeedbackSummary,
   FinOpsSummary,
@@ -75,6 +77,20 @@ export const useDeployments = () => {
   return useQuery({
     queryKey: qk.ops.deployments(),
     queryFn: () => client.get<DeploymentRecord[]>("/v1/eva/ops/deployments"),
+  });
+};
+
+export const useDriftMetrics = (
+  workspaceId: string | null,
+  window: DriftWindow = "30d",
+) => {
+  const client = useApiClient();
+  return useQuery({
+    queryKey: qk.ops.drift(workspaceId, window),
+    queryFn: () =>
+      client.get<DriftMetrics>("/v1/eva/ops/metrics/drift", {
+        query: { workspace_id: workspaceId ?? undefined, window },
+      }),
   });
 };
 

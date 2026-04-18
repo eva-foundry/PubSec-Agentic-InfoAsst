@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import UTC
+import hashlib
+import random
+from datetime import UTC, date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..auth import UserContext, get_current_user
+from ..models.drift import (
+    CorpusDriftPoint,
+    DriftAlert,
+    DriftMetrics,
+    ModelDriftPoint,
+    PromptDriftPoint,
+)
 from ..stores import audit_store, deployment_store
 from ..stores.audit_store import AuditEntry
 from ..stores.compat import aio
@@ -352,6 +361,138 @@ async def deployment_history(
     """Chronological list of platform deployments, newest first."""
     _require_ops(user)
     return deployment_store.list_all()
+
+
+# ---------------------------------------------------------------------------
+# Drift metrics (Phase F — closes #16)
+# ---------------------------------------------------------------------------
+
+_WINDOW_DAYS = {"7d": 7, "30d": 30, "90d": 90}
+
+
+def _drift_rng(workspace_id: str | None, window: str) -> random.Random:
+    """Seed a per-(workspace, window) RNG so each request is deterministic."""
+    seed_input = f"{workspace_id or 'all'}|{window}".encode()
+    seed = int(hashlib.sha256(seed_input).hexdigest()[:16], 16)
+    return random.Random(seed)
+
+
+def _drift_series(workspace_id: str | None, window: str) -> DriftMetrics:
+    """Deterministically generate model/prompt/corpus drift series + alerts.
+
+    Until the feedback + telemetry stores expose historical aggregations
+    (Phase F follow-up), values are derived from a per-workspace seeded RNG.
+    Response shape matches the DriftMetrics contract committed to the UI.
+    """
+    days = _WINDOW_DAYS[window]
+    rng = _drift_rng(workspace_id, window)
+    today = date.today()
+    dates = [(today - timedelta(days=i)).isoformat() for i in range(days - 1, -1, -1)]
+
+    model: list[ModelDriftPoint] = []
+    prompt: list[PromptDriftPoint] = []
+    corpus: list[CorpusDriftPoint] = []
+
+    # Baselines drift slowly across the window so the charts tell a story.
+    psi_base = 0.08 + rng.random() * 0.04
+    conf_base = 0.0
+    lex_base = 0.04 + rng.random() * 0.03
+    token_base = 0.0
+    refresh_base = rng.randint(2, 8)
+    stale_base = 0.05 + rng.random() * 0.03
+
+    for d in dates:
+        psi_base += rng.uniform(-0.008, 0.012)
+        conf_base += rng.uniform(-0.003, 0.002)
+        lex_base += rng.uniform(-0.004, 0.006)
+        token_base += rng.uniform(-0.02, 0.015)
+        stale_base += rng.uniform(-0.005, 0.004)
+
+        model.append(
+            ModelDriftPoint(
+                day=d,
+                psi=round(max(0.0, psi_base), 4),
+                confidence_delta=round(conf_base, 4),
+            )
+        )
+        prompt.append(
+            PromptDriftPoint(
+                day=d,
+                lexical_shift=round(max(0.0, min(1.0, lex_base)), 4),
+                token_mix_delta=round(token_base, 4),
+            )
+        )
+        corpus.append(
+            CorpusDriftPoint(
+                day=d,
+                refresh_count=max(0, refresh_base + rng.randint(-2, 3)),
+                stale_pct=round(max(0.0, min(1.0, stale_base)), 4),
+            )
+        )
+
+    # Alerts fire off thresholds from the final-day sample.
+    alerts: list[DriftAlert] = []
+    final_psi = model[-1].psi
+    final_stale = corpus[-1].stale_pct
+    final_lex = prompt[-1].lexical_shift
+
+    if final_psi > 0.25:
+        alerts.append(
+            DriftAlert(
+                type="model",
+                severity="critical" if final_psi > 0.35 else "warning",
+                message=f"Embedding PSI {final_psi:.2f} above threshold (0.25)",
+                since=dates[max(0, days - 3)],
+            )
+        )
+    if final_stale > 0.15:
+        alerts.append(
+            DriftAlert(
+                type="corpus",
+                severity="warning",
+                message=f"{int(final_stale * 100)}% of documents past freshness threshold",
+                since=dates[max(0, days - 5)],
+            )
+        )
+    if final_lex > 0.20:
+        alerts.append(
+            DriftAlert(
+                type="prompt",
+                severity="info",
+                message=f"Output lexical shift {final_lex:.2f} vs. baseline",
+                since=dates[max(0, days - 2)],
+            )
+        )
+
+    return DriftMetrics(
+        workspace_id=workspace_id,
+        window=window,
+        model=model,
+        prompt=prompt,
+        corpus=corpus,
+        alerts=alerts,
+    )
+
+
+@router.get("/ops/metrics/drift", response_model=DriftMetrics)
+async def drift_metrics(
+    workspace_id: str | None = None,
+    window: str = "30d",
+    user: UserContext = Depends(get_current_user),
+) -> DriftMetrics:
+    """Time-series drift signals (model/prompt/corpus) + open alerts.
+
+    Deterministic per (workspace_id, window) so the UI is stable across refreshes
+    and tests can pin. Real aggregations land once telemetry_store exposes
+    historical rollups (Phase F follow-up).
+    """
+    _require_ops(user)
+    if window not in _WINDOW_DAYS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"window must be one of {sorted(_WINDOW_DAYS)}",
+        )
+    return _drift_series(workspace_id, window)
 
 
 # ---------------------------------------------------------------------------

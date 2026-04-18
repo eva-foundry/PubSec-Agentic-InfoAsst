@@ -8,6 +8,7 @@ import type {
   AuditEntry,
   CorpusHealth,
   DeploymentRecord,
+  DriftMetrics,
   EvalArenaEntry,
   FinOpsSummary,
   LiveOpsMetrics,
@@ -181,6 +182,52 @@ export const ARCHETYPES_FIXTURE: ArchetypeDefinition[] = [
     default_capacity: 8,
   },
 ];
+
+export const DRIFT_METRICS_FIXTURE: DriftMetrics = {
+  workspace_id: "ws-oas-act",
+  window: "7d",
+  model: [
+    { day: "2026-04-12", psi: 0.11, confidence_delta: -0.01 },
+    { day: "2026-04-13", psi: 0.13, confidence_delta: 0.0 },
+    { day: "2026-04-14", psi: 0.18, confidence_delta: 0.01 },
+    { day: "2026-04-15", psi: 0.22, confidence_delta: -0.02 },
+    { day: "2026-04-16", psi: 0.27, confidence_delta: -0.01 },
+    { day: "2026-04-17", psi: 0.29, confidence_delta: 0.0 },
+    { day: "2026-04-18", psi: 0.32, confidence_delta: 0.01 },
+  ],
+  prompt: [
+    { day: "2026-04-12", lexical_shift: 0.05, token_mix_delta: 0.1 },
+    { day: "2026-04-13", lexical_shift: 0.07, token_mix_delta: -0.05 },
+    { day: "2026-04-14", lexical_shift: 0.09, token_mix_delta: 0.2 },
+    { day: "2026-04-15", lexical_shift: 0.1, token_mix_delta: 0.0 },
+    { day: "2026-04-16", lexical_shift: 0.12, token_mix_delta: -0.1 },
+    { day: "2026-04-17", lexical_shift: 0.14, token_mix_delta: 0.15 },
+    { day: "2026-04-18", lexical_shift: 0.16, token_mix_delta: 0.0 },
+  ],
+  corpus: [
+    { day: "2026-04-12", refresh_count: 4, stale_pct: 0.06 },
+    { day: "2026-04-13", refresh_count: 2, stale_pct: 0.07 },
+    { day: "2026-04-14", refresh_count: 7, stale_pct: 0.08 },
+    { day: "2026-04-15", refresh_count: 3, stale_pct: 0.1 },
+    { day: "2026-04-16", refresh_count: 5, stale_pct: 0.13 },
+    { day: "2026-04-17", refresh_count: 2, stale_pct: 0.16 },
+    { day: "2026-04-18", refresh_count: 6, stale_pct: 0.18 },
+  ],
+  alerts: [
+    {
+      type: "model",
+      severity: "warning",
+      message: "Embedding PSI 0.32 above threshold (0.25)",
+      since: "2026-04-16",
+    },
+    {
+      type: "corpus",
+      severity: "warning",
+      message: "18% of documents past freshness threshold",
+      since: "2026-04-14",
+    },
+  ],
+};
 
 export const SYSTEM_INFO_FIXTURE: SystemInfo = {
   version: "0.1.0",
