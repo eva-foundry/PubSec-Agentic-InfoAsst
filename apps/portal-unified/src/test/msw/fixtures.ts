@@ -229,6 +229,82 @@ export const DRIFT_METRICS_FIXTURE: DriftMetrics = {
   ],
 };
 
+export const DOCUMENTS_FIXTURE = [
+  {
+    id: "doc-1",
+    workspace_id: "ws-oas-act",
+    file_name: "oas-act-s3-residency.pdf",
+    file_size: 248_000,
+    status: "indexed",
+    chunk_count: 14,
+    error_message: null,
+    uploaded_by: "demo-carol",
+    uploaded_at: "2026-04-18T09:00:00Z",
+    indexed_at: "2026-04-18T09:05:00Z",
+  },
+  {
+    id: "doc-2",
+    workspace_id: "ws-faq",
+    file_name: "faq-general.txt",
+    file_size: 7_550,
+    status: "indexed",
+    chunk_count: 4,
+    error_message: null,
+    uploaded_by: "system-preload",
+    uploaded_at: "2026-04-17T14:00:00Z",
+    indexed_at: "2026-04-17T14:01:00Z",
+  },
+];
+
+export const AIOPS_TIMESERIES_FIXTURE = [
+  { day: "2026-04-12", groundedness: 0.88, relevance: 0.85, coherence: 0.91 },
+  { day: "2026-04-13", groundedness: 0.9, relevance: 0.86, coherence: 0.9 },
+  { day: "2026-04-14", groundedness: 0.91, relevance: 0.88, coherence: 0.92 },
+  { day: "2026-04-15", groundedness: 0.9, relevance: 0.87, coherence: 0.91 },
+  { day: "2026-04-16", groundedness: 0.92, relevance: 0.89, coherence: 0.92 },
+  { day: "2026-04-17", groundedness: 0.93, relevance: 0.9, coherence: 0.93 },
+  { day: "2026-04-18", groundedness: 0.91, relevance: 0.88, coherence: 0.92 },
+];
+
+export const CALIBRATION_FIXTURE = {
+  samples: [
+    { predicted: 0.82, actual: 1.0 },
+    { predicted: 0.45, actual: 0.5 },
+    { predicted: 0.91, actual: 1.0 },
+    { predicted: 0.3, actual: 0.5 },
+  ],
+  count: 4,
+};
+
+export const LATENCY_24H_FIXTURE = [
+  { hour: "2026-04-18T09:00:00Z", p50_ms: 190, p99_ms: 540 },
+  { hour: "2026-04-18T10:00:00Z", p50_ms: 205, p99_ms: 560 },
+  { hour: "2026-04-18T11:00:00Z", p50_ms: 182, p99_ms: 510 },
+];
+
+export const INCIDENTS_FIXTURE = [
+  {
+    id: "inc-2026-04-17-01",
+    title: "Elevated p99 latency on orchestrator",
+    status: "resolved",
+    severity: "sev-3",
+    started_at: "2026-04-17T14:22:00Z",
+    resolved_at: "2026-04-17T15:08:00Z",
+    service: "orchestrator",
+    summary: "Reranker timeout bump restored tail latency.",
+  },
+  {
+    id: "inc-2026-04-12-02",
+    title: "Vector search degraded — index compaction",
+    status: "monitoring",
+    severity: "sev-2",
+    started_at: "2026-04-12T09:00:00Z",
+    resolved_at: null,
+    service: "vector-search",
+    summary: "Index compaction running, search latency elevated.",
+  },
+];
+
 export const SYSTEM_INFO_FIXTURE: SystemInfo = {
   version: "0.1.0",
   git_sha: "0eebf44",

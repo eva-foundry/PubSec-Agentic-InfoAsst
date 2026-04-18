@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import random
-from datetime import UTC, date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -136,8 +136,45 @@ async def finops_metrics(
     }
 
 
+def _aiops_timeseries(
+    days: int, groundedness_anchor: float, avg_confidence_anchor: float
+) -> list[dict]:
+    """Deterministic per-day quality samples for the AIOps quality-trend chart.
+
+    Anchors the final-day values to the real aggregates so the chart is
+    continuous with the scalar KPIs. Daily walks are seeded by the anchor
+    values so repeat calls with the same aggregates return identical series.
+    """
+    days = max(1, min(days, 90))
+    seed_input = f"aiops|{days}|{groundedness_anchor:.4f}|{avg_confidence_anchor:.4f}"
+    rng = random.Random(int(hashlib.sha256(seed_input.encode()).hexdigest()[:16], 16))
+    today = date.today()
+
+    # Walk backwards from the anchors with small daily deltas.
+    grounded = groundedness_anchor
+    confidence = avg_confidence_anchor
+    points: list[dict] = []
+    for i in range(days):
+        d = (today - timedelta(days=i)).isoformat()
+        relevance = max(0.0, min(1.0, grounded + rng.uniform(-0.04, 0.02)))
+        coherence = max(0.0, min(1.0, confidence + rng.uniform(-0.03, 0.04)))
+        points.append(
+            {
+                "day": d,
+                "groundedness": round(grounded, 4),
+                "relevance": round(relevance, 4),
+                "coherence": round(coherence, 4),
+            }
+        )
+        grounded = max(0.0, min(1.0, grounded + rng.uniform(-0.015, 0.010)))
+        confidence = max(0.0, min(1.0, confidence + rng.uniform(-0.010, 0.010)))
+    points.reverse()
+    return points
+
+
 @router.get("/ops/metrics/aiops")
 async def aiops_metrics(
+    days: int = 14,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_ops(user)
@@ -166,24 +203,121 @@ async def aiops_metrics(
     escalation_rate = escalated / len(assistant_msgs) * 100 if assistant_msgs else 0.0
 
     calibration = await aio(chat_store.confidence_calibration())
+    timeseries = _aiops_timeseries(
+        days=days,
+        groundedness_anchor=groundedness,
+        avg_confidence_anchor=avg_confidence,
+    )
 
     return {
         "period": "2026-04-14",
+        "days": max(1, min(days, 90)),
         "conversation_count": conversation_count,
         "total_responses": len(assistant_msgs),
         "avg_confidence": round(avg_confidence, 4),
         "groundedness": round(groundedness, 4),
         "escalation_rate_pct": round(escalation_rate, 2),
         "confidence_calibration": calibration,
+        "timeseries": timeseries,
         "drift_detected": False,
     }
 
 
+@router.get("/ops/metrics/calibration")
+async def calibration_samples(
+    limit: int = 500,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Predicted vs. actual calibration scatter samples.
+
+    Derived from real assistant messages' confidence scores (predicted) + a
+    proxy for actual correctness (groundedness: 1.0 if citations were present,
+    else 0.5). Until user-feedback signals are wired in, this is the closest
+    honest proxy. Capped at `limit`.
+    """
+    _require_ops(user)
+    from ..stores import chat_store
+
+    assistant_msgs = await aio(chat_store.get_all_assistant_messages())
+    capped = max(1, min(limit, 5000))
+    samples: list[dict] = []
+    for m in assistant_msgs[:capped]:
+        actual = 1.0 if m.citations else 0.5
+        samples.append(
+            {
+                "predicted": round(m.confidence_score, 4),
+                "actual": actual,
+            }
+        )
+    return {"samples": samples, "count": len(samples)}
+
+
+def _latency_24h() -> list[dict]:
+    """Deterministic per-hour p50/p99 latency samples for the last 24h."""
+    now = datetime.now(UTC).replace(minute=0, second=0, microsecond=0)
+    rng = random.Random(int(hashlib.sha256(b"latency-24h").hexdigest()[:16], 16))
+    hours: list[dict] = []
+    p50 = 180
+    p99 = 520
+    for i in range(24):
+        h = (now - timedelta(hours=23 - i)).isoformat()
+        hours.append(
+            {
+                "hour": h,
+                "p50_ms": max(80, p50 + rng.randint(-40, 60)),
+                "p99_ms": max(200, p99 + rng.randint(-120, 180)),
+            }
+        )
+        p50 += rng.randint(-15, 20)
+        p99 += rng.randint(-40, 50)
+    return hours
+
+
+_INCIDENTS_FIXTURE: list[dict] = [
+    {
+        "id": "inc-2026-04-17-01",
+        "title": "Elevated p99 latency on orchestrator",
+        "status": "resolved",
+        "severity": "sev-3",
+        "started_at": "2026-04-17T14:22:00Z",
+        "resolved_at": "2026-04-17T15:08:00Z",
+        "service": "orchestrator",
+        "summary": "Reranker timeout bump restored tail latency.",
+    },
+    {
+        "id": "inc-2026-04-12-02",
+        "title": "Vector search degraded — index compaction",
+        "status": "monitoring",
+        "severity": "sev-2",
+        "started_at": "2026-04-12T09:00:00Z",
+        "resolved_at": None,
+        "service": "vector-search",
+        "summary": "Index compaction running, search latency elevated.",
+    },
+    {
+        "id": "inc-2026-04-10-01",
+        "title": "Document extraction worker pool saturated",
+        "status": "resolved",
+        "severity": "sev-3",
+        "started_at": "2026-04-10T02:12:00Z",
+        "resolved_at": "2026-04-10T03:41:00Z",
+        "service": "document-extraction",
+        "summary": "Scaled worker pool from 4 to 8.",
+    },
+]
+
+
 @router.get("/ops/metrics/liveops")
 async def liveops_metrics(
+    granularity: str = "rollup",
+    hours: int = 24,
     user: UserContext = Depends(get_current_user),
 ) -> dict:
     _require_ops(user)
+    if granularity not in ("rollup", "hour"):
+        raise HTTPException(
+            status_code=422, detail="granularity must be 'rollup' or 'hour'"
+        )
     from ..stores import document_store, vector_store, workspace_store
 
     all_workspaces = await aio(workspace_store.list(workspace_grants=["all"]))
@@ -205,7 +339,7 @@ async def liveops_metrics(
             elif d.status == "embedding":
                 embedding_queue_depth += 1
 
-    return {
+    payload: dict = {
         "queues": {
             "document_ingestion": {
                 "depth": ingestion_queue_depth,
@@ -227,6 +361,27 @@ async def liveops_metrics(
         },
         "sla": {"uptime_pct": 99.95, "target_pct": 99.9, "incidents_mtd": 0},
     }
+    if granularity == "hour":
+        payload["latency_24h"] = _latency_24h()[: max(1, min(hours, 24))]
+    return payload
+
+
+@router.get("/ops/incidents")
+async def incidents(
+    status: str | None = None,
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """Incident feed newest-first, optionally filtered by status."""
+    _require_ops(user)
+    if status is not None and status not in ("ongoing", "monitoring", "resolved"):
+        raise HTTPException(
+            status_code=422,
+            detail="status must be 'ongoing', 'monitoring', or 'resolved'",
+        )
+    rows = _INCIDENTS_FIXTURE
+    if status:
+        rows = [r for r in rows if r["status"] == status]
+    return sorted(rows, key=lambda r: r["started_at"], reverse=True)
 
 
 @router.get("/ops/traces/{conversation_id}")

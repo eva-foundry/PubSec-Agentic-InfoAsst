@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useWorkspaces } from "@/lib/api/hooks/useWorkspaces";
+import { useDocuments } from "@/lib/api/hooks/useDocuments";
 import { NAV, GENERAL_NAV } from "@/lib/nav-config";
 import { fuzzyScore } from "@/lib/cmdk/fuzzy";
 import { usePaletteMemory, PINNED_LIMIT } from "@/lib/cmdk/persistence";
@@ -15,7 +16,7 @@ import { useCustomizer } from "@/contexts/ThemeCustomizer";
 import { useShortcuts } from "@/components/ShortcutsOverlay";
 import { useCoachmarkTour } from "@/components/CoachmarkTour";
 import {
-  Building2, ArrowRight, Pin, Clock, Trash2, Zap, type LucideIcon,
+  Building2, FileText, ArrowRight, Pin, Clock, Trash2, Zap, type LucideIcon,
 } from "lucide-react";
 
 interface Ctx { open: () => void; close: () => void; }
@@ -63,6 +64,13 @@ function Inner({
   const { recent, pinned, pushRecent, togglePin, clearRecent } = usePaletteMemory();
   const { theme, setTheme, portal, setPortal } = useCustomizer();
   const workspacesQuery = useWorkspaces();
+  // Only fetch the document catalog once the palette is open to avoid burning
+  // a request on every page load.
+  const documentsQuery = useDocuments({
+    q: query,
+    limit: 50,
+    enabled: isOpen,
+  });
   const { open: openShortcuts } = useShortcuts();
   const { start: startTour } = useCoachmarkTour();
 
@@ -150,8 +158,24 @@ function Inner({
       };
     });
 
-    return [...actionEntries, ...navEntries, ...workspaceEntries];
-  }, [t, go, runAction, navigate, theme, setTheme, portal, setPortal, openShortcuts, startTour, workspacesQuery.data]);
+    const wsNameById = new Map<string, string>();
+    for (const w of workspacesQuery.data ?? []) wsNameById.set(w.id, w.name);
+    const documentEntries: Entry[] = (documentsQuery.data ?? []).map((d) => {
+      const id = `doc:${d.id}`;
+      const wsLabel = wsNameById.get(d.workspace_id) ?? d.workspace_id;
+      return {
+        id,
+        label: d.file_name,
+        hint: `${wsLabel} · ${d.status}`,
+        icon: FileText,
+        onSelect: () => go(`/my-workspace?workspace=${d.workspace_id}`, id),
+        haystack: `${d.file_name} ${wsLabel} ${d.status}`,
+        group: "documents",
+      };
+    });
+
+    return [...actionEntries, ...navEntries, ...workspaceEntries, ...documentEntries];
+  }, [t, go, runAction, navigate, theme, setTheme, portal, setPortal, openShortcuts, startTour, workspacesQuery.data, documentsQuery.data]);
 
   const entryById = useMemo(() => {
     const map = new Map<string, Entry>();
@@ -174,7 +198,7 @@ function Inner({
         actions: entries.filter((e) => e.group === "actions"),
         navigation: entries.filter((e) => e.group === "navigation").slice(0, 8),
         workspaces: entries.filter((e) => e.group === "workspaces"),
-        documents: [] as Entry[],
+        documents: entries.filter((e) => e.group === "documents").slice(0, 6),
         audit: [] as Entry[],
         empty: false,
       };
