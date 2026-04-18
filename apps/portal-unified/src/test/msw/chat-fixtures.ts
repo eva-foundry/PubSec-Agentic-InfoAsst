@@ -163,6 +163,26 @@ export const DEMO_USERS_FIXTURE = [
     data_classification_level: "protected_b",
     language: "en",
   },
+  {
+    user_id: "demo-carol",
+    email: "carol@demo.gc.ca",
+    name: "Carol Martinez",
+    role: "admin",
+    portal_access: ["self-service", "admin"],
+    workspace_grants: ["all"],
+    data_classification_level: "protected_b",
+    language: "en",
+  },
+  {
+    user_id: "demo-dave",
+    email: "dave@demo.gc.ca",
+    name: "Dave Thompson",
+    role: "admin",
+    portal_access: ["self-service", "admin", "ops"],
+    workspace_grants: ["all"],
+    data_classification_level: "protected_b",
+    language: "en",
+  },
 ];
 
 export const WORKSPACES_FIXTURE = [
