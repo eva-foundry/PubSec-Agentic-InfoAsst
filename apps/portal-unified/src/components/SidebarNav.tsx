@@ -3,6 +3,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { NavLink } from "@/components/NavLink";
 import { NAV, GENERAL_NAV, PORTAL_LABEL_KEYS } from "@/lib/nav-config";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { portal } = useCustomizer();
@@ -45,11 +47,17 @@ const initialsOf = (name: string): string => {
 export function SidebarFooter() {
   const { portal } = useCustomizer();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const displayName = user?.name ?? "—";
   const displayEmail = user?.email ?? "";
   const tenantTag = user?.workspace_grants?.[0] ?? user?.role ?? "guest";
+
+  const onLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="border-t border-sidebar-border p-3 text-xs">
@@ -61,6 +69,17 @@ export function SidebarFooter() {
           <div className="truncate font-medium">{displayName}</div>
           <div className="truncate text-muted-foreground text-[11px]">{displayEmail}</div>
         </div>
+        {user && (
+          <button
+            type="button"
+            onClick={onLogout}
+            aria-label={t("auth.logout", "Log out")}
+            title={t("auth.logout", "Log out")}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+          >
+            <LogOut className="h-4 w-4" aria-hidden />
+          </button>
+        )}
       </div>
       <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">

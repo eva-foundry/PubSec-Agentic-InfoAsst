@@ -1,4 +1,15 @@
 import { PortalMode } from "@/contexts/ThemeCustomizer";
+import type { PortalKey } from "@/lib/api/types";
+
+/** UI-facing `PortalMode` ↔ backend `PortalKey` (the two drift on "workspace" ↔ "self-service"). */
+export const PORTAL_MODE_TO_KEY: Record<PortalMode, PortalKey> = {
+  workspace: "self-service",
+  admin: "admin",
+  ops: "ops",
+};
+
+export const portalAllowed = (mode: PortalMode, access: PortalKey[] | undefined): boolean =>
+  !!access && access.includes(PORTAL_MODE_TO_KEY[mode]);
 import {
   MessageSquare, Library, FolderKanban,
   Workflow, Database, Shield, Building2, ShieldAlert,

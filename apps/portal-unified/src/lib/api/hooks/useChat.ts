@@ -1,15 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/contexts/ApiProvider";
-import type { ChatMessage, ChatRequest, SessionCost } from "@/lib/api/types";
+import type { ChatRequest, SessionCost } from "@/lib/api/types";
 import { qk } from "@/lib/api/keys";
 
 export interface ConversationSummary {
-  id: string;
+  conversation_id: string;
   workspace_id: string | null;
   title: string;
   message_count: number;
+  last_message_at: string;
+  avg_confidence?: number;
+  mode?: string;
+}
+
+export interface ConversationMessageRecord {
+  conversation_id: string;
+  message_id: string;
+  workspace_id: string | null;
+  user_id: string;
+  role: "user" | "assistant";
+  content_preview: string;
+  content_hash: string;
+  citations: unknown[];
+  provenance: unknown;
+  agent_steps: unknown[];
+  confidence_score: number;
+  model: string;
+  mode: string;
   created_at: string;
-  updated_at: string;
 }
 
 export interface FeedbackSignal {
@@ -32,7 +50,7 @@ export const useConversation = (conversationId: string | null) => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.chat.conversation(conversationId ?? "__none__"),
-    queryFn: () => client.get<{ conversation: ConversationSummary; messages: ChatMessage[] }>(
+    queryFn: () => client.get<ConversationMessageRecord[]>(
       `/v1/eva/conversations/${conversationId}`,
     ),
     enabled: !!conversationId,

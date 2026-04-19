@@ -182,18 +182,22 @@ export default function MyWorkspace() {
           {filteredConvos.length === 0 ? (
             <EmptyState title="No conversations match" description="Try a different search term." />
           ) : (
-            filteredConvos.map((t) => (
-              <div key={t.id} className="ui-card rounded-lg p-4 flex items-center gap-3">
-                <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {t.workspace_id ?? "—"} · {new Date(t.updated_at).toLocaleDateString()}
+            filteredConvos.map((t) => {
+              const ts = t.last_message_at ? new Date(t.last_message_at) : null;
+              const tsLabel = ts && !Number.isNaN(ts.getTime()) ? ts.toLocaleDateString() : "—";
+              return (
+                <div key={t.conversation_id} className="ui-card rounded-lg p-4 flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.workspace_id ?? "—"} · {tsLabel}
+                    </div>
                   </div>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>Open</Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>Open</Button>
-              </div>
-            ))
+              );
+            })
           )}
         </TabsContent>
 

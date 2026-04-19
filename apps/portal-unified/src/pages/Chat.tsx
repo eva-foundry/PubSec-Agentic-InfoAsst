@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useWorkspaces } from "@/lib/api/hooks/useWorkspaces";
-import { useConversations, useStreamChat, useSubmitFeedback } from "@/lib/api/hooks/useChat";
+import { useConversation, useConversations, useStreamChat, useSubmitFeedback } from "@/lib/api/hooks/useChat";
 import type {
   AgentStep, ChatEvent, Citation, ExplainabilityRecord, ProvenanceRecord,
 } from "@/lib/api/types";
@@ -53,12 +53,13 @@ export default function Chat() {
   const conversations = useConversations();
   const streamChat = useStreamChat();
   const feedbackMut = useSubmitFeedback();
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const conversation = useConversation(conversationId);
 
   const [workspace, setWorkspace] = useState<string>("");
   const [grounded, setGrounded] = useState(true);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [docOpen, setDocOpen] = useState(false);
   const [activeCitation, setActiveCitation] = useState<Citation | null>(null);
@@ -81,6 +82,37 @@ export default function Chat() {
       behavior: "smooth",
     });
   }, [messages]);
+
+  // When a past conversation is picked, hydrate the transcript from the
+  // persisted message records. Only runs when there's no in-flight stream
+  // — a live send owns the transcript until it settles.
+  useEffect(() => {
+    if (!conversationId || isStreaming) return;
+    const records = conversation.data;
+    if (!records) return;
+    const hydrated: Message[] = records.map((r) => {
+      if (r.role === "user") {
+        return { id: r.message_id, role: "user", text: r.content_preview };
+      }
+      const asst: AssistantMessage = {
+        id: r.message_id,
+        role: "assistant",
+        conversationId: r.conversation_id,
+        messageId: r.message_id,
+        correlationId: null,
+        text: r.content_preview,
+        steps: [],
+        state: "done",
+        citations: [],
+        provenance: null,
+        explainability: null,
+        feedback: null,
+        degradation: null,
+      };
+      return asst;
+    });
+    setMessages(hydrated);
+  }, [conversationId, conversation.data, isStreaming]);
 
   const patchAssistant = (id: string, patch: Partial<AssistantMessage>) => {
     setMessages((prev) =>
@@ -338,21 +370,25 @@ export default function Chat() {
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-1">
             {conversations.isLoading && <div className="text-xs text-muted-foreground p-2">Loading…</div>}
-            {(conversations.data ?? []).map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setConversationId(c.id)}
-                className={cn(
-                  "w-full text-left rounded-md p-2 text-xs hover:bg-muted/60 transition-colors",
-                  conversationId === c.id && "bg-muted",
-                )}
-              >
-                <div className="font-medium truncate text-sm">{c.title}</div>
-                <div className="text-[11px] text-muted-foreground truncate">
-                  {c.workspace_id ?? "—"} · {new Date(c.updated_at).toLocaleDateString()}
-                </div>
-              </button>
-            ))}
+            {(conversations.data ?? []).map((c) => {
+              const ts = c.last_message_at ? new Date(c.last_message_at) : null;
+              const tsLabel = ts && !Number.isNaN(ts.getTime()) ? ts.toLocaleDateString() : "—";
+              return (
+                <button
+                  key={c.conversation_id}
+                  onClick={() => setConversationId(c.conversation_id)}
+                  className={cn(
+                    "w-full text-left rounded-md p-2 text-xs hover:bg-muted/60 transition-colors",
+                    conversationId === c.conversation_id && "bg-muted",
+                  )}
+                >
+                  <div className="font-medium truncate text-sm">{c.title}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">
+                    {c.workspace_id ?? "—"} · {tsLabel}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </aside>
 
