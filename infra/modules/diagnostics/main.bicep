@@ -64,10 +64,20 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 // Diagnostic Settings — Storage Account
 // ---------------------------------------------------------------------------
 
+// Resolve the storage account resource ID to a resource reference so the
+// diagnosticSettings `scope` property gets the expected `resource` type.
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+  name: last(split(storageAccountId, '/'))
+}
+
+resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' existing = {
+  name: last(split(cosmosAccountId, '/'))
+}
+
 @description('Diagnostic settings for storage account audit logging')
 resource storageBlobDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'eva-storage-blob-diag'
-  scope: storageAccountId
+  scope: storageAccount
   properties: {
     workspaceId: logAnalytics.id
     logs: [
@@ -87,7 +97,7 @@ resource storageBlobDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
 @description('Diagnostic settings for Cosmos DB audit logging')
 resource cosmosDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'eva-cosmos-diag'
-  scope: cosmosAccountId
+  scope: cosmosAccount
   properties: {
     workspaceId: logAnalytics.id
     logs: [
