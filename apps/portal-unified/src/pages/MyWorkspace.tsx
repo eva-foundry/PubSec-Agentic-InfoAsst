@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConversations } from "@/lib/api/hooks/useChat";
+import { useDocuments } from "@/lib/api/hooks/useDocuments";
+import {
+  useAddTeamMember, useBookings, useRemoveTeamMember, useTeamMembers, useUpdateMemberRole,
+} from "@/lib/api/hooks/useTeam";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,39 +22,43 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 const PIPELINE_STAGES = ["Queued", "Extracting", "Chunking", "Embedding", "Indexed"];
-const INITIAL_DOCS = [
-  { name: "HR-Handbook-v4.2.pdf", workspace: "Internal HR Handbook", stage: 4, archetype: "Knowledge Base", verified: "2025-04-12" },
-  { name: "Postgres-Failover-Runbook.md", workspace: "Engineering Runbooks", stage: 4, archetype: "Policy Library", verified: "2025-04-15" },
-  { name: "MSA-Acme-2024.pdf", workspace: "Legal Contract Archive", stage: 3, archetype: "Case Archive", verified: "2025-04-08" },
-  { name: "Q1-Sales-Dashboard-export.csv", workspace: "Sales BI Dashboard", stage: 2, archetype: "BI Copilot", verified: "—" },
-  { name: "Vendor-X-SOC2.pdf", workspace: "Vendor Risk Decisions", stage: 1, archetype: "Decision Support", verified: "—" },
-];
 
-type Role = "Admin" | "Contributor" | "Reader";
-interface Member { name: string; email: string; role: Role }
+// Map backend DocumentRecord.status → pipeline stage index.
+const STAGE_BY_STATUS: Record<string, number> = {
+  uploaded: 0,
+  processing: 1,
+  chunking: 2,
+  embedding: 3,
+  indexed: 4,
+  error: 0,
+};
 
-const INITIAL_TEAM: Member[] = [
-  { name: "Alice Chen", email: "alice@acme.com", role: "Admin" },
-  { name: "Bob Martinez", email: "bob@acme.com", role: "Contributor" },
-  { name: "Carol Singh", email: "carol@acme.com", role: "Reader" },
-  { name: "Dmitri Volkov", email: "dmitri@acme.com", role: "Contributor" },
-];
+type Role = "reader" | "contributor" | "admin";
 
 export default function MyWorkspace() {
   const navigate = useNavigate();
-  const [team, setTeam] = useState<Member[]>(INITIAL_TEAM);
-  const [docs] = useState(INITIAL_DOCS);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<Role>("Contributor");
+  const [inviteRole, setInviteRole] = useState<Role>("contributor");
   const [docQuery, setDocQuery] = useState("");
   const [convoQuery, setConvoQuery] = useState("");
 
+  const bookings = useBookings();
+  const firstBookingId = bookings.data?.[0]?.id ?? null;
+  const team = useTeamMembers(firstBookingId);
+  const addMember = useAddTeamMember();
+  const updateRole = useUpdateMemberRole();
+  const removeMember = useRemoveTeamMember();
+
+  const documents = useDocuments({});
   const filteredDocs = useMemo(
-    () => docs.filter((d) =>
-      d.name.toLowerCase().includes(docQuery.toLowerCase()) ||
-      d.workspace.toLowerCase().includes(docQuery.toLowerCase())
-    ),
-    [docs, docQuery],
+    () => (documents.data ?? []).filter((d) => {
+      const q = docQuery.toLowerCase();
+      return (
+        d.file_name.toLowerCase().includes(q) ||
+        d.workspace_id.toLowerCase().includes(q)
+      );
+    }),
+    [documents.data, docQuery],
   );
 
   const conversations = useConversations();
@@ -61,30 +70,56 @@ export default function MyWorkspace() {
     [convoQuery, conversations.data],
   );
 
+  const teamCount = team.data?.length ?? 0;
+  const docsCount = documents.data?.length ?? 0;
+
   const invite = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firstBookingId) {
+      toast.error("No active booking — create one first.");
+      return;
+    }
     if (!inviteEmail.includes("@")) {
       toast.error("Please enter a valid email.");
       return;
     }
-    if (team.some((m) => m.email === inviteEmail)) {
-      toast.error("That email is already on the team.");
-      return;
-    }
-    const name = inviteEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    setTeam((t) => [...t, { name, email: inviteEmail, role: inviteRole }]);
-    toast.success(`Invited ${inviteEmail} as ${inviteRole}.`);
-    setInviteEmail("");
+    const name = inviteEmail
+      .split("@")[0]
+      .replace(/[._]/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    addMember.mutate(
+      { bookingId: firstBookingId, email: inviteEmail, name, role: inviteRole },
+      {
+        onSuccess: () => {
+          toast.success(`Invited ${inviteEmail} as ${inviteRole}.`);
+          setInviteEmail("");
+        },
+        onError: (err) =>
+          toast.error(`Invite failed: ${(err as Error).message}`),
+      },
+    );
   };
 
-  const removeMember = (email: string) => {
-    setTeam((t) => t.filter((m) => m.email !== email));
-    toast(`Removed ${email}.`);
+  const onRemove = (userId: string, email: string) => {
+    if (!firstBookingId) return;
+    removeMember.mutate(
+      { bookingId: firstBookingId, userId },
+      {
+        onSuccess: () => toast(`Removed ${email}.`),
+        onError: (err) => toast.error(`Remove failed: ${(err as Error).message}`),
+      },
+    );
   };
 
-  const updateRole = (email: string, role: Role) => {
-    setTeam((t) => t.map((m) => (m.email === email ? { ...m, role } : m)));
-    toast.success(`${email} is now ${role}.`);
+  const onRoleChange = (userId: string, role: Role, email: string) => {
+    if (!firstBookingId) return;
+    updateRole.mutate(
+      { bookingId: firstBookingId, userId, role },
+      {
+        onSuccess: () => toast.success(`${email} is now ${role}.`),
+        onError: (err) => toast.error(`Role update failed: ${(err as Error).message}`),
+      },
+    );
   };
 
   return (
@@ -97,8 +132,8 @@ export default function MyWorkspace() {
       <Tabs defaultValue="conversations" className="w-full">
         <TabsList>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
-          <TabsTrigger value="team">Team ({team.length})</TabsTrigger>
-          <TabsTrigger value="documents">Documents ({docs.length})</TabsTrigger>
+          <TabsTrigger value="team">Team ({teamCount})</TabsTrigger>
+          <TabsTrigger value="documents">Documents ({docsCount})</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -151,59 +186,85 @@ export default function MyWorkspace() {
                 <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as Role)}>
                   <SelectTrigger id="invite-role" className="w-[140px]" aria-label="Invite role"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="Contributor">Contributor</SelectItem>
-                    <SelectItem value="Reader">Reader</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="contributor">Contributor</SelectItem>
+                    <SelectItem value="reader">Reader</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="bg-gradient-accent">
+              <Button
+                type="submit"
+                className="bg-gradient-accent"
+                disabled={!firstBookingId || addMember.isPending}
+              >
                 <UserPlus className="mr-2 h-4 w-4" />Invite
               </Button>
             </form>
+            {!firstBookingId && !bookings.isLoading && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                No active booking — team management unlocks once a workspace booking is active.
+              </p>
+            )}
           </div>
           <div className="ui-card rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/30 border-b border-border">
-                <tr>
-                  <th scope="col" className="text-left p-3 font-medium">Name</th>
-                  <th scope="col" className="text-left p-3 font-medium">Email</th>
-                  <th scope="col" className="text-left p-3 font-medium">Role</th>
-                  <th scope="col" className="text-right p-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {team.map((m) => (
-                  <tr key={m.email} className="border-b border-border last:border-0">
-                    <td className="p-3 font-medium">{m.name}</td>
-                    <td className="p-3 text-muted-foreground">{m.email}</td>
-                    <td className="p-3">
-                      <Select value={m.role} onValueChange={(v) => updateRole(m.email, v as Role)}>
-                        <SelectTrigger className="h-7 w-[130px] text-xs" aria-label={`Role for ${m.name}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Admin">Admin</SelectItem>
-                          <SelectItem value="Contributor">Contributor</SelectItem>
-                          <SelectItem value="Reader">Reader</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="p-3 text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-danger"
-                        onClick={() => removeMember(m.email)}
-                        aria-label={`Remove ${m.name}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
+            {team.isLoading || bookings.isLoading ? (
+              <div className="p-4 space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            ) : team.isError ? (
+              <div className="p-6">
+                <EmptyState title="Could not load team" description={team.error?.message} />
+              </div>
+            ) : (team.data?.length ?? 0) === 0 ? (
+              <div className="p-6">
+                <EmptyState title="No team members yet" description="Invite a teammate to get started." />
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted/30 border-b border-border">
+                  <tr>
+                    <th scope="col" className="text-left p-3 font-medium">Name</th>
+                    <th scope="col" className="text-left p-3 font-medium">Email</th>
+                    <th scope="col" className="text-left p-3 font-medium">Role</th>
+                    <th scope="col" className="text-right p-3 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {team.data!.map((m) => (
+                    <tr key={m.id} className="border-b border-border last:border-0">
+                      <td className="p-3 font-medium">{m.name}</td>
+                      <td className="p-3 text-muted-foreground">{m.email}</td>
+                      <td className="p-3">
+                        <Select
+                          value={m.role}
+                          onValueChange={(v) => onRoleChange(m.user_id, v as Role, m.email)}
+                        >
+                          <SelectTrigger className="h-7 w-[130px] text-xs" aria-label={`Role for ${m.name}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="contributor">Contributor</SelectItem>
+                            <SelectItem value="reader">Reader</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-danger"
+                          onClick={() => onRemove(m.user_id, m.email)}
+                          aria-label={`Remove ${m.name}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </TabsContent>
 
@@ -220,45 +281,59 @@ export default function MyWorkspace() {
               />
             </div>
           </div>
-          {filteredDocs.length === 0 ? (
-            <EmptyState title="No documents match" description="Try a different search term." />
+          {documents.isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+            </div>
+          ) : documents.isError ? (
+            <EmptyState title="Could not load documents" description={documents.error?.message} />
+          ) : filteredDocs.length === 0 ? (
+            <EmptyState
+              title={(documents.data?.length ?? 0) === 0 ? "No documents yet" : "No documents match"}
+              description={(documents.data?.length ?? 0) === 0 ? "Upload documents via the workspace onboarding flow." : "Try a different search term."}
+            />
           ) : (
-            filteredDocs.map((d) => (
-              <div key={d.name} className="ui-card rounded-lg p-4">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium truncate">{d.name}</div>
-                    <div className="text-xs text-muted-foreground">{d.workspace} · last verified {d.verified}</div>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{d.archetype}</Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => toast("Trace would open the document graph + access log.")}
-                  >trace ↗</Button>
-                </div>
-                <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-                  {PIPELINE_STAGES.map((stg, i) => (
-                    <div key={stg} className="flex items-center gap-1.5">
-                      <Badge
-                        variant={i <= d.stage ? "default" : "outline"}
-                        className={cn(
-                          "text-[10px]",
-                          i <= d.stage
-                            ? (i === d.stage && d.stage < 4 ? "bg-warning text-foreground" : "bg-success text-foreground")
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {i < d.stage && <CheckCircle2 className="h-3 w-3 mr-1" />}{stg}
-                      </Badge>
-                      {i < PIPELINE_STAGES.length - 1 && <span className="text-muted-foreground/40" aria-hidden>→</span>}
+            filteredDocs.map((d) => {
+              const stage = STAGE_BY_STATUS[d.status] ?? 0;
+              return (
+                <div key={d.id} className="ui-card rounded-lg p-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">{d.file_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {d.workspace_id} · {d.indexed_at ? `indexed ${new Date(d.indexed_at).toLocaleDateString()}` : `uploaded ${new Date(d.uploaded_at).toLocaleDateString()}`}
+                      </div>
                     </div>
-                  ))}
+                    <Badge variant="outline" className="text-[10px]">{d.status}</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => toast("Trace would open the document graph + access log.")}
+                    >trace ↗</Button>
+                  </div>
+                  <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+                    {PIPELINE_STAGES.map((stg, i) => (
+                      <div key={stg} className="flex items-center gap-1.5">
+                        <Badge
+                          variant={i <= stage ? "default" : "outline"}
+                          className={cn(
+                            "text-[10px]",
+                            i <= stage
+                              ? (i === stage && stage < 4 ? "bg-warning text-foreground" : "bg-success text-foreground")
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {i < stage && <CheckCircle2 className="h-3 w-3 mr-1" />}{stg}
+                        </Badge>
+                        {i < PIPELINE_STAGES.length - 1 && <span className="text-muted-foreground/40" aria-hidden>→</span>}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </TabsContent>
 
@@ -272,7 +347,7 @@ export default function MyWorkspace() {
                 defaultValue="Always answer with citations. Decline if no grounding is found."
                 onBlur={() => toast.success("System prompt saved")}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Saved on blur.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Saved on blur. Persistence to <code>/admin/workspaces/*/valves</code> pending.</p>
             </div>
             <div className="flex items-center justify-between">
               <div>

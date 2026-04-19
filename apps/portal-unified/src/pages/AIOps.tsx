@@ -64,7 +64,7 @@ export default function AIOps() {
       <div>
         <h1 className="text-3xl font-extrabold">AIOps Monitor</h1>
         <p className="mt-2 text-muted-foreground">
-          Quality metrics from <code>/ops/metrics/aiops</code> · time-series panels pending backend enhancement.
+          Quality metrics, time-series trends and calibration samples from <code>/ops/metrics/aiops</code> + <code>/ops/metrics/calibration</code>.
         </p>
       </div>
 

@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useArchetypes } from "@/lib/api/hooks/useWorkspaces";
+import { useArchetypes, useCreateWorkspace } from "@/lib/api/hooks/useWorkspaces";
 
 type Assurance = "all" | "Advisory" | "Decision-informing";
 
@@ -24,10 +24,13 @@ export default function Catalog() {
   const [query, setQuery] = useState("");
   const [assurance, setAssurance] = useState<Assurance>("all");
   const [name, setName] = useState("");
+  const [selectedArchetype, setSelectedArchetype] = useState<string>("kb");
+  const [classification, setClassification] = useState<"unclassified" | "protected_a" | "protected_b">("protected_a");
   const steps = ["Archetype", "Data sources", "Team", "Policies", "Confirm"];
 
   const archetypes = useArchetypes();
   const entries = archetypes.data ?? [];
+  const createMutation = useCreateWorkspace();
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
@@ -41,10 +44,30 @@ export default function Catalog() {
   }, [entries, query, assurance]);
 
   const finishWizard = () => {
-    setOpen(false);
-    setStep(0);
-    toast.success(`Workspace${name ? ` "${name}"` : ""} created`, { description: "Mock — no backend wired yet." });
-    setName("");
+    if (!name.trim()) {
+      toast.error("Workspace name is required.");
+      return;
+    }
+    createMutation.mutate(
+      {
+        name: name.trim(),
+        archetype: selectedArchetype,
+        data_classification: classification,
+      },
+      {
+        onSuccess: (ws) => {
+          setOpen(false);
+          setStep(0);
+          setName("");
+          toast.success(`Workspace "${ws.name}" created`, {
+            description: `${ws.id} · ${ws.data_classification} · archetype: ${ws.archetype ?? "n/a"}`,
+          });
+        },
+        onError: (err) => {
+          toast.error(`Could not create workspace: ${(err as Error).message}`);
+        },
+      },
+    );
   };
 
   return (
@@ -68,22 +91,46 @@ export default function Catalog() {
             <div className="space-y-3">
               <Label htmlFor="ws-field">{steps[step]}</Label>
               {step === 0 ? (
-                <Input
-                  id="ws-field"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Workspace name…"
-                />
+                <div className="space-y-2">
+                  <Input
+                    id="ws-field"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Workspace name…"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <select
+                      aria-label="Archetype"
+                      value={selectedArchetype}
+                      onChange={(e) => setSelectedArchetype(e.target.value)}
+                      className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+                    >
+                      {entries.map((a) => (
+                        <option key={a.key} value={a.key}>{a.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      aria-label="Classification"
+                      value={classification}
+                      onChange={(e) => setClassification(e.target.value as typeof classification)}
+                      className="h-9 rounded-md border border-border bg-background px-2 text-xs"
+                    >
+                      <option value="unclassified">Unclassified</option>
+                      <option value="protected_a">Protected A</option>
+                      <option value="protected_b">Protected B</option>
+                    </select>
+                  </div>
+                </div>
               ) : (
                 <Input id="ws-field" placeholder={`Configure ${steps[step].toLowerCase()}…`} />
               )}
-              <p className="text-xs text-muted-foreground">All settings are mock — wire up to your backend on plan upgrade.</p>
+              <p className="text-xs text-muted-foreground">Name + archetype + classification are persisted. Remaining steps are placeholders until the provisioning pipeline ships.</p>
             </div>
             <DialogFooter>
               {step > 0 && <Button variant="outline" onClick={() => setStep((s) => s - 1)}>Back</Button>}
               {step < steps.length - 1
                 ? <Button onClick={() => setStep((s) => s + 1)} className="bg-gradient-accent">Next</Button>
-                : <Button onClick={finishWizard} className="bg-gradient-accent">Create</Button>}
+                : <Button onClick={finishWizard} disabled={createMutation.isPending} className="bg-gradient-accent">{createMutation.isPending ? "Creating…" : "Create"}</Button>}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -170,7 +217,7 @@ export default function Catalog() {
                   size="sm"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => { setOpen(true); setName(a.name); }}
+                  onClick={() => { setOpen(true); setName(a.name); setSelectedArchetype(a.key); }}
                 >
                   Use template
                 </Button>
