@@ -65,6 +65,9 @@ class CosmosTelemetryStore:
                 "cost_by_workspace": {},
                 "cost_by_model": {},
                 "cost_by_client": {},
+                "forecast_cad": 0.0,
+                "waste_score": 0.0,
+                "chargeback_coverage": 0.0,
             }
 
         total_cost = sum(r.cost_cad for r in records)
@@ -99,6 +102,17 @@ class CosmosTelemetryStore:
             cost_by_client[c]["cost_cad"] = round(cost_by_client[c]["cost_cad"] + r.cost_cad, 6)
             cost_by_client[c]["queries"] += 1
 
+        forecast_cad = round((total_cost / days) * 30, 4) if days > 0 else 0.0
+        tagged_cost = sum(r.cost_cad for r in records if r.workspace_id)
+        chargeback_coverage = (
+            round(tagged_cost / total_cost, 4) if total_cost > 0 else 0.0
+        )
+        sorted_costs = sorted((r.cost_cad for r in records), reverse=True)
+        top_n = max(1, len(sorted_costs) // 10)
+        top_spend = sum(sorted_costs[:top_n])
+        concentration = top_spend / total_cost if total_cost > 0 else 0.0
+        waste_score = round(max(0.0, min(100.0, (concentration - 0.10) * 500)), 1)
+
         return {
             "period_days": days,
             "total_cost_cad": round(total_cost, 4),
@@ -108,7 +122,50 @@ class CosmosTelemetryStore:
             "cost_by_workspace": cost_by_workspace,
             "cost_by_model": cost_by_model,
             "cost_by_client": cost_by_client,
+            "forecast_cad": forecast_cad,
+            "waste_score": waste_score,
+            "chargeback_coverage": chargeback_coverage,
         }
+
+    async def summary_historical(self, days: int = 14) -> list[dict]:
+        """Per-day rollups over the last `days` days; mirrors in-memory variant."""
+        cutoff = (datetime.now(UTC) - timedelta(days=days)).isoformat()
+        items = await self._cosmos.query(
+            CONTAINER,
+            "SELECT * FROM c WHERE c.timestamp >= @cutoff",
+            parameters=[{"name": "@cutoff", "value": cutoff}],
+        )
+        records = [_to_record(i) for i in items]
+
+        now = datetime.now(UTC)
+        buckets: dict[str, dict[str, float]] = {}
+        for r in records:
+            day = r.timestamp.date().isoformat()
+            b = buckets.setdefault(
+                day, {"cost_cad": 0.0, "queries": 0, "latency_sum_ms": 0.0}
+            )
+            b["cost_cad"] += r.cost_cad
+            b["queries"] += 1
+            b["latency_sum_ms"] += r.latency_ms
+
+        out: list[dict] = []
+        for i in range(days - 1, -1, -1):
+            day = (now.date() - timedelta(days=i)).isoformat()
+            b = buckets.get(day)
+            if b is None or b["queries"] == 0:
+                out.append(
+                    {"day": day, "cost_cad": 0.0, "queries": 0, "avg_latency_ms": 0.0}
+                )
+            else:
+                out.append(
+                    {
+                        "day": day,
+                        "cost_cad": round(b["cost_cad"], 6),
+                        "queries": int(b["queries"]),
+                        "avg_latency_ms": round(b["latency_sum_ms"] / b["queries"], 1),
+                    }
+                )
+        return out
 
     async def session_cost(self, session_id: str) -> dict:
         items = await self._cosmos.query(

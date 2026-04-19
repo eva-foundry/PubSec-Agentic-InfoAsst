@@ -86,6 +86,7 @@ def create_app() -> FastAPI:
     async def startup():
         from .config import get_settings
         from .stores import API_MOCK, initialize_azure_stores
+        from .stores.compat import aio
 
         settings = get_settings()
 
@@ -96,7 +97,6 @@ def create_app() -> FastAPI:
 
             # Seed Cosmos if empty (first run)
             from .stores import workspace_store
-            from .stores.compat import aio
 
             existing = await aio(workspace_store.list(["all"]))
             if not existing:
@@ -125,8 +125,13 @@ def create_app() -> FastAPI:
             embedding_client = MockEmbeddingClient()
             logger.info("Using mock embeddings (no Azure OpenAI credentials)")
 
-        # ── Document preloading (mock mode only) ──
-        if API_MOCK:
+        # ── Document preloading ──
+        # Mock mode: always preload (tests rely on it).
+        # Azure mode: opt-in via EVA_PRELOAD_SAMPLES=true so the E2E stack has
+        # searchable docs immediately after deploy, without forcing every
+        # production tenant to eat the preload cost.
+        should_preload = API_MOCK or settings.preload_samples
+        if should_preload:
             from .pipeline.local_processor import LocalDocumentProcessor
             from .pipeline.preload import preload_sample_documents
             from .stores import document_store, vector_store
@@ -137,18 +142,24 @@ def create_app() -> FastAPI:
                 embedding_client=embedding_client,
                 document_store=document_store,
             )
-            logger.info("Pre-loading sample documents...")
-            await preload_sample_documents(processor, ws_store)
             logger.info(
-                "Startup complete (mock mode). Vector store: %d workspaces with documents.",
-                sum(
-                    1
-                    for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]
-                    if vector_store.document_count(ws_id) > 0
-                ),
+                "Pre-loading sample documents (mode=%s)...",
+                "mock" if API_MOCK else "azure-opt-in",
+            )
+            await preload_sample_documents(processor, ws_store)
+            counts = []
+            for ws_id in ["ws-oas-act", "ws-ei-juris", "ws-faq"]:
+                n = await aio(vector_store.document_count(ws_id))
+                counts.append(n)
+            logger.info(
+                "Startup complete. Vector store populated for %d/3 sample workspaces.",
+                sum(1 for n in counts if n > 0),
             )
         else:
-            logger.info("Startup complete (Azure mode). Stores backed by Cosmos DB + AI Search.")
+            logger.info(
+                "Startup complete (Azure mode, preload disabled). "
+                "Stores backed by Cosmos DB + AI Search."
+            )
 
     @app.on_event("shutdown")
     async def shutdown():
