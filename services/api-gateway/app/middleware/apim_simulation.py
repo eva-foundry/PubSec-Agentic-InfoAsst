@@ -35,6 +35,13 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
         # --- Workspace ID (optional, from header) ---
         workspace_id = request.headers.get("x-workspace-id", "")
 
+        # --- Cost-attribution headers from the frontend (Phase E) ---
+        # Frontend injects these via ApiProvider.getHeaderContext so FinOps
+        # rollups attribute spend to the right app / user group / classification.
+        client_app_id = request.headers.get("x-app-id", "eva-agentic")
+        user_group = request.headers.get("x-user-group", "")
+        classification = request.headers.get("x-classification", "")
+
         # Execute the actual request
         response = await call_next(request)
 
@@ -70,7 +77,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
                 correlation_id=correlation_id,
                 workspace_id=workspace_id,
                 session_id=session_id,
-                client_id="eva-agentic",
+                client_id=client_app_id,
                 deployment=deployment,
                 model_name=model_name,
                 operation=path,
@@ -80,6 +87,8 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
                 latency_ms=elapsed_ms,
                 cost_cad=cost,
                 status_code=response.status_code,
+                user_group=user_group,
+                classification=classification,
             )
             await aio(telemetry_store.add(record))
 
