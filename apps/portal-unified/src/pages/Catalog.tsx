@@ -26,6 +26,7 @@ export default function Catalog() {
   const [name, setName] = useState("");
   const [selectedArchetype, setSelectedArchetype] = useState<string>("kb");
   const [classification, setClassification] = useState<"unclassified" | "protected_a" | "protected_b">("protected_a");
+  const [costCentre, setCostCentre] = useState("");
   const steps = ["Archetype", "Data sources", "Team", "Policies", "Confirm"];
 
   const archetypes = useArchetypes();
@@ -53,14 +54,16 @@ export default function Catalog() {
         name: name.trim(),
         archetype: selectedArchetype,
         data_classification: classification,
+        cost_centre: costCentre.trim(),
       },
       {
         onSuccess: (ws) => {
           setOpen(false);
           setStep(0);
           setName("");
+          setCostCentre("");
           toast.success(`Workspace "${ws.name}" created`, {
-            description: `${ws.id} · ${ws.data_classification} · archetype: ${ws.archetype ?? "n/a"}`,
+            description: `${ws.id} · ${ws.data_classification}${ws.cost_centre ? ` · cost-centre: ${ws.cost_centre}` : ""} · archetype: ${ws.archetype ?? "n/a"}`,
           });
         },
         onError: (err) => {
@@ -120,6 +123,12 @@ export default function Catalog() {
                       <option value="protected_b">Protected B</option>
                     </select>
                   </div>
+                  <Input
+                    aria-label="Cost centre"
+                    value={costCentre}
+                    onChange={(e) => setCostCentre(e.target.value)}
+                    placeholder="Cost centre (e.g. CC-ESDC-3042)"
+                  />
                 </div>
               ) : (
                 <Input id="ws-field" placeholder={`Configure ${steps[step].toLowerCase()}…`} />

@@ -7,6 +7,7 @@ export interface CreateWorkspaceRequest {
   name: string;
   archetype: string;
   data_classification?: "unclassified" | "protected_a" | "protected_b";
+  cost_centre?: string;
   description?: string;
   name_fr?: string;
   description_fr?: string;

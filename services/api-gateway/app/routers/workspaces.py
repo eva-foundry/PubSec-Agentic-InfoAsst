@@ -76,7 +76,7 @@ async def create_workspace(
         document_capacity=archetype.default_capacity,
         document_count=0,
         monthly_cost=0.0,
-        cost_centre="",
+        cost_centre=body.cost_centre,
         created_at=now,
         updated_at=now,
         infrastructure={},

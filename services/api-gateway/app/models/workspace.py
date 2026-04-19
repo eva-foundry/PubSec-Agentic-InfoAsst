@@ -62,6 +62,7 @@ class CreateWorkspaceRequest(BaseModel):
         default="unclassified",
         description="'unclassified' | 'protected_a' | 'protected_b'",
     )
+    cost_centre: str = ""
     description: str = ""
     name_fr: str = ""
     description_fr: str = ""

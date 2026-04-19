@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/contexts/ApiProvider";
 import type { Document } from "@/lib/api/types";
 import { qk } from "@/lib/api/keys";
@@ -26,5 +26,25 @@ export const useDocuments = (filters: DocumentListFilters = {}) => {
         },
       }),
     enabled,
+  });
+};
+
+export interface UploadDocumentRequest {
+  workspaceId: string;
+  file: File;
+}
+
+export const useUploadDocument = () => {
+  const client = useApiClient();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, file }: UploadDocumentRequest) => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return client.post<Document>("/v1/eva/documents/upload", fd, {
+        query: { workspace_id: workspaceId },
+      });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.documents.all }),
   });
 };

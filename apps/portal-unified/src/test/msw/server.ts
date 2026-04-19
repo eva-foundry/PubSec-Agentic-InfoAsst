@@ -195,6 +195,26 @@ export const chatHandlers = [
     if (q) rows = rows.filter((d) => d.file_name.toLowerCase().includes(q));
     return HttpResponse.json(rows);
   }),
+  http.post(`*/v1/eva/documents/upload`, async ({ request }) => {
+    const url = new URL(request.url);
+    const workspaceId = url.searchParams.get("workspace_id") ?? "ws-demo";
+    const form = await request.formData();
+    const file = form.get("file");
+    const name = file instanceof File ? file.name : "uploaded";
+    return HttpResponse.json(
+      {
+        id: `doc-${Math.random().toString(36).slice(2, 10)}`,
+        workspace_id: workspaceId,
+        file_name: name,
+        status: "indexed",
+        chunk_count: 3,
+        uploaded_by: "demo-carol",
+        uploaded_at: new Date().toISOString(),
+        indexed_at: new Date().toISOString(),
+      },
+      { status: 201 },
+    );
+  }),
   http.get(`*/v1/eva/conversations`, () => HttpResponse.json(CONVERSATIONS_FIXTURE)),
   http.get(`*/v1/eva/auth/demo/users`, () => HttpResponse.json(DEMO_USERS_FIXTURE)),
   http.post(`*/v1/eva/auth/demo/login`, async ({ request }) => {

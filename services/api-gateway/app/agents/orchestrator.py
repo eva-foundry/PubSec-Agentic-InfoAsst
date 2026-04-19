@@ -102,6 +102,9 @@ class MockModelClient:
     Used when no real Azure OpenAI client is available (local dev, tests).
     """
 
+    def __init__(self) -> None:
+        self.last_usage: dict | None = None
+
     async def generate_query(self, system: str, user_message: str, history: list[dict]) -> str:
         """Generate an optimized search query from the user message."""
         return user_message
@@ -121,6 +124,17 @@ class MockModelClient:
         words = response.split(" ")
         for i, word in enumerate(words):
             yield word + (" " if i < len(words) - 1 else "")
+
+        # Synthesize a usage chunk from the input+output lengths so the
+        # downstream telemetry path behaves identically to Azure OpenAI.
+        prompt_chars = len(system) + sum(len(m.get("content", "")) for m in messages)
+        prompt_tokens = max(1, prompt_chars // 4)
+        completion_tokens = max(1, len(response) // 4)
+        self.last_usage = {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+        }
 
 
 class AgentOrchestrator:

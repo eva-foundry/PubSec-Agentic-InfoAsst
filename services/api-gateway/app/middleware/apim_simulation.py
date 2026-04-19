@@ -16,7 +16,7 @@ from starlette.responses import Response
 
 from ..stores import telemetry_store
 from ..stores.compat import aio
-from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
+from ..stores.telemetry_store import APIMTelemetryRecord
 
 
 class APIMSimulationMiddleware(BaseHTTPMiddleware):
@@ -63,15 +63,19 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
             )
 
         # --- Record telemetry for API calls (skip health/static) ---
+        # The chat endpoint records its own telemetry post-stream with real
+        # token counts from Azure OpenAI; skip the heuristic here to avoid
+        # double-counting.
         path = request.url.path
-        if path.startswith("/v1/eva/") and request.method in ("POST", "GET"):
-            # Estimate tokens based on path (rough heuristic for demo)
-            is_chat = "chat" in path
-            prompt_tokens = 800 if is_chat else 50
-            completion_tokens = 600 if is_chat else 0
-            deployment = "chat-default" if is_chat else "embeddings-default"
-            model_name = "gpt-5-mini" if is_chat else "text-embedding-3-small"
-            cost = estimate_cost(deployment, prompt_tokens, completion_tokens) if is_chat else 0.0
+        is_chat = path.startswith("/v1/eva/chat") and not path.endswith("/feedback")
+        if path.startswith("/v1/eva/") and request.method in ("POST", "GET") and not is_chat:
+            # Non-chat requests (workspaces, admin, ops) bill only for the
+            # small embeddings-like overhead — no chat completion fired.
+            prompt_tokens = 50
+            completion_tokens = 0
+            deployment = "embeddings-default"
+            model_name = "text-embedding-3-small"
+            cost = 0.0
 
             record = APIMTelemetryRecord(
                 correlation_id=correlation_id,

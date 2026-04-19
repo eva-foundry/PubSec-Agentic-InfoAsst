@@ -31,6 +31,7 @@ from ..stores import (
 )
 from ..stores.chat_store import ChatHistoryRecord
 from ..stores.compat import aio
+from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
 from ..tools.cite import CitationTool
 from ..tools.registry import ToolRegistry
 from ..tools.search import SearchTool
@@ -90,10 +91,15 @@ class FeedbackPayload(BaseModel):
     workspace_id: str | None = None
 
 
-async def _orchestrator_stream(user: UserContext, req: ChatRequest) -> AsyncIterator[str]:
+async def _orchestrator_stream(
+    user: UserContext,
+    req: ChatRequest,
+    request: Request,
+) -> AsyncIterator[str]:
     """Run the agent orchestrator, yield NDJSON lines, and record to chat_store."""
     trace_id = f"trace-{uuid.uuid4()}"
     conversation_id = req.conversation_id or str(uuid.uuid4())
+    stream_start = datetime.now(UTC)
     orchestrator = AgentOrchestrator(
         tool_registry=_registry,
         model_client=_model_client,
@@ -202,15 +208,64 @@ async def _orchestrator_stream(user: UserContext, req: ChatRequest) -> AsyncIter
         )
     )
 
+    # ---- Cost-attribution telemetry with real token counts ----
+    # The APIM-simulation middleware skips /v1/eva/chat so this path owns the
+    # record. When streaming against Azure OpenAI, usage comes from the final
+    # SSE chunk (stream_options.include_usage). MockModelClient synthesizes a
+    # deterministic usage so FinOps works in local/dev/test too.
+    usage = getattr(_model_client, "last_usage", None) if _model_client else None
+    if usage is None:
+        # Fall back to the mock orchestrator's synthesis path.
+        usage = getattr(
+            getattr(orchestrator, "model_client", None), "last_usage", None
+        )
+    if usage is None:
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    deployment = "chat-default"
+    elapsed_ms = int((datetime.now(UTC) - stream_start).total_seconds() * 1000)
+    await aio(
+        telemetry_store.add(
+            APIMTelemetryRecord(
+                correlation_id=request.headers.get("x-correlation-id", ""),
+                workspace_id=req.workspace_id or "",
+                session_id=request.cookies.get("eva_session_id", ""),
+                client_id=request.headers.get("x-app-id", "eva-agentic"),
+                deployment=deployment,
+                model_name="gpt-5-mini",
+                operation="/v1/eva/chat",
+                prompt_tokens=int(usage.get("prompt_tokens", 0)),
+                completion_tokens=int(usage.get("completion_tokens", 0)),
+                total_tokens=int(
+                    usage.get(
+                        "total_tokens",
+                        int(usage.get("prompt_tokens", 0))
+                        + int(usage.get("completion_tokens", 0)),
+                    )
+                ),
+                latency_ms=elapsed_ms,
+                cost_cad=estimate_cost(
+                    deployment,
+                    int(usage.get("prompt_tokens", 0)),
+                    int(usage.get("completion_tokens", 0)),
+                ),
+                status_code=200,
+                user_group=request.headers.get("x-user-group", ""),
+                classification=request.headers.get("x-classification", ""),
+            )
+        )
+    )
+
 
 @router.post("/chat")
 async def chat(
     req: ChatRequest,
+    request: Request,
     user: UserContext = Depends(get_current_user),
 ) -> StreamingResponse:
     """Stream a RAG-grounded chat response as NDJSON."""
     return StreamingResponse(
-        _orchestrator_stream(user, req),
+        _orchestrator_stream(user, req, request),
         media_type="application/x-ndjson",
     )
 

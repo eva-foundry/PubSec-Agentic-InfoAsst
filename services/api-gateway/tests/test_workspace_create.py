@@ -95,3 +95,12 @@ class TestCreateWorkspace:
             "/v1/eva/workspaces", headers=CAROL, json={**BODY, "name": ""}
         )
         assert resp.status_code == 422
+
+    def test_cost_centre_is_persisted(self, client: TestClient):
+        resp = client.post(
+            "/v1/eva/workspaces",
+            headers=CAROL,
+            json={**BODY, "cost_centre": "CC-ESDC-3042"},
+        )
+        assert resp.status_code == 201
+        assert resp.json()["cost_centre"] == "CC-ESDC-3042"
