@@ -54,7 +54,11 @@ export default function Chat() {
   const streamChat = useStreamChat();
   const feedbackMut = useSubmitFeedback();
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const conversation = useConversation(conversationId);
+  // Separate from `conversationId` so the stream setting it mid-response
+  // doesn't fire history hydration and overwrite the live transcript.
+  // Only set when the user explicitly clicks a past conversation.
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
+  const conversation = useConversation(selectedHistoryId);
 
   const [workspace, setWorkspace] = useState<string>("");
   const [grounded, setGrounded] = useState(true);
@@ -84,10 +88,11 @@ export default function Chat() {
   }, [messages]);
 
   // When a past conversation is picked, hydrate the transcript from the
-  // persisted message records. Only runs when there's no in-flight stream
-  // — a live send owns the transcript until it settles.
+  // persisted message records. Only runs when the user explicitly selects a
+  // conversation from the sidebar — NOT when the stream sets conversationId
+  // mid-response (that would clobber the live transcript).
   useEffect(() => {
-    if (!conversationId || isStreaming) return;
+    if (!selectedHistoryId || isStreaming) return;
     const records = conversation.data;
     if (!records) return;
     const hydrated: Message[] = records.map((r) => {
@@ -112,7 +117,8 @@ export default function Chat() {
       return asst;
     });
     setMessages(hydrated);
-  }, [conversationId, conversation.data, isStreaming]);
+    setConversationId(selectedHistoryId);
+  }, [selectedHistoryId, conversation.data, isStreaming]);
 
   const patchAssistant = (id: string, patch: Partial<AssistantMessage>) => {
     setMessages((prev) =>
@@ -257,6 +263,7 @@ export default function Chat() {
   const newConversation = () => {
     abortRef.current?.abort();
     setConversationId(null);
+    setSelectedHistoryId(null);
     setMessages([]);
   };
 
@@ -376,10 +383,10 @@ export default function Chat() {
               return (
                 <button
                   key={c.conversation_id}
-                  onClick={() => setConversationId(c.conversation_id)}
+                  onClick={() => setSelectedHistoryId(c.conversation_id)}
                   className={cn(
                     "w-full text-left rounded-md p-2 text-xs hover:bg-muted/60 transition-colors",
-                    conversationId === c.conversation_id && "bg-muted",
+                    selectedHistoryId === c.conversation_id && "bg-muted",
                   )}
                 >
                   <div className="font-medium truncate text-sm">{c.title}</div>
