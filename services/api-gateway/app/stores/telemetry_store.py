@@ -31,6 +31,10 @@ class APIMTelemetryRecord(BaseModel):
     latency_ms: int = 0
     cost_cad: float = 0.0
     status_code: int = 200
+    # Cost-attribution headers (Phase E) — populated from APIM-simulation
+    # middleware reading x-user-group / x-classification from the request.
+    user_group: str = ""
+    classification: str = ""
 
 
 # ---------------------------------------------------------------------------
