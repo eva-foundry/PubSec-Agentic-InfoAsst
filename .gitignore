@@ -45,3 +45,4 @@ htmlcov/
 # Build artifacts
 *.log
 test-results/
+infra/modules/*/main.json
