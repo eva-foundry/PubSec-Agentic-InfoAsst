@@ -44,6 +44,28 @@ class Workspace(BaseModel):
         description="Version history: [{version, content, author, rationale, created_at}]",
     )
 
+    archetype: str | None = Field(
+        default=None,
+        description=(
+            "Archetype key from ArchetypeStore "
+            "(e.g. 'kb', 'policy', 'case', 'bi', 'decision')"
+        ),
+    )
+
+
+class CreateWorkspaceRequest(BaseModel):
+    """Payload for POST /v1/eva/workspaces — minimal fields the Catalog wizard collects."""
+
+    name: str = Field(min_length=1, max_length=120)
+    archetype: str = Field(description="Stable archetype key from ArchetypeStore")
+    data_classification: str = Field(
+        default="unclassified",
+        description="'unclassified' | 'protected_a' | 'protected_b'",
+    )
+    description: str = ""
+    name_fr: str = ""
+    description_fr: str = ""
+
 
 class Booking(BaseModel):
     """A workspace booking request with survey lifecycle."""
