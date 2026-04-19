@@ -858,10 +858,12 @@ async def rollback_deployment(
     """
     _require_admin(user)
     try:
-        record = deployment_store.rollback(
-            target_version=version,
-            actor=user.user_id,
-            rationale=body.rationale,
+        record = await aio(
+            deployment_store.rollback(
+                target_version=version,
+                actor=user.user_id,
+                rationale=body.rationale,
+            )
         )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e)) from e

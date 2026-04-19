@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     # false = Cosmos DB, Azure AI Search, Azure OpenAI (requires credentials)
     api_mock: bool = True
 
+    # Opt-in: preload sample docs into the vector store on startup. In mock mode
+    # this is always on (tests rely on it). In Azure mode the E2E flips this true
+    # so the live stack has documents to search immediately after deploy.
+    preload_samples: bool = False
+
     # --- Azure OpenAI ---
     azure_openai_endpoint: str = ""
     azure_openai_api_key: str = ""

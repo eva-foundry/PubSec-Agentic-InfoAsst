@@ -142,12 +142,10 @@ else:
     vector_store = _LazyStore("vector_store")
     document_store = _LazyStore("document_store")
     chat_store = _LazyStore("chat_store")
-    # Deployment + audit + archetype stores are local-only for now; no Cosmos
-    # variants yet (archetypes are template metadata, not tenant-scoped data).
-    deployment_store = DeploymentStore()
-    audit_store = AuditStore()
-    archetype_store = ArchetypeStore()
-    eval_run_store = EvalRunStore()
+    deployment_store = _LazyStore("deployment_store")
+    audit_store = _LazyStore("audit_store")
+    archetype_store = _LazyStore("archetype_store")
+    eval_run_store = _LazyStore("eval_run_store")
 
 
 async def initialize_azure_stores() -> None:
@@ -159,11 +157,15 @@ async def initialize_azure_stores() -> None:
 
     settings = get_settings()
 
+    from .azure.archetype_store import CosmosArchetypeStore
+    from .azure.audit_store import CosmosAuditStore
     from .azure.booking_store import CosmosBookingStore
     from .azure.chat_store import CosmosChatStore
     from .azure.client_store import CosmosClientStore
     from .azure.cosmos_client import CosmosClientManager
+    from .azure.deployment_store import CosmosDeploymentStore
     from .azure.document_store import CosmosDocumentStore
+    from .azure.eval_run_store import CosmosEvalRunStore
     from .azure.model_registry_store import CosmosModelRegistryStore
     from .azure.prompt_store import CosmosPromptStore
     from .azure.survey_store import CosmosSurveyStore
@@ -189,6 +191,10 @@ async def initialize_azure_stores() -> None:
     cast(_LazyStore, telemetry_store)._set(CosmosTelemetryStore(cosmos_manager))
     cast(_LazyStore, document_store)._set(CosmosDocumentStore(cosmos_manager))
     cast(_LazyStore, chat_store)._set(CosmosChatStore(cosmos_manager))
+    cast(_LazyStore, deployment_store)._set(CosmosDeploymentStore(cosmos_manager))
+    cast(_LazyStore, audit_store)._set(CosmosAuditStore(cosmos_manager))
+    cast(_LazyStore, archetype_store)._set(CosmosArchetypeStore(cosmos_manager))
+    cast(_LazyStore, eval_run_store)._set(CosmosEvalRunStore(cosmos_manager))
 
     from .azure.search_store import AzureSearchVectorStore
 

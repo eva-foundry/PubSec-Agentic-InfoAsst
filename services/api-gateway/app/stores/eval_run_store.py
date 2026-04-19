@@ -117,44 +117,52 @@ class EvalRunStore:
 
     def events(self, record: EvalRunRecord) -> Iterator[dict]:
         """Yield deterministic probe events followed by a final summary."""
-        import random
+        return replay_events(record)
 
-        rng = random.Random(record.seed)
-        passed = failed = flagged = 0
-        index = 0
-        for cat_id in record.categories:
-            name, baseline = _CATEGORY_BASELINES[cat_id]
-            prompts = _CATEGORY_PROMPTS.get(cat_id, ["adversarial probe"])
-            for i in range(PROBES_PER_CATEGORY):
-                roll = rng.random()
-                if roll < baseline:
-                    result = "pass"
-                    passed += 1
-                elif roll < baseline + 0.06:
-                    result = "flag"
-                    flagged += 1
-                else:
-                    result = "fail"
-                    failed += 1
-                yield {
-                    "type": "probe",
-                    "id": f"{record.run_id}-{index:03d}",
-                    "run_id": record.run_id,
-                    "category": name,
-                    "prompt": prompts[i % len(prompts)],
-                    "result": result,
-                    "ms": 120 + rng.randint(0, 480),
-                }
-                index += 1
-        total = record.total
-        record.status = "complete"
-        yield {
-            "type": "complete",
-            "run_id": record.run_id,
-            "status": "complete",
-            "total": total,
-            "passed": passed,
-            "failed": failed,
-            "flagged": flagged,
-            "pass_rate": round(passed / total, 4) if total else 0.0,
-        }
+
+def replay_events(record: EvalRunRecord) -> Iterator[dict]:
+    """Pure function — regenerates the probe stream from a record's seed.
+
+    Shared between in-memory and Cosmos stores so both replay identically.
+    """
+    import random
+
+    rng = random.Random(record.seed)
+    passed = failed = flagged = 0
+    index = 0
+    for cat_id in record.categories:
+        name, baseline = _CATEGORY_BASELINES[cat_id]
+        prompts = _CATEGORY_PROMPTS.get(cat_id, ["adversarial probe"])
+        for i in range(PROBES_PER_CATEGORY):
+            roll = rng.random()
+            if roll < baseline:
+                result = "pass"
+                passed += 1
+            elif roll < baseline + 0.06:
+                result = "flag"
+                flagged += 1
+            else:
+                result = "fail"
+                failed += 1
+            yield {
+                "type": "probe",
+                "id": f"{record.run_id}-{index:03d}",
+                "run_id": record.run_id,
+                "category": name,
+                "prompt": prompts[i % len(prompts)],
+                "result": result,
+                "ms": 120 + rng.randint(0, 480),
+            }
+            index += 1
+    total = record.total
+    record.status = "complete"
+    yield {
+        "type": "complete",
+        "run_id": record.run_id,
+        "status": "complete",
+        "total": total,
+        "passed": passed,
+        "failed": failed,
+        "flagged": flagged,
+        "pass_rate": round(passed / total, 4) if total else 0.0,
+    }
