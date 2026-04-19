@@ -224,6 +224,13 @@ async def _orchestrator_stream(
 
     deployment = "chat-default"
     elapsed_ms = int((datetime.now(UTC) - stream_start).total_seconds() * 1000)
+    # Resolve cost-centre from the target workspace so FinOps rollups can
+    # attribute the query's spend without the client having to pass it.
+    cost_centre = ""
+    if req.workspace_id:
+        ws = await aio(workspace_store.get(req.workspace_id))
+        if ws is not None:
+            cost_centre = ws.cost_centre or ""
     await aio(
         telemetry_store.add(
             APIMTelemetryRecord(
@@ -252,6 +259,7 @@ async def _orchestrator_stream(
                 status_code=200,
                 user_group=request.headers.get("x-user-group", ""),
                 classification=request.headers.get("x-classification", ""),
+                cost_centre=cost_centre,
             )
         )
     )

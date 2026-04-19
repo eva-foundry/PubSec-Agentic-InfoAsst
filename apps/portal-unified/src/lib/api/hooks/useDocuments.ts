@@ -43,6 +43,9 @@ export const useUploadDocument = () => {
       fd.append("file", file);
       return client.post<Document>("/v1/eva/documents/upload", fd, {
         query: { workspace_id: workspaceId },
+        // Tells APIM-sim middleware which workspace this call belongs to, so
+        // the telemetry record gets the workspace's cost_centre stamped.
+        headers: { "x-workspace-id": workspaceId },
       });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.documents.all }),

@@ -64,6 +64,10 @@ export default function Cost() {
 
   const byWorkspace = useMemo(() => (data ? toBarSeries(data.cost_by_workspace) : []), [data]);
   const byClient = useMemo(() => (data ? toBarSeries(data.cost_by_client) : []), [data]);
+  const byCostCentre = useMemo(
+    () => (data?.cost_by_cost_centre ? toBarSeries(data.cost_by_cost_centre) : []),
+    [data],
+  );
 
   if (isError) {
     return (
@@ -160,6 +164,35 @@ export default function Cost() {
               </ResponsiveContainer>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="ui-card rounded-lg p-4">
+        <h2 className="text-sm font-bold mb-1">Cost attribution by cost centre</h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Spend rolled up by the <code>cost_centre</code> assigned in Admin · Workspaces.
+          "unassigned" covers traffic to workspaces with no cost-centre set.
+        </p>
+        <div className="h-64">
+          {isLoading ? (
+            <Skeleton className="h-full w-full" />
+          ) : byCostCentre.length === 0 ? (
+            <EmptyState
+              title="No cost-centre attribution yet"
+              description="Assign cost-centres in Admin · Workspaces to see chargeback rollups here."
+            />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={byCostCentre}>
+                <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => cad(v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => cad(v)} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="spend" name="MTD spend" fill="hsl(var(--product))" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 

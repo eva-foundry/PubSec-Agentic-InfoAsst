@@ -38,6 +38,11 @@ export const FINOPS_FIXTURE: FinOpsSummary = {
     "eva-portal": { cost_cad: 550, queries: 340 },
     "eva-batch": { cost_cad: 192.5, queries: 124 },
   },
+  cost_by_cost_centre: {
+    "CC-OAS01": { cost_cad: 920.1, queries: 640 },
+    "CC-EI-LEGAL": { cost_cad: 640.25, queries: 440 },
+    unassigned: { cost_cad: 282.15, queries: 204 },
+  },
   forecast_cad: 1842.5,
   waste_score: 12.4,
   chargeback_coverage: 0.96,

@@ -14,9 +14,20 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from ..stores import telemetry_store
+from ..stores import telemetry_store, workspace_store
 from ..stores.compat import aio
 from ..stores.telemetry_store import APIMTelemetryRecord
+
+
+async def _cost_centre_for(workspace_id: str) -> str:
+    """Resolve a workspace's cost-centre (or '' if none / not found)."""
+    if not workspace_id:
+        return ""
+    try:
+        ws = await aio(workspace_store.get(workspace_id))
+    except Exception:
+        return ""
+    return (ws.cost_centre or "") if ws else ""
 
 
 class APIMSimulationMiddleware(BaseHTTPMiddleware):
@@ -77,6 +88,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
             model_name = "text-embedding-3-small"
             cost = 0.0
 
+            cost_centre = await _cost_centre_for(workspace_id)
             record = APIMTelemetryRecord(
                 correlation_id=correlation_id,
                 workspace_id=workspace_id,
@@ -93,6 +105,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
                 status_code=response.status_code,
                 user_group=user_group,
                 classification=classification,
+                cost_centre=cost_centre,
             )
             await aio(telemetry_store.add(record))
 

@@ -818,6 +818,46 @@ async def rollback_workspace_prompt(
 # ---------------------------------------------------------------------------
 
 
+class WorkspaceUpdate(BaseModel):
+    """Admin-editable workspace fields (cost-centre assignment, etc.)."""
+
+    cost_centre: str | None = Field(default=None, max_length=120)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+@router.patch("/admin/workspaces/{ws_id}")
+async def update_admin_workspace(
+    ws_id: str,
+    payload: WorkspaceUpdate,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Update admin-editable workspace fields (cost-centre, name).
+
+    Cost-centre is the pivot for FinOps rollups — every chat/upload against
+    the workspace gets its `cost_centre` stamped on the telemetry record so
+    the Cost page can group spend by program/project.
+    """
+    _require_admin(user)
+    ws = await aio(workspace_store.get(ws_id))
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+    updates = payload.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=422, detail="No fields provided")
+    updated = await aio(workspace_store.update(ws_id, updates))
+    audit_store.record(
+        actor=user.user_id,
+        action="workspace.update",
+        target=ws_id,
+        subject=",".join(sorted(updates.keys())),
+        decision="allow",
+        policy="admin-workspace-edit",
+        rationale=f"Admin update: {updates}",
+        correlation_id=None,
+    )
+    return (updated or ws).model_dump()
+
+
 @router.patch("/admin/workspaces/{ws_id}/valves")
 async def update_valves(
     ws_id: str, payload: ValveUpdate, user: UserContext = Depends(get_current_user)

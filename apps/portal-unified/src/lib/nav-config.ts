@@ -33,7 +33,7 @@ export const NAV: Record<PortalMode, NavItem[]> = {
   admin: [
     { labelKey: "nav.onboarding", to: "/onboarding", icon: Workflow },
     { labelKey: "nav.models", to: "/models", icon: Database },
-    { labelKey: "nav.workspaces", to: "/catalog", icon: Building2 },
+    { labelKey: "nav.workspaces", to: "/admin/workspaces", icon: Building2 },
     { labelKey: "nav.redTeam", to: "/red-team", icon: ShieldAlert },
     { labelKey: "nav.compliance", to: "/compliance", icon: Shield },
   ],

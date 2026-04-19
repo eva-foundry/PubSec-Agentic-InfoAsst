@@ -324,6 +324,22 @@ export const opsHandlers = [
 ];
 
 export const adminHandlers = [
+  http.get(`*/v1/eva/admin/workspaces`, () =>
+    HttpResponse.json(
+      WORKSPACES_FIXTURE.map((w) => ({
+        ...w,
+        client_id: "cl-esdc",
+        client_name: "ESDC — Policy",
+        health: "green",
+      })),
+    ),
+  ),
+  http.patch(`*/v1/eva/admin/workspaces/:id`, async ({ params, request }) => {
+    const body = (await request.json()) as { cost_centre?: string; name?: string };
+    const ws = WORKSPACES_FIXTURE.find((w) => w.id === params.id);
+    if (!ws) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ ...ws, ...body });
+  }),
   http.get(`*/v1/eva/admin/models`, () => HttpResponse.json(ADMIN_MODELS_FIXTURE)),
   http.get(`*/v1/eva/admin/prompts`, () => HttpResponse.json(ADMIN_PROMPTS_FIXTURE)),
   http.post(`*/v1/eva/admin/models/:id/toggle`, async ({ params, request }) => {

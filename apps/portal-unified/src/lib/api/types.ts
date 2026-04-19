@@ -401,6 +401,7 @@ export interface FinOpsSummary {
   cost_by_workspace: Record<string, FinOpsBreakdownEntry>;
   cost_by_model: Record<string, FinOpsBreakdownEntry>;
   cost_by_client: Record<string, FinOpsBreakdownEntry>;
+  cost_by_cost_centre?: Record<string, FinOpsBreakdownEntry>;
   forecast_cad: number;
   waste_score: number;
   chargeback_coverage: number;

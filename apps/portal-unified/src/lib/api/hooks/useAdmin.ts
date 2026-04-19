@@ -6,6 +6,7 @@ import type {
   Interview,
   ModelConfig,
   PromptVersion,
+  Workspace,
   WorkspaceProvisionPlan,
 } from "@/lib/api/types";
 import { qk } from "@/lib/api/keys";
@@ -41,6 +42,39 @@ export const useProvisionWorkspace = () => {
   return useMutation({
     mutationFn: (body: { workspace_id: string; dry_run: boolean }) =>
       client.post<WorkspaceProvisionPlan>("/v1/eva/admin/workspaces/provision", body),
+  });
+};
+
+/** Admin list of every workspace with client + health, for cost-centre editing. */
+export interface AdminWorkspace extends Workspace {
+  client_id: string;
+  client_name: string;
+  health: string;
+}
+
+export const useAdminWorkspaces = () => {
+  const client = useApiClient();
+  return useQuery({
+    queryKey: qk.admin.workspaces(),
+    queryFn: () => client.get<AdminWorkspace[]>("/v1/eva/admin/workspaces"),
+  });
+};
+
+export interface WorkspaceAdminUpdate {
+  cost_centre?: string;
+  name?: string;
+}
+
+export const useUpdateAdminWorkspace = () => {
+  const client = useApiClient();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workspaceId, body }: { workspaceId: string; body: WorkspaceAdminUpdate }) =>
+      client.patch<Workspace>(`/v1/eva/admin/workspaces/${workspaceId}`, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.admin.workspaces() });
+      qc.invalidateQueries({ queryKey: qk.workspaces.list() });
+    },
   });
 };
 
