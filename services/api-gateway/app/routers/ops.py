@@ -518,7 +518,7 @@ async def deployment_history(
 ) -> list[DeploymentRecord]:
     """Chronological list of platform deployments, newest first."""
     _require_ops(user)
-    return deployment_store.list_all()
+    return await aio(deployment_store.list_all())
 
 
 # ---------------------------------------------------------------------------
@@ -676,14 +676,16 @@ async def audit_log(
     for demo; production backs this with Log Analytics + Cosmos DB.
     """
     _require_ops(user)
-    return audit_store.query(
-        actor=actor,
-        action=action,
-        decision=decision,
-        policy=policy,
-        start=start,
-        end=end,
-        limit=min(max(limit, 1), 1000),
+    return await aio(
+        audit_store.query(
+            actor=actor,
+            action=action,
+            decision=decision,
+            policy=policy,
+            start=start,
+            end=end,
+            limit=min(max(limit, 1), 1000),
+        )
     )
 
 
@@ -700,10 +702,12 @@ async def start_eval_run(
     """Kick off an adversarial test run against the selected attack categories."""
     _require_ops(user)
     try:
-        record = eval_run_store.create(
-            test_set_id=body.test_set_id,
-            categories=body.categories,
-            workspace_id=body.workspace_id,
+        record = await aio(
+            eval_run_store.create(
+                test_set_id=body.test_set_id,
+                categories=body.categories,
+                workspace_id=body.workspace_id,
+            )
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
@@ -717,7 +721,7 @@ async def stream_eval_results(
 ) -> StreamingResponse:
     """Stream probe verdicts + a terminal summary as NDJSON."""
     _require_ops(user)
-    record = eval_run_store.get(run_id)
+    record = await aio(eval_run_store.get(run_id))
     if record is None:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
 

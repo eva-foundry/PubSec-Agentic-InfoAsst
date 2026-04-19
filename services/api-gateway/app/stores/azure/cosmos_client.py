@@ -37,6 +37,11 @@ CONTAINER_DEFS: dict[str, dict[str, str]] = {
     # statusdb database
     "documents": {"database": "statusdb", "partition_key": "/workspace_id"},
     "chat-history": {"database": "statusdb", "partition_key": "/user_id"},
+    # governance — platform-wide (no tenant partition)
+    "deployments": {"database": "eva-platform", "partition_key": "/version"},
+    "audit": {"database": "eva-platform", "partition_key": "/actor"},
+    "archetypes": {"database": "eva-platform", "partition_key": "/key"},
+    "eval-runs": {"database": "eva-platform", "partition_key": "/run_id"},
 }
 
 

@@ -217,6 +217,46 @@ class TelemetryStore:
             "chargeback_coverage": chargeback_coverage,
         }
 
+    def summary_historical(self, days: int = 14) -> list[dict]:
+        """Per-day rollups over the last `days` days: cost, queries, avg latency.
+
+        Used by AIOps/Drift to anchor real historical aggregates. Returns
+        points in chronological order (oldest first). Missing days are
+        emitted with zero values so the series is always exactly `days` long.
+        """
+        now = datetime.now(UTC)
+        cutoff = now - timedelta(days=days)
+        buckets: dict[str, dict[str, float]] = {}
+        for r in self._records:
+            if r.timestamp < cutoff:
+                continue
+            day = r.timestamp.date().isoformat()
+            b = buckets.setdefault(
+                day, {"cost_cad": 0.0, "queries": 0, "latency_sum_ms": 0.0}
+            )
+            b["cost_cad"] += r.cost_cad
+            b["queries"] += 1
+            b["latency_sum_ms"] += r.latency_ms
+
+        out: list[dict] = []
+        for i in range(days - 1, -1, -1):
+            day = (now.date() - timedelta(days=i)).isoformat()
+            b = buckets.get(day)
+            if b is None or b["queries"] == 0:
+                out.append(
+                    {"day": day, "cost_cad": 0.0, "queries": 0, "avg_latency_ms": 0.0}
+                )
+            else:
+                out.append(
+                    {
+                        "day": day,
+                        "cost_cad": round(b["cost_cad"], 6),
+                        "queries": int(b["queries"]),
+                        "avg_latency_ms": round(b["latency_sum_ms"] / b["queries"], 1),
+                    }
+                )
+        return out
+
     def session_cost(self, session_id: str) -> dict:
         """Accumulated cost for a specific session."""
         records = [r for r in self._records if r.session_id == session_id]

@@ -89,7 +89,33 @@ async def seed_all_containers(cosmos: CosmosClientManager) -> None:
     await _seed_prompts(cosmos)
     await _seed_telemetry(cosmos)
     await _seed_chat_history(cosmos)
+    await _seed_archetypes(cosmos)
+    await _seed_deployments(cosmos)
     logger.info("All Cosmos containers seeded successfully.")
+
+
+async def _seed_archetypes(cosmos: CosmosClientManager) -> None:
+    """Seed the five template archetypes into Cosmos."""
+    from ..archetype_store import ArchetypeStore
+
+    tmp = ArchetypeStore()
+    for a in tmp.list():
+        payload = a.model_dump()
+        payload["id"] = a.key  # Cosmos needs an `id` property
+        await cosmos.upsert("archetypes", payload)
+    logger.info("Seeded %d archetypes", len(tmp.list()))
+
+
+async def _seed_deployments(cosmos: CosmosClientManager) -> None:
+    """Seed the three rollback-history deployments into Cosmos."""
+    from ..deployment_store import DeploymentStore
+
+    tmp = DeploymentStore()
+    for r in tmp.list_all():
+        payload = r.model_dump()
+        payload["id"] = r.version
+        await cosmos.upsert("deployments", payload)
+    logger.info("Seeded %d deployments", len(tmp.list_all()))
 
 
 async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
