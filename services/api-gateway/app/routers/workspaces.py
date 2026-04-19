@@ -55,7 +55,7 @@ async def create_workspace(
             detail="Requested classification exceeds your clearance level",
         )
 
-    archetype = archetype_store.get(body.archetype)
+    archetype = await aio(archetype_store.get(body.archetype))
     if archetype is None:
         raise HTTPException(
             status_code=422, detail=f"Unknown archetype '{body.archetype}'"
