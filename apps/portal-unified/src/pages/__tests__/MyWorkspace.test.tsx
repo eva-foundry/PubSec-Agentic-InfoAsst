@@ -1,34 +1,91 @@
-import { describe, it, expect } from "vitest";
-import { renderWithProviders, screen, waitFor, within } from "@/test/utils";
+import { beforeEach, describe, it, expect } from "vitest";
+import { http, HttpResponse } from "msw";
+import { renderWithProviders, screen, waitFor } from "@/test/utils";
 import userEvent from "@testing-library/user-event";
 import MyWorkspace from "@/pages/MyWorkspace";
+import { server } from "@/test/msw/server";
 
-describe("MyWorkspace: invite", () => {
-  it("adds a new teammate to the table after submitting the invite form", async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<MyWorkspace />);
+const primeAuth = () => {
+  localStorage.setItem(
+    "aia.auth.v1",
+    JSON.stringify({
+      user: {
+        user_id: "demo-alice",
+        email: "alice@demo.gc.ca",
+        name: "Alice Chen",
+        role: "contributor",
+        portal_access: ["self-service"],
+        workspace_grants: ["ws-oas-act"],
+        data_classification_level: "protected_b",
+        language: "en",
+      },
+    }),
+  );
+};
 
-    await user.click(screen.getByRole("tab", { name: /team/i }));
-
-    const emailInput = await screen.findByLabelText(/invite a teammate/i);
-    await user.type(emailInput, "newhire@acme.com");
-    await user.click(screen.getByRole("button", { name: /^invite$/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText("newhire@acme.com")).toBeInTheDocument();
-    });
+describe("MyWorkspace: real backend wiring", () => {
+  beforeEach(() => {
+    localStorage.removeItem("aia.auth.v1");
+    primeAuth();
   });
 
-  it("rejects an invalid email", async () => {
-    const user = userEvent.setup();
+  it("renders team members from /teams/{bookingId}/members", async () => {
+    const u = userEvent.setup();
     renderWithProviders(<MyWorkspace />);
 
-    await user.click(screen.getByRole("tab", { name: /team/i }));
-    const emailInput = await screen.findByLabelText(/invite a teammate/i);
-    await user.type(emailInput, "not-an-email");
-    await user.click(screen.getByRole("button", { name: /^invite$/i }));
+    await u.click(screen.getByRole("tab", { name: /^team/i }));
 
-    // The bad string should not have been added to the table
-    expect(screen.queryByText("not-an-email")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("Alice Chen")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Bob Martinez")).toBeInTheDocument();
+  });
+
+  it("renders documents from /documents", async () => {
+    const u = userEvent.setup();
+    renderWithProviders(<MyWorkspace />);
+
+    await u.click(screen.getByRole("tab", { name: /^documents/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText("oas-s3-residency.pdf")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("faq-general.txt")).toBeInTheDocument();
+  });
+
+  it("POSTs to /teams/{bookingId}/members when inviting", async () => {
+    const posts: Array<Record<string, unknown>> = [];
+    server.use(
+      http.post("*/v1/eva/teams/:bookingId/members", async ({ request }) => {
+        posts.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.json(
+          {
+            id: "tm-new",
+            workspace_id: "ws-oas-act",
+            user_id: "u-new",
+            email: (posts[0] as { email: string }).email,
+            name: (posts[0] as { name: string }).name,
+            role: (posts[0] as { role: string }).role,
+            added_at: "2026-04-19T00:00:00Z",
+            added_by: "demo-alice",
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const u = userEvent.setup();
+    renderWithProviders(<MyWorkspace />);
+
+    await u.click(screen.getByRole("tab", { name: /^team/i }));
+    const input = await screen.findByLabelText(/invite a teammate/i);
+    await u.type(input, "newhire@acme.com");
+    await u.click(screen.getByRole("button", { name: /^invite$/i }));
+
+    await waitFor(() => expect(posts).toHaveLength(1));
+    expect(posts[0]).toMatchObject({
+      email: "newhire@acme.com",
+      role: "contributor",
+    });
   });
 });

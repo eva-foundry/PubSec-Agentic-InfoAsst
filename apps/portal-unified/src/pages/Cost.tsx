@@ -115,7 +115,7 @@ export default function Cost() {
         <div className="ui-card rounded-lg p-4 lg:col-span-2">
           <h2 className="text-sm font-bold mb-1">Cost attribution by workspace</h2>
           <p className="text-xs text-muted-foreground mb-3">
-            MTD spend per workspace · daily time-series pending backend enhancement
+            MTD spend per workspace · daily drill-down pending a Phase-G rollup endpoint
           </p>
           <div className="h-64">
             {isLoading ? (
