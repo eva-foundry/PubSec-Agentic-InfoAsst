@@ -50,7 +50,142 @@ export const chatHandlers = [
     }),
   ),
   http.get(`*/v1/eva/workspaces`, () => HttpResponse.json(WORKSPACES_FIXTURE)),
+  http.post(`*/v1/eva/workspaces`, async ({ request }) => {
+    const body = (await request.json()) as {
+      name?: string;
+      archetype?: string;
+      data_classification?: string;
+    };
+    if (!body.name || !body.archetype) {
+      return HttpResponse.json({ detail: "name + archetype required" }, { status: 422 });
+    }
+    return HttpResponse.json(
+      {
+        id: "ws-new-mock",
+        name: body.name,
+        name_fr: body.name,
+        description: "",
+        description_fr: "",
+        type: body.archetype,
+        status: "draft",
+        owner_id: "demo-user",
+        data_classification: body.data_classification ?? "unclassified",
+        document_capacity: 10,
+        document_count: 0,
+        monthly_cost: 0,
+        cost_centre: "",
+        created_at: "2026-04-19T00:00:00Z",
+        updated_at: "2026-04-19T00:00:00Z",
+        infrastructure: {},
+        business_prompt: "",
+        business_prompt_version: 1,
+        business_prompt_history: [],
+        archetype: body.archetype,
+      },
+      { status: 201 },
+    );
+  }),
   http.get(`*/v1/eva/archetypes`, () => HttpResponse.json(ARCHETYPES_FIXTURE)),
+  http.get(`*/v1/eva/bookings`, () =>
+    HttpResponse.json([
+      {
+        id: "bk-test-1",
+        workspace_id: "ws-oas-act",
+        requester_id: "demo-alice",
+        status: "active",
+        start_date: "2026-04-01",
+        end_date: "2026-07-01",
+        entry_survey_completed: true,
+        exit_survey_completed: false,
+        created_at: "2026-04-01T00:00:00Z",
+        updated_at: "2026-04-01T00:00:00Z",
+      },
+    ]),
+  ),
+  http.get(`*/v1/eva/teams/:bookingId/members`, () =>
+    HttpResponse.json([
+      {
+        id: "tm-1",
+        workspace_id: "ws-oas-act",
+        user_id: "u-alice",
+        email: "alice@demo.gc.ca",
+        name: "Alice Chen",
+        role: "admin",
+        added_at: "2026-04-01T00:00:00Z",
+        added_by: "demo-carol",
+      },
+      {
+        id: "tm-2",
+        workspace_id: "ws-oas-act",
+        user_id: "u-bob",
+        email: "bob@demo.gc.ca",
+        name: "Bob Martinez",
+        role: "contributor",
+        added_at: "2026-04-02T00:00:00Z",
+        added_by: "demo-carol",
+      },
+    ]),
+  ),
+  http.post(`*/v1/eva/teams/:bookingId/members`, async ({ request }) => {
+    const body = (await request.json()) as { email?: string; name?: string; role?: string };
+    return HttpResponse.json(
+      {
+        id: "tm-new",
+        workspace_id: "ws-oas-act",
+        user_id: "u-new",
+        email: body.email ?? "",
+        name: body.name ?? "",
+        role: body.role ?? "reader",
+        added_at: "2026-04-19T00:00:00Z",
+        added_by: "demo-user",
+      },
+      { status: 201 },
+    );
+  }),
+  http.patch(`*/v1/eva/teams/:bookingId/members/:userId`, async ({ request, params }) => {
+    const body = (await request.json()) as { role?: string };
+    return HttpResponse.json({
+      id: "tm-updated",
+      workspace_id: "ws-oas-act",
+      user_id: params.userId as string,
+      email: "updated@demo.gc.ca",
+      name: "Updated Member",
+      role: body.role ?? "reader",
+      added_at: "2026-04-01T00:00:00Z",
+      added_by: "demo-carol",
+    });
+  }),
+  http.delete(`*/v1/eva/teams/:bookingId/members/:userId`, () =>
+    new HttpResponse(null, { status: 204 }),
+  ),
+  http.get(`*/v1/eva/documents`, () =>
+    HttpResponse.json([
+      {
+        id: "doc-1",
+        workspace_id: "ws-oas-act",
+        file_name: "oas-s3-residency.pdf",
+        file_size: 248000,
+        status: "indexed",
+        chunk_count: 14,
+        error_message: null,
+        uploaded_by: "demo-carol",
+        uploaded_at: "2026-04-18T09:00:00Z",
+        indexed_at: "2026-04-18T09:05:00Z",
+      },
+      {
+        id: "doc-2",
+        workspace_id: "ws-faq",
+        file_name: "faq-general.txt",
+        file_size: 7550,
+        status: "indexed",
+        chunk_count: 4,
+        error_message: null,
+        uploaded_by: "system-preload",
+        uploaded_at: "2026-04-17T14:00:00Z",
+        indexed_at: "2026-04-17T14:01:00Z",
+      },
+    ]),
+  ),
   http.get(`*/v1/eva/documents`, ({ request }) => {
     const url = new URL(request.url);
     const workspaceId = url.searchParams.get("workspace_id");
@@ -182,6 +317,16 @@ export const adminHandlers = [
     }
     const isActive = raw === "true" || raw === "1";
     return HttpResponse.json({ ...model, is_active: isActive });
+  }),
+  http.post(`*/v1/eva/admin/tenants/init`, async ({ request }) => {
+    const body = (await request.json()) as { org_name?: string; primary_admin_email?: string };
+    if (!body.org_name || !body.primary_admin_email) {
+      return HttpResponse.json({ detail: "required fields missing" }, { status: 422 });
+    }
+    return HttpResponse.json(
+      { client_id: "cl-test", interview_id: "iv-test", status: "initialized" },
+      { status: 201 },
+    );
   }),
   http.post(`*/v1/eva/admin/deployments/:version/rollback`, async ({ params, request }) => {
     const body = (await request.json()) as { rationale?: string };

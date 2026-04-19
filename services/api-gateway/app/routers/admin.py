@@ -90,6 +90,46 @@ class InterviewSubmission(BaseModel):
     aicm_assessment: str = "level_1"
 
 
+class TenantInitRequest(BaseModel):
+    """Consolidated six-step onboarding payload (Portal 1 onboarding wizard)."""
+
+    # Step 1 — organization profile
+    org_name: str = Field(min_length=1)
+    region: str = ""
+    industry: str = ""
+    primary_admin_email: str
+
+    # Step 2 — data classification defaults
+    default_classification: str = "unclassified"
+    classification_notes: str = ""
+
+    # Step 3 — assurance level defaults
+    default_mode: str = Field(
+        default="Advisory",
+        description="'Advisory' or 'Decision-informing'",
+    )
+    hitl_threshold: str = ""
+
+    # Step 4 — workspace template preference (archetype key)
+    preferred_archetype: str = "kb"
+    initial_corpus_hint: str = ""
+
+    # Step 5 — SSO role mapping
+    idp_group_admin: str = ""
+    idp_group_contributor: str = ""
+    idp_group_reader: str = ""
+
+    # Step 6 — kickoff
+    invitees: list[str] = Field(default_factory=list)
+    pilot_question: str = ""
+
+
+class TenantInitResponse(BaseModel):
+    client_id: str
+    interview_id: str
+    status: str = "initialized"
+
+
 class PromptCreate(BaseModel):
     content: str
     rationale: str = ""
@@ -238,6 +278,90 @@ async def list_client_interviews(
     if await aio(client_store.get_client(client_id)) is None:
         raise HTTPException(status_code=404, detail=f"Client '{client_id}' not found")
     return await aio(client_store.get_interviews_by_client(client_id))
+
+
+# ---------------------------------------------------------------------------
+# Tenant init — consolidates the six-step Onboarding wizard into one call.
+# ---------------------------------------------------------------------------
+
+
+_VALID_CLASSIFICATIONS = {"unclassified", "protected_a", "protected_b"}
+_VALID_MODES = {"Advisory", "Decision-informing"}
+
+
+@router.post("/admin/tenants/init", response_model=TenantInitResponse, status_code=201)
+async def init_tenant(
+    payload: TenantInitRequest,
+    user: UserContext = Depends(get_current_user),
+) -> TenantInitResponse:
+    """Persist a tenant-onboarding payload (client + interview) in one call.
+
+    Used by the Onboarding wizard on the final 'Finish' step. Produces a Client
+    record, an Interview record linking back to it, and an audit entry. Does
+    NOT provision workspaces — that remains an explicit admin action.
+    """
+    _require_admin(user)
+
+    if payload.default_classification not in _VALID_CLASSIFICATIONS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"default_classification must be one of {sorted(_VALID_CLASSIFICATIONS)}",
+        )
+    if payload.default_mode not in _VALID_MODES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"default_mode must be one of {sorted(_VALID_MODES)}",
+        )
+
+    client = Client(
+        id=f"cl-{uuid.uuid4().hex[:8]}",
+        org_name=payload.org_name,
+        entra_group_id=None,
+        billing_contact=payload.primary_admin_email,
+        data_classification_level=payload.default_classification,
+        onboarded_at=_now(),
+        status="active",
+    )
+    client = await aio(client_store.create_client(client))
+
+    interview = Interview(
+        id=f"iv-{uuid.uuid4().hex[:8]}",
+        client_id=client.id,
+        admin_id=user.user_id,
+        use_case_description=(
+            f"Default mode: {payload.default_mode}. "
+            f"Preferred archetype: {payload.preferred_archetype}. "
+            f"Pilot question: {payload.pilot_question or '(none)'}"
+        ),
+        data_sources=[payload.initial_corpus_hint] if payload.initial_corpus_hint else [],
+        expected_volume="",
+        compliance_requirements=payload.classification_notes,
+        aicm_assessment=(
+            "level_2" if payload.default_mode == "Decision-informing" else "level_1"
+        ),
+        archetype_recommendation=payload.preferred_archetype,
+        created_at=_now(),
+    )
+    interview = await aio(client_store.create_interview(interview))
+
+    audit_store.record(
+        actor=user.user_id,
+        action="tenant.init",
+        target=client.id,
+        subject=payload.org_name,
+        decision="allow",
+        policy="tenant-onboarding",
+        rationale=(
+            f"Initialized tenant '{payload.org_name}' with default "
+            f"classification={payload.default_classification}, "
+            f"mode={payload.default_mode}, archetype={payload.preferred_archetype}"
+        ),
+        correlation_id=None,
+    )
+
+    return TenantInitResponse(
+        client_id=client.id, interview_id=interview.id, status="initialized"
+    )
 
 
 # ---------------------------------------------------------------------------

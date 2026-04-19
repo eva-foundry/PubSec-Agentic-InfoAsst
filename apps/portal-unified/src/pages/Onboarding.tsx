@@ -4,13 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Circle, Sparkles, Users, Database, Shield, Layers, ListChecks } from "lucide-react";
+import { CheckCircle2, Circle, Sparkles, Users, Database, Shield, Layers, ListChecks, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { LucideIcon } from "lucide-react";
+import { useCompleteOnboarding } from "@/lib/api/hooks/useOnboarding";
 
 interface Step {
   id: string;
@@ -81,6 +85,13 @@ export default function Onboarding() {
     }
   });
   const [active, setActive] = useState<Step | null>(null);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [orgName, setOrgName] = useState("");
+  const [primaryEmail, setPrimaryEmail] = useState("");
+  const [archetype, setArchetype] = useState("kb");
+  const [mode, setMode] = useState<"Advisory" | "Decision-informing">("Advisory");
+  const [classification, setClassification] = useState<"unclassified" | "protected_a" | "protected_b">("protected_a");
+  const completeOnboarding = useCompleteOnboarding();
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(done)); } catch { /* ignore */ }
@@ -102,6 +113,32 @@ export default function Onboarding() {
     toast("Onboarding reset to zero.");
   };
 
+  const submitTenantInit = () => {
+    if (!orgName.trim() || !primaryEmail.includes("@")) {
+      toast.error("Organization name + valid admin email are required.");
+      return;
+    }
+    completeOnboarding.mutate(
+      {
+        org_name: orgName.trim(),
+        primary_admin_email: primaryEmail.trim(),
+        default_classification: classification,
+        default_mode: mode,
+        preferred_archetype: archetype,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success(`Tenant initialized — ${res.client_id}`, {
+            description: `Interview ${res.interview_id} recorded. Ready to provision workspaces.`,
+          });
+          setFinishOpen(false);
+        },
+        onError: (err) =>
+          toast.error(`Could not initialize tenant: ${(err as Error).message}`),
+      },
+    );
+  };
+
   const progress = Math.round((done.length / STEPS.length) * 100);
   const nextStep = STEPS.find((s) => !done.includes(s.id));
 
@@ -118,6 +155,14 @@ export default function Onboarding() {
           {nextStep && (
             <Button className="bg-gradient-accent" onClick={() => setActive(nextStep)}>
               Continue: {nextStep.title}
+            </Button>
+          )}
+          {!nextStep && (
+            <Button
+              className="bg-gradient-accent"
+              onClick={() => setFinishOpen(true)}
+            >
+              <Rocket className="mr-2 h-4 w-4" />Finish onboarding
             </Button>
           )}
           <Button variant="outline" onClick={reset}>Reset</Button>
@@ -164,6 +209,87 @@ export default function Onboarding() {
           );
         })}
       </ol>
+
+      <Dialog open={finishOpen} onOpenChange={setFinishOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Finish onboarding — initialize tenant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="tenant-org">Organization name</Label>
+              <Input
+                id="tenant-org"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                placeholder="Acme Public Sector"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tenant-admin">Primary admin email</Label>
+              <Input
+                id="tenant-admin"
+                type="email"
+                value={primaryEmail}
+                onChange={(e) => setPrimaryEmail(e.target.value)}
+                placeholder="admin@acme.gc.ca"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="tenant-arch">Archetype</Label>
+                <select
+                  id="tenant-arch"
+                  value={archetype}
+                  onChange={(e) => setArchetype(e.target.value)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                >
+                  <option value="kb">Knowledge Base</option>
+                  <option value="policy">Policy Library</option>
+                  <option value="case">Case Archive</option>
+                  <option value="bi">BI Copilot</option>
+                  <option value="decision">Decision Support</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tenant-mode">Mode</Label>
+                <select
+                  id="tenant-mode"
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value as typeof mode)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                >
+                  <option value="Advisory">Advisory</option>
+                  <option value="Decision-informing">Decision-informing</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tenant-cls">Classification</Label>
+                <select
+                  id="tenant-cls"
+                  value={classification}
+                  onChange={(e) => setClassification(e.target.value as typeof classification)}
+                  className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
+                >
+                  <option value="unclassified">Unclassified</option>
+                  <option value="protected_a">Protected A</option>
+                  <option value="protected_b">Protected B</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFinishOpen(false)}>Cancel</Button>
+            <Button
+              className="bg-gradient-accent"
+              onClick={submitTenantInit}
+              disabled={completeOnboarding.isPending}
+            >
+              {completeOnboarding.isPending ? "Initializing…" : "Initialize tenant"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet open={!!active} onOpenChange={(o) => !o && setActive(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
