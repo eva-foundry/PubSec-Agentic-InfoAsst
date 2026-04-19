@@ -24,6 +24,18 @@ param p75VnetName string = ''
 @description('P75 VNet apps subnet resource ID (for storage network rules)')
 param p75SubnetId string = ''
 
+@description('Container image tag for the api-gateway (SHA or semver)')
+param apiGatewayImage string = 'ghcr.io/eva-foundry/eva-api-gateway:latest'
+
+@description('Azure AI Search endpoint (shared P75 resource)')
+param azureSearchEndpoint string = ''
+
+@description('Azure OpenAI endpoint (shared P75 resource)')
+param azureOpenAIEndpoint string = ''
+
+@description('Region for the Static Web App control plane')
+param swaLocation string = 'eastus2'
+
 var tags = {
   project: 'eva-agentic'
   environment: environmentName
@@ -111,6 +123,39 @@ module keyvault 'modules/keyvault/main.bicep' = {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Static Web App — portal-unified SPA host (CI deploys the build into this)
+// ---------------------------------------------------------------------------
+module staticWebApp 'modules/staticwebapp/main.bicep' = {
+  name: 'staticwebapp-${environmentName}'
+  params: {
+    environmentName: environmentName
+    location: swaLocation
+    tags: tags
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Container Apps — api-gateway (doc-pipeline + enrichment to follow)
+// ---------------------------------------------------------------------------
+module containerApps 'modules/container-apps/main.bicep' = {
+  name: 'container-apps-${environmentName}'
+  params: {
+    environmentName: environmentName
+    location: location
+    tags: tags
+    apiGatewayImage: apiGatewayImage
+    apiGatewayIdentityId: identity.outputs.apiGatewayIdentityId
+    logAnalyticsWorkspaceId: diagnostics.outputs.logAnalyticsWorkspaceId
+    appInsightsConnectionString: diagnostics.outputs.appInsightsConnectionString
+    cosmosEndpoint: cosmos.outputs.cosmosAccountEndpoint
+    cosmosAccountName: cosmos.outputs.cosmosAccountName
+    azureSearchEndpoint: azureSearchEndpoint
+    azureOpenAIEndpoint: azureOpenAIEndpoint
+    corsOrigin: staticWebApp.outputs.swaOrigin
+  }
+}
+
 // ============================================================================
 // Outputs
 // ============================================================================
@@ -159,3 +204,15 @@ output storageKeyUri string = keyvault.outputs.storageKeyUri
 
 @description('Cosmos CMK URI')
 output cosmosKeyUri string = keyvault.outputs.cosmosKeyUri
+
+@description('API Gateway Container App FQDN — wire this into VITE_API_BASE_URL')
+output apiGatewayFqdn string = containerApps.outputs.apiGatewayFqdn
+
+@description('API Gateway Container App name — used by CI `az containerapp update`')
+output apiGatewayName string = containerApps.outputs.apiGatewayName
+
+@description('Static Web App name — used by CI `az staticwebapp deploy --name`')
+output swaName string = staticWebApp.outputs.swaName
+
+@description('Static Web App public origin (https://<default-hostname>)')
+output swaOrigin string = staticWebApp.outputs.swaOrigin
