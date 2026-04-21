@@ -7,7 +7,7 @@ can block production promotion when staging is sick.
 
 Usage::
 
-    pytest tests/smoke/ --base-url=https://eva-api-gateway-staging.*.azurecontainerapps.io
+    pytest tests/smoke/ --base-url=https://aia-api-gateway-staging.*.azurecontainerapps.io
 """
 
 from __future__ import annotations
@@ -23,12 +23,12 @@ def base_url(request):
 
 @pytest.fixture
 def admin_headers():
-    return {"x-demo-user-email": "carol@demo.gc.ca"}
+    return {"x-demo-user-email": "carol@example.org"}
 
 
 @pytest.fixture
 def ops_headers():
-    return {"x-demo-user-email": "dave@demo.gc.ca"}
+    return {"x-demo-user-email": "dave@example.org"}
 
 
 def test_health_endpoint(base_url: str):
@@ -38,8 +38,8 @@ def test_health_endpoint(base_url: str):
 
 def test_demo_login_returns_ops_persona(base_url: str):
     r = httpx.post(
-        f"{base_url}/v1/eva/auth/demo/login",
-        json={"email": "dave@demo.gc.ca"},
+        f"{base_url}/v1/aia/auth/demo/login",
+        json={"email": "dave@example.org"},
         timeout=10.0,
     )
     assert r.status_code == 200
@@ -48,7 +48,7 @@ def test_demo_login_returns_ops_persona(base_url: str):
 
 
 def test_workspaces_seeded(base_url: str, admin_headers: dict):
-    r = httpx.get(f"{base_url}/v1/eva/workspaces", headers=admin_headers, timeout=10.0)
+    r = httpx.get(f"{base_url}/v1/aia/workspaces", headers=admin_headers, timeout=10.0)
     assert r.status_code == 200
     workspaces = r.json()
     assert len(workspaces) >= 5, f"expected ≥5 seeded workspaces, got {len(workspaces)}"
@@ -56,7 +56,7 @@ def test_workspaces_seeded(base_url: str, admin_headers: dict):
 
 def test_aiops_timeseries_shape(base_url: str, ops_headers: dict):
     r = httpx.get(
-        f"{base_url}/v1/eva/ops/metrics/aiops", headers=ops_headers, timeout=15.0
+        f"{base_url}/v1/aia/ops/metrics/aiops", headers=ops_headers, timeout=15.0
     )
     assert r.status_code == 200
     body = r.json()
@@ -67,7 +67,7 @@ def test_aiops_timeseries_shape(base_url: str, ops_headers: dict):
 
 
 def test_archetypes_catalog(base_url: str, admin_headers: dict):
-    r = httpx.get(f"{base_url}/v1/eva/archetypes", headers=admin_headers, timeout=10.0)
+    r = httpx.get(f"{base_url}/v1/aia/archetypes", headers=admin_headers, timeout=10.0)
     assert r.status_code == 200
     archetypes = r.json()
     assert len(archetypes) == 5

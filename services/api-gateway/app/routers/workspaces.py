@@ -15,7 +15,7 @@ from ..stores.compat import aio
 router = APIRouter()
 
 
-_VALID_CLASSIFICATIONS = {"unclassified", "protected_a", "protected_b"}
+_VALID_CLASSIFICATIONS = {"unclassified", "restricted", "sensitive"}
 
 
 @router.get("/workspaces")
@@ -48,7 +48,7 @@ async def create_workspace(
         )
 
     # Enforce clearance — user can't create workspaces above their own level.
-    order = {"unclassified": 0, "protected_a": 1, "protected_b": 2}
+    order = {"unclassified": 0, "restricted": 1, "sensitive": 2}
     if order[body.data_classification] > order[user.data_classification_level]:
         raise HTTPException(
             status_code=403,
@@ -76,7 +76,7 @@ async def create_workspace(
         document_capacity=archetype.default_capacity,
         document_count=0,
         monthly_cost=0.0,
-        cost_centre="",
+        cost_centre=body.cost_centre,
         created_at=now,
         updated_at=now,
         infrastructure={},

@@ -94,12 +94,12 @@ class Citation(BaseModel):
 class ProvenanceRecord(BaseModel):
     """Full provenance chain for a single assistant response.
 
-    Every answer EVA produces carries one of these, enabling forensic audit,
-    confidence disclosure, and AICM compliance.
+    Every answer AIA produces carries one of these, enabling forensic audit,
+    confidence disclosure, and RAI compliance.
     """
 
     correlation_id: str = Field(description="UUID linking all operations for this request")
-    agent_id: str = Field(description="Agent that produced the answer, e.g. 'eva-rag-agent'")
+    agent_id: str = Field(description="Agent that produced the answer, e.g. 'aia-rag-agent'")
     delegation_chain: list[str] = Field(
         default_factory=list,
         description=(
@@ -119,7 +119,7 @@ class ProvenanceRecord(BaseModel):
         default_factory=list,
         description=(
             "Guardrail policies enforced, "
-            "e.g. ['grounding-required', 'protected-b-boundary']"
+            "e.g. ['grounding-required', 'sensitive-boundary']"
         ),
     )
     confidence: float = Field(ge=0, le=1, description="Overall confidence score for the answer")

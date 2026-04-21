@@ -36,13 +36,13 @@ _BUSINESS_PROMPTS: dict[str, str] = {
         "any documents that reference outdated processes or superseded policies."
     ),
     "ws-faq": (
-        "You are a general FAQ assistant for EVA Domain Assistant. Answer common "
+        "You are a general FAQ assistant for AIA Domain Assistant. Answer common "
         "questions about workspace features, supported file types, booking "
         "processes, and team management. Keep answers clear and concise. Direct "
         "users to appropriate help resources when needed."
     ),
     "ws-sandbox": (
-        "You are a training assistant in the EVA sandbox environment. Help users "
+        "You are a training assistant in the AIA sandbox environment. Help users "
         "learn how to use the platform by answering questions about features, best "
         "practices, and workflows. This is a safe space for experimentation — "
         "encourage exploration."
@@ -55,17 +55,17 @@ _BUSINESS_PROMPTS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 _INFRASTRUCTURE: dict[str, str] = {
-    "search_service": "msub-eva-dev-search",
-    "search_endpoint": "https://msub-eva-dev-search.search.windows.net",
+    "search_service": "msub-aia-dev-search",
+    "search_endpoint": "https://msub-aia-dev-search.search.windows.net",
     "storage_account": "msubevasharedaihbyya73s",
     "cosmos_account": "msub-sandbox-cosmos-free",
-    "openai_service": "msub-eva-dev-openai",
+    "openai_service": "msub-aia-dev-openai",
     "openai_deployment": "chat-default",
     "embedding_deployment": "embeddings-default",
     "container_environment": "msub-sandbox-env",
     "key_vault": "msubsandkv202603031449",
     "container_registry": "msubsandacr202603031449",
-    "resource_group": "EVA-Sandbox-dev",
+    "resource_group": "AIA-Sandbox-dev",
     "location": "canadacentral",
 }
 
@@ -85,7 +85,7 @@ class WorkspaceStore:
                 name="OAS Act Legislation",
                 name_fr="Legislation sur la Loi sur la SV",
                 description=(
-                    "Protected B workspace for Old Age Security Act legislative analysis "
+                    "sensitive workspace for Old Age Security Act legislative analysis "
                     "with hierarchical chunking and cross-references."
                 ),
                 description_fr=(
@@ -96,7 +96,7 @@ class WorkspaceStore:
                 type="legislation",
                 status="active",
                 owner_id="demo-carol",
-                data_classification="protected_b",
+                data_classification="sensitive",
                 document_capacity=10,
                 document_count=4,
                 monthly_cost=4800.00,
@@ -110,7 +110,7 @@ class WorkspaceStore:
                 name="EI Jurisprudence",
                 name_fr="Jurisprudence de l'AE",
                 description=(
-                    "Protected B workspace for Employment Insurance tribunal decisions "
+                    "sensitive workspace for Employment Insurance tribunal decisions "
                     "with citation graphs and court hierarchy ranking."
                 ),
                 description_fr=(
@@ -121,7 +121,7 @@ class WorkspaceStore:
                 type="case_law",
                 status="active",
                 owner_id="demo-carol",
-                data_classification="protected_b",
+                data_classification="sensitive",
                 document_capacity=15,
                 document_count=6,
                 monthly_cost=3200.00,
@@ -135,7 +135,7 @@ class WorkspaceStore:
                 name="BDM Knowledge Management",
                 name_fr="Gestion des connaissances BPM",
                 description=(
-                    "Protected A workspace for Benefits Delivery Modernization document "
+                    "restricted workspace for Benefits Delivery Modernization document "
                     "search, Q&A, and topic modelling."
                 ),
                 description_fr=(
@@ -146,7 +146,7 @@ class WorkspaceStore:
                 type="knowledge_mgmt",
                 status="active",
                 owner_id="demo-carol",
-                data_classification="protected_a",
+                data_classification="restricted",
                 document_capacity=20,
                 document_count=12,
                 monthly_cost=2000.00,

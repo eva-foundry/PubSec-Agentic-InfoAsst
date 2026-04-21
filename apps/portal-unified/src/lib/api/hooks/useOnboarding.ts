@@ -7,7 +7,7 @@ export interface TenantInitRequest {
   industry?: string;
   primary_admin_email: string;
 
-  default_classification?: "unclassified" | "protected_a" | "protected_b";
+  default_classification?: "unclassified" | "restricted" | "sensitive";
   classification_notes?: string;
 
   default_mode?: "Advisory" | "Decision-informing";
@@ -34,6 +34,6 @@ export const useCompleteOnboarding = () => {
   const client = useApiClient();
   return useMutation({
     mutationFn: (body: TenantInitRequest) =>
-      client.post<TenantInitResponse>("/v1/eva/admin/tenants/init", body),
+      client.post<TenantInitResponse>("/v1/aia/admin/tenants/init", body),
   });
 };

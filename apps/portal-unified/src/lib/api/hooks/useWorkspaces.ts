@@ -6,7 +6,8 @@ import { qk } from "@/lib/api/keys";
 export interface CreateWorkspaceRequest {
   name: string;
   archetype: string;
-  data_classification?: "unclassified" | "protected_a" | "protected_b";
+  data_classification?: "unclassified" | "restricted" | "sensitive";
+  cost_centre?: string;
   description?: string;
   name_fr?: string;
   description_fr?: string;
@@ -16,7 +17,7 @@ export const useWorkspaces = () => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.workspaces.list(),
-    queryFn: () => client.get<Workspace[]>("/v1/eva/workspaces"),
+    queryFn: () => client.get<Workspace[]>("/v1/aia/workspaces"),
   });
 };
 
@@ -24,7 +25,7 @@ export const useWorkspace = (workspaceId: string | null) => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.workspaces.detail(workspaceId ?? "__none__"),
-    queryFn: () => client.get<Workspace>(`/v1/eva/workspaces/${workspaceId}`),
+    queryFn: () => client.get<Workspace>(`/v1/aia/workspaces/${workspaceId}`),
     enabled: !!workspaceId,
   });
 };
@@ -34,7 +35,7 @@ export const useCreateWorkspace = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: CreateWorkspaceRequest) =>
-      client.post<Workspace>("/v1/eva/workspaces", body),
+      client.post<Workspace>("/v1/aia/workspaces", body),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.workspaces.list() }),
   });
 };
@@ -44,7 +45,7 @@ export const useArchetypes = () => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.workspaces.archetypes(),
-    queryFn: () => client.get<ArchetypeDefinition[]>("/v1/eva/archetypes"),
+    queryFn: () => client.get<ArchetypeDefinition[]>("/v1/aia/archetypes"),
     staleTime: 5 * 60 * 1000,
   });
 };

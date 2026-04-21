@@ -10,12 +10,12 @@ const primeOps = () => {
     JSON.stringify({
       user: {
         user_id: "demo-dave",
-        email: "dave@demo.gc.ca",
+        email: "dave@example.org",
         name: "Dave Thompson",
         role: "admin",
         portal_access: ["self-service", "admin", "ops"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -43,7 +43,7 @@ describe("LiveOps incidents + latency", () => {
   it("uses granularity=hour for the latency card", async () => {
     const hits: string[] = [];
     server.use(
-      http.get("*/v1/eva/ops/metrics/liveops", ({ request }) => {
+      http.get("*/v1/aia/ops/metrics/liveops", ({ request }) => {
         const granularity = new URL(request.url).searchParams.get("granularity");
         hits.push(granularity ?? "(none)");
         if (granularity === "hour") {
@@ -69,7 +69,7 @@ describe("LiveOps incidents + latency", () => {
 
   it("shows an empty-state when the incidents endpoint errors", async () => {
     server.use(
-      http.get("*/v1/eva/ops/incidents", () =>
+      http.get("*/v1/aia/ops/incidents", () =>
         HttpResponse.json({ detail: "unavailable" }, { status: 503 }),
       ),
     );

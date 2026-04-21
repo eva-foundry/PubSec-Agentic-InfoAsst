@@ -25,7 +25,8 @@ export default function Catalog() {
   const [assurance, setAssurance] = useState<Assurance>("all");
   const [name, setName] = useState("");
   const [selectedArchetype, setSelectedArchetype] = useState<string>("kb");
-  const [classification, setClassification] = useState<"unclassified" | "protected_a" | "protected_b">("protected_a");
+  const [classification, setClassification] = useState<"unclassified" | "restricted" | "sensitive">("restricted");
+  const [costCentre, setCostCentre] = useState("");
   const steps = ["Archetype", "Data sources", "Team", "Policies", "Confirm"];
 
   const archetypes = useArchetypes();
@@ -53,14 +54,16 @@ export default function Catalog() {
         name: name.trim(),
         archetype: selectedArchetype,
         data_classification: classification,
+        cost_centre: costCentre.trim(),
       },
       {
         onSuccess: (ws) => {
           setOpen(false);
           setStep(0);
           setName("");
+          setCostCentre("");
           toast.success(`Workspace "${ws.name}" created`, {
-            description: `${ws.id} · ${ws.data_classification} · archetype: ${ws.archetype ?? "n/a"}`,
+            description: `${ws.id} · ${ws.data_classification}${ws.cost_centre ? ` · cost-centre: ${ws.cost_centre}` : ""} · archetype: ${ws.archetype ?? "n/a"}`,
           });
         },
         onError: (err) => {
@@ -116,10 +119,16 @@ export default function Catalog() {
                       className="h-9 rounded-md border border-border bg-background px-2 text-xs"
                     >
                       <option value="unclassified">Unclassified</option>
-                      <option value="protected_a">Protected A</option>
-                      <option value="protected_b">Protected B</option>
+                      <option value="restricted">restricted</option>
+                      <option value="sensitive">sensitive</option>
                     </select>
                   </div>
+                  <Input
+                    aria-label="Cost centre"
+                    value={costCentre}
+                    onChange={(e) => setCostCentre(e.target.value)}
+                    placeholder="Cost centre (e.g. CC-Organization-3042)"
+                  />
                 </div>
               ) : (
                 <Input id="ws-field" placeholder={`Configure ${steps[step].toLowerCase()}…`} />

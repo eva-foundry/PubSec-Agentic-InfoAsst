@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class Workspace(BaseModel):
-    """An EVA DA workspace — a managed index with RBAC, cost recovery, and lifecycle."""
+    """An AIA DA workspace — a managed index with RBAC, cost recovery, and lifecycle."""
 
     id: str
     name: str
@@ -21,7 +21,7 @@ class Workspace(BaseModel):
     owner_id: str = Field(description="Entra ID of the workspace owner")
     data_classification: str = Field(
         default="unclassified",
-        description="'unclassified', 'protected_a', 'protected_b'",
+        description="'unclassified', 'restricted', 'sensitive'",
     )
     document_capacity: int = Field(default=0, ge=0)
     document_count: int = Field(default=0, ge=0)
@@ -54,14 +54,15 @@ class Workspace(BaseModel):
 
 
 class CreateWorkspaceRequest(BaseModel):
-    """Payload for POST /v1/eva/workspaces — minimal fields the Catalog wizard collects."""
+    """Payload for POST /v1/aia/workspaces — minimal fields the Catalog wizard collects."""
 
     name: str = Field(min_length=1, max_length=120)
     archetype: str = Field(description="Stable archetype key from ArchetypeStore")
     data_classification: str = Field(
         default="unclassified",
-        description="'unclassified' | 'protected_a' | 'protected_b'",
+        description="'unclassified' | 'restricted' | 'sensitive'",
     )
+    cost_centre: str = ""
     description: str = ""
     name_fr: str = ""
     description_fr: str = ""
@@ -107,7 +108,7 @@ class EntrySurvey(BaseModel):
     expected_data_volume_gb: float = Field(ge=0)
     data_classification: str = Field(
         default="unclassified",
-        description="'unclassified', 'protected_a', 'protected_b'",
+        description="'unclassified', 'restricted', 'sensitive'",
     )
     business_justification: str
     completed_at: str = Field(description="ISO timestamp")
@@ -141,7 +142,7 @@ class Document(BaseModel):
     chunk_count: int = Field(default=0, ge=0)
     data_classification: str = Field(
         default="unclassified",
-        description="'unclassified', 'protected_a', 'protected_b'",
+        description="'unclassified', 'restricted', 'sensitive'",
     )
     uploaded_by: str
     uploaded_at: str = Field(description="ISO timestamp")

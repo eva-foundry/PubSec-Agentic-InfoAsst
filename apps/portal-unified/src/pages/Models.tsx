@@ -100,7 +100,7 @@ export default function Models() {
                         <tr key={w.id} className="border-t border-border">
                           <td className="p-1.5 truncate max-w-[140px]">{w.name}</td>
                           {(models.data ?? []).map((m) => {
-                            const allowed = m.classification_ceiling === "protected_b" ||
+                            const allowed = m.classification_ceiling === "sensitive" ||
                               m.classification_ceiling === w.data_classification;
                             return (
                               <td key={m.id} className="p-1.5 text-center">{allowed ? "✓" : "—"}</td>

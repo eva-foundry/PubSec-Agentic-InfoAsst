@@ -94,7 +94,7 @@ class TestTokenFactory:
 
 
 class TestGroupRoleResolution:
-    """Test Entra group → EVA role mapping."""
+    """Test Entra group → AIA role mapping."""
 
     def test_resolve_role_admin_group(self):
         """Admin group membership should resolve to 'admin' role."""
@@ -204,7 +204,7 @@ class TestJWTValidation:
         assert result.name == "Alice Test"
         assert result.role == "reader"  # No groups
         assert "self-service" in result.portal_access
-        assert result.data_classification_level == "protected_b"
+        assert result.data_classification_level == "sensitive"
 
     @patch("app.auth.entra_provider._get_jwks_client")
     async def test_validate_token_expired_jwt(self, mock_get_jwks_client):
@@ -463,13 +463,13 @@ class TestDemoModeIndependence:
         users = get_demo_users()
         assert len(users) == 5
         emails = {u.email for u in users}
-        assert "alice@demo.gc.ca" in emails
+        assert "alice@example.org" in emails
 
     def test_demo_provider_lookup_user(self):
         """Demo provider should look up user by email."""
         from app.auth.demo_provider import get_demo_user
 
-        user = get_demo_user("alice@demo.gc.ca")
+        user = get_demo_user("alice@example.org")
         assert user is not None
         assert user.name == "Alice Chen"
         assert user.role == "contributor"
@@ -478,7 +478,7 @@ class TestDemoModeIndependence:
         """Demo provider should return None for unknown user."""
         from app.auth.demo_provider import get_demo_user
 
-        user = get_demo_user("unknown@demo.gc.ca")
+        user = get_demo_user("unknown@example.org")
         assert user is None
 
 
@@ -526,7 +526,7 @@ class TestEntraAuthFlow:
         assert result.email == "admin@example.com"
         assert result.name == "Admin User"
         assert result.language == "en"
-        assert result.data_classification_level == "protected_b"
+        assert result.data_classification_level == "sensitive"
         assert isinstance(result.workspace_grants, list)
 
     @patch("app.auth.entra_provider._get_jwks_client")

@@ -88,7 +88,7 @@ class AuditStore:
                 "target": "ws-ei-juris",
                 "subject": "EI Jurisprudence",
                 "decision": "allow",
-                "policy": "protected-b-boundary",
+                "policy": "sensitive-boundary",
                 "rationale": "approved at change advisory board 2026-04-10",
             },
             {

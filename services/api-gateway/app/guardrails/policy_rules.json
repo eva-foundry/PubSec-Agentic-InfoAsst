@@ -1,10 +1,10 @@
 [
   {
     "id": "TBS-GEN-AI-01",
-    "name": "Protected B boundary enforcement",
-    "description": "All AI processing must occur in Canadian Azure regions for Protected B data",
+    "name": "sensitive boundary enforcement",
+    "description": "All AI processing must occur in public-sector Azure regions for sensitive data",
     "conditions": [
-      { "field": "data_classification", "operator": "eq", "value": "protected_b" },
+      { "field": "data_classification", "operator": "eq", "value": "sensitive" },
       { "field": "region", "operator": "in", "value": ["canadacentral", "canadaeast"] }
     ],
     "pass_action": "allow",
@@ -22,17 +22,17 @@
     "fail_action": "escalate"
   },
   {
-    "id": "ESDC-AICM-L2",
-    "name": "AICM Level 2+ requires human-in-the-loop",
-    "description": "Decision-informing outputs (AICM Level 2+) cannot auto-resolve",
+    "id": "Organization-RAI-L2",
+    "name": "RAI Level 2+ requires human-in-the-loop",
+    "description": "Decision-informing outputs (RAI Level 2+) cannot auto-resolve",
     "conditions": [
-      { "field": "workspace.aicm_level", "operator": "lt", "value": 2 }
+      { "field": "workspace.rai_level", "operator": "lt", "value": 2 }
     ],
     "pass_action": "allow",
     "fail_action": "escalate_to_human"
   },
   {
-    "id": "ESDC-BILINGUAL-01",
+    "id": "Organization-BILINGUAL-01",
     "name": "Bilingual capability required",
     "description": "All workspace tools must declare bilingual support or route through translation",
     "conditions": [
@@ -42,7 +42,7 @@
     "fail_action": "warn"
   },
   {
-    "id": "ESDC-CONFIDENCE-01",
+    "id": "Organization-CONFIDENCE-01",
     "name": "Low confidence requires disclosure",
     "description": "Responses with confidence below 0.4 must include explicit uncertainty disclosure",
     "conditions": [
@@ -52,7 +52,7 @@
     "fail_action": "escalate"
   },
   {
-    "id": "ESDC-TOOL-REG-01",
+    "id": "Organization-TOOL-REG-01",
     "name": "Tool must be registered with classification ceiling",
     "description": "Every tool invoked must have a declared classification ceiling in the tool registry",
     "conditions": [
@@ -62,7 +62,7 @@
     "fail_action": "block"
   },
   {
-    "id": "ESDC-RESIDENCY-01",
+    "id": "Organization-RESIDENCY-01",
     "name": "Data residency enforcement",
     "description": "Tool data residency must be Canada Central or Canada East",
     "conditions": [
@@ -72,7 +72,7 @@
     "fail_action": "block"
   },
   {
-    "id": "ESDC-AUDIT-01",
+    "id": "Organization-AUDIT-01",
     "name": "Audit trail completeness",
     "description": "Every agent step must have correlation_id and trace_id",
     "conditions": [

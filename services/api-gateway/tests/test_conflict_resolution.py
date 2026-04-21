@@ -147,7 +147,7 @@ class TestConflictResolutionByAuthority:
         claim_policy = SourceClaim(
             source_id="policy-001",
             source_type="policy",
-            source_title="ESDC Directive",
+            source_title="Organization Directive",
             claim_text="500 hours minimum",
             authority=SourceAuthority.POLICY_DIRECTIVE,
         )
@@ -395,7 +395,7 @@ class TestConflictExplanation:
         claim_policy = SourceClaim(
             source_id="policy-001",
             source_type="policy",
-            source_title="ESDC Policy",
+            source_title="Organization Policy",
             claim_text="500 hours",
             authority=SourceAuthority.POLICY_DIRECTIVE,
         )
@@ -462,7 +462,7 @@ class TestConflictExplanation:
         claim_b = SourceClaim(
             source_id="policy-001",
             source_type="policy",
-            source_title="ESDC Policy",
+            source_title="Organization Policy",
             claim_text="500 hours required",
         )
         report = self.resolver.detect_conflicts([claim_a, claim_b])

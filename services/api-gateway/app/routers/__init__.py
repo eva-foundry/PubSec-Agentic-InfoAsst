@@ -1,4 +1,4 @@
-"""API routers for EVA Agentic Gateway."""
+"""API routers for AIA Gateway."""
 
 from . import (
     admin,

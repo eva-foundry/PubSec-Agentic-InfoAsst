@@ -1,4 +1,4 @@
-"""Entra ID group → EVA role/portal/workspace mapping.
+"""Entra ID group → AIA role/portal/workspace mapping.
 
 Group Object IDs are configured via environment variables so they
 can differ per tenant without code changes.
@@ -24,7 +24,7 @@ _PORTAL_MAP: dict[str, list[str]] = {
 
 
 def resolve_role(groups: list[str]) -> str:
-    """Map Entra group memberships to a single EVA role (highest wins)."""
+    """Map Entra group memberships to a single AIA role (highest wins)."""
     if _ADMIN_GROUP and _ADMIN_GROUP in groups:
         return "admin"
     if _CONTRIBUTOR_GROUP and _CONTRIBUTOR_GROUP in groups:

@@ -12,7 +12,7 @@ from ..config import settings
 from .group_mapping import resolve_portal_access, resolve_role, resolve_workspace_grants
 from .models import UserContext
 
-logger = logging.getLogger("eva.auth.entra")
+logger = logging.getLogger("aia.auth.entra")
 
 # JWKS endpoint — discovery-based
 _JWKS_URL = f"https://login.microsoftonline.com/{settings.entra_tenant_id}/discovery/v2.0/keys"
@@ -37,7 +37,7 @@ async def validate_token(token: str) -> UserContext:
     Steps:
     1. Fetch signing key from JWKS endpoint (cached)
     2. Decode + verify JWT (RS256, audience, issuer, expiry, required claims)
-    3. Map Entra group memberships to EVA roles
+    3. Map Entra group memberships to AIA roles
     4. Return populated UserContext
     """
     # Check cache first
@@ -69,7 +69,7 @@ async def validate_token(token: str) -> UserContext:
         logger.warning("JWT validation failed: %s", exc, extra={"error": "jwt_error"})
         raise
 
-    # Map Entra groups to EVA roles
+    # Map Entra groups to AIA roles
     groups = claims.get("groups", [])
     oid = claims["oid"]
 
@@ -84,7 +84,7 @@ async def validate_token(token: str) -> UserContext:
         role=role,
         portal_access=portal_access,
         workspace_grants=workspace_grants,
-        data_classification_level="protected_b",
+        data_classification_level="sensitive",
         language=claims.get("locale", "en")[:2],
     )
 

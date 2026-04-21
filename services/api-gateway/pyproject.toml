@@ -1,7 +1,7 @@
 [project]
-name = "eva-agentic-api-gateway"
+name = "aia-agentic-api-gateway"
 version = "0.1.0"
-description = "EVA Agentic API Gateway"
+description = "AIA API Gateway"
 requires-python = ">=3.12"
 
 [tool.ruff]

@@ -96,8 +96,9 @@ class ChatStore:
                 user_id="demo-alice",
                 role="assistant",
                 content_preview=_preview(
-                    "Based on the Old Age Security Act, eligibility requires Canadian residency "
-                    "of at least 10 years after age 18 for a partial pension, "
+                    "Based on the Old Age Security Act, eligibility requires "
+                    "public-sector residency of at least 10 years after "
+                    "age 18 for a partial pension, "
                     "or 40 years for a full pension [1]. "
                     "The applicant must be 65 years of age or older [1]."
                 ),
@@ -355,10 +356,10 @@ class ChatStore:
                 user_id="demo-alice",
                 role="assistant",
                 content_preview=_preview(
-                    "Generally, Canadian government benefits are administered "
+                    "Generally, enterprise benefits are administered "
                     "through Service Canada. "
                     "The process typically involves submitting an application online or in person. "
-                    "Please note this answer is not grounded in official ESDC documents."
+                    "Please note this answer is not grounded in official Organization documents."
                 ),
                 content_hash=_sha256("general-benefits-ungrounded-answer"),
                 citations=[],

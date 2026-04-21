@@ -1,5 +1,5 @@
 // ============================================================================
-// P53 EVA Agentic — Managed Identities + RBAC
+// P53 AIA — Managed Identities + RBAC
 // Two identities: api-gateway and doc-pipeline, each with scoped role assignments.
 // ============================================================================
 
@@ -31,9 +31,9 @@ var cosmosDbDataContributorRoleId = '00000000-0000-0000-0000-000000000002'
 // Managed Identity: API Gateway
 // ---------------------------------------------------------------------------
 
-@description('Managed identity for the EVA Agentic API gateway')
+@description('Managed identity for the AIA API gateway')
 resource apiGatewayIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: 'eva-agentic-api-gateway-${environmentName}'
+  name: 'aia-agentic-api-gateway-${environmentName}'
   location: location
   tags: tags
 }
@@ -42,9 +42,9 @@ resource apiGatewayIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@20
 // Managed Identity: Document Pipeline
 // ---------------------------------------------------------------------------
 
-@description('Managed identity for the EVA Agentic document pipeline')
+@description('Managed identity for the AIA document pipeline')
 resource docPipelineIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: 'eva-agentic-doc-pipeline-${environmentName}'
+  name: 'aia-agentic-doc-pipeline-${environmentName}'
   location: location
   tags: tags
 }

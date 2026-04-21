@@ -7,7 +7,7 @@ recovery. Produces structured JSON evidence for ATO certification.
 Usage:
     python scripts/backup/test_recovery.py --env staging --output evidence/backup/
 
-ITSG-33: CP-9 (Information System Backup), CP-10 (System Recovery)
+NIST 800-53: CP-9 (Information System Backup), CP-10 (System Recovery)
 """
 
 from __future__ import annotations
@@ -97,8 +97,8 @@ class RecoveryDrill:
             import subprocess
             cmd = [
                 "az", "cosmosdb", "show",
-                "--name", f"eva-agentic-{self.env}-*",
-                "--resource-group", f"rg-eva-agentic-{self.env}",
+                "--name", f"aia-agentic-{self.env}-*",
+                "--resource-group", f"rg-aia-agentic-{self.env}",
                 "--query", "backupPolicy",
                 "--output", "json",
             ]
@@ -259,7 +259,7 @@ class RecoveryDrill:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="EVA Agentic Recovery Drill")
+    parser = argparse.ArgumentParser(description="AIA Recovery Drill")
     parser.add_argument("--env", default="staging", help="Target environment")
     parser.add_argument("--output", default="evidence/backup/", help="Output directory")
     args = parser.parse_args()
@@ -268,7 +268,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*60}")
-    print(f"  EVA Agentic — Recovery Drill")
+    print(f"  AIA — Recovery Drill")
     print(f"  Environment: {args.env}")
     print(f"  Time: {datetime.now(timezone.utc).isoformat()}")
     print(f"{'='*60}\n")

@@ -1,4 +1,4 @@
-# Agentic State Vision — Design Notes for EVA Alignment
+# Agentic State Vision — Design Notes for AIA Alignment
 
 **Date:** 2026-04-14  
 **Source:** *The Agentic State: Rethinking Government for the Era of Agentic AI* — Luukas Ilves, Manuel Kilian, Simone Maria Parazzoli, Tiago C. Peixoto, Ott Velsberg (Tallinn Digital Summit, 2025)  
@@ -8,7 +8,7 @@
 
 ## Why This Matters
 
-The Agentic State paper is the first comprehensive framework for how agentic AI transforms government operations. It was developed by 20+ digital government leaders from 15 countries and is backed by the World Bank and Global Government Technology Centre Berlin. Its 12-layer model maps directly to how EVA should evolve — it validates our current architecture and flags concrete gaps.
+The Agentic State paper is the first comprehensive framework for how agentic AI transforms government operations. It was developed by 20+ digital government leaders from 15 countries and is backed by the World Bank and Global Government Technology Centre Berlin. Its 12-layer model maps directly to how AIA should evolve — it validates our current architecture and flags concrete gaps.
 
 ---
 
@@ -34,27 +34,27 @@ The Agentic State paper is the first comprehensive framework for how agentic AI 
 
 ---
 
-## Key Design Principles for EVA
+## Key Design Principles for AIA
 
-These are the design tenets I should apply when refactoring or extending EVA solutions:
+These are the design tenets I should apply when refactoring or extending AIA solutions:
 
 ### 1. Proactive over Reactive
-Design agents that identify who needs what and when — push-based, not pull-based. EVA Chat is reactive today; the refactor should explore anticipatory workflows and notification-driven assistance.
+Design agents that identify who needs what and when — push-based, not pull-based. AIA Chat is reactive today; the refactor should explore anticipatory workflows and notification-driven assistance.
 
 ### 2. Compliance-as-Code
-Encode TBS Generative AI guidance, ESDC policies, PIA constraints, and security requirements as executable rules — not just documentation. Agents should enforce these uniformly at runtime without manual checks.
+Encode TBS Generative AI guidance, Organization policies, PIA constraints, and security requirements as executable rules — not just documentation. Agents should enforce these uniformly at runtime without manual checks.
 
 ### 3. Human Escalation Architecture
 Move from blanket human-in-the-loop to tiered escalation: auto-resolve → flagged-for-review → requires-human-decision. Define clear thresholds for each tier based on risk, sensitivity, and confidence level.
 
 ### 4. Privacy-by-Design with Data Minimization
-Agents access only what they need, for the stated purpose, with purpose limitation enforced programmatically. This aligns with Protected B and PIA obligations — build it into the data access layer, not as a policy overlay.
+Agents access only what they need, for the stated purpose, with purpose limitation enforced programmatically. This aligns with sensitive and PIA obligations — build it into the data access layer, not as a policy overlay.
 
 ### 5. Forensic-Grade Audit Trail
 Every agent action must log: subject, actor, delegation chain, purpose, resource accessed, and policy decision made. Target OTEL-compatible centralized logging for compliance, SIEM, and audit. Go beyond usage monitoring — capture provenance.
 
 ### 6. Agent Identity & Scoped Authority
-Each EVA app/agent needs a distinct identity with scoped permissions (not a shared service account). Authority should be dynamic, ephemeral, and auditable. Map this to APIM headers and per-app tagging.
+Each AIA app/agent needs a distinct identity with scoped permissions (not a shared service account). Authority should be dynamic, ephemeral, and auditable. Map this to APIM headers and per-app tagging.
 
 ### 7. Interoperability & Shared Orchestration
 Avoid siloed solutions. Use the IIAID pipeline and marketplace to standardize agent-to-agent communication protocols. Centralize agent registries so new solution spaces can discover and compose with existing agents.
@@ -68,9 +68,9 @@ Extend APIM cost-attribution beyond consumption metrics. Track outcome-based KPI
 ### 10. Bilingual, Accessible, Culture-Ready
 All agents must be EN/FR bilingual and WCAG 2.1 AA compliant by default. Design for a workforce that becomes orchestrators and exception-handlers, not processors. Change management is an enablement layer, not an afterthought.
 
-### 11. Confidence Scoring & Disclosure (EVA Addition)
+### 11. Confidence Scoring & Disclosure (AIA Addition)
 
-> **Note:** The Agentic State paper does not explicitly address confidence levels. This principle is an EVA-originated addition that fills a gap in the framework.
+> **Note:** The Agentic State paper does not explicitly address confidence levels. This principle is an AIA-originated addition that fills a gap in the framework.
 
 Agents must measure and disclose the confidence level of every answer they produce. This is not optional UX polish — it is a governance and trust mechanism that ties directly into escalation, audit, and responsible AI:
 
@@ -85,27 +85,27 @@ This principle closes a loop the Agentic State framework leaves open: the paper 
 
 ---
 
-## EVA Alignment Scorecard
+## AIA Alignment Scorecard
 
-| Agentic State Principle | Current EVA Status | Action Needed |
+| Agentic State Principle | Current AIA Status | Action Needed |
 |---|---|---|
-| Compliance-as-code | Guardrails exist, but policy is documented not executable | Encode TBS/ESDC rules as runtime policy engine |
+| Compliance-as-code | Guardrails exist, but policy is documented not executable | Encode TBS/Organization rules as runtime policy engine |
 | Forensic audit trail | Usage monitoring + logging in place | Upgrade to per-action provenance with OTEL-compatible format |
 | RAG-first with citations | Core architecture — strong alignment | Maintain; extend citation granularity (pinpoint refs) |
 | Human escalation tiers | Human-in-the-loop exists | Formalize auto/review/human tiers with confidence thresholds |
-| Proactive service | EVA Chat is reactive | Prototype push-based workflows (e.g., case alerts, deadline reminders) |
+| Proactive service | AIA Chat is reactive | Prototype push-based workflows (e.g., case alerts, deadline reminders) |
 | FinOps outcome-based | APIM cost attribution headers in place | Add outcome KPIs alongside consumption; variable cost modeling |
 | Agent identity | Shared codebase, per-app tagging | Define per-agent identity with scoped, ephemeral permissions |
 | Interoperability | IIAID pipeline underway | Standardize A2A protocol; build agent registry in marketplace |
 | Security for autonomy | ST&E process exists | Add agent-specific threat models (injection, impersonation, cascading) |
 | People & culture | Training exists | Develop orchestrator/exception-handler role definitions |
-| **Confidence scoring** *(EVA addition)* | Not yet implemented | Build per-response confidence signal; surface to users; wire to escalation tiers |
+| **Confidence scoring** *(AIA addition)* | Not yet implemented | Build per-response confidence signal; surface to users; wire to escalation tiers |
 
 ---
 
 ## Next Steps
 
-- [ ] Map each principle to specific EVA refactor backlog items in 53-EVA-Refactor.
+- [ ] Map each principle to specific AIA refactor backlog items in 53-AIA-Refactor.
 - [ ] Draft a "compliance-as-code" spike: pick one TBS rule and encode it as executable policy.
 - [ ] Propose escalation tier definitions for Jurisprudence and AssistMe use cases.
 - [ ] Evaluate OTEL-compatible logging options within Azure (Canada) constraints.

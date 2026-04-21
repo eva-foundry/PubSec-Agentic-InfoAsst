@@ -1,7 +1,7 @@
 """PII sanitization for audit logs.
 
-Detects and redacts Canadian PII patterns (SIN, email, phone, postal code)
-before any text is written to audit logs or telemetry. Satisfies ITSG-33
+Detects and redacts public-sector PII patterns (SIN, email, phone, postal code)
+before any text is written to audit logs or telemetry. Satisfies NIST 800-53
 AU-2/AU-3 (no PII in Log Analytics) and CLAUDE.md AUD02/AUD05.
 """
 
@@ -11,7 +11,7 @@ import hashlib
 import re
 
 # ---------------------------------------------------------------------------
-# Canadian PII patterns
+# public-sector PII patterns
 # ---------------------------------------------------------------------------
 
 # Social Insurance Number: 123-456-789 or 123 456 789 or 123456789
@@ -23,7 +23,7 @@ _EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\
 # Phone numbers: +1-613-555-1234, (613) 555-1234, 613-555-1234, etc.
 _PHONE_PATTERN = re.compile(r"(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}")
 
-# Canadian postal codes: K1A 0B1, k1a0b1, K1A-0B1
+# public-sector postal codes: K1A 0B1, k1a0b1, K1A-0B1
 _POSTAL_PATTERN = re.compile(r"\b[A-Za-z]\d[A-Za-z][-\s]?\d[A-Za-z]\d\b")
 
 # Date of birth patterns: 1990-01-15, 15/01/1990, Jan 15, 1990
@@ -44,7 +44,7 @@ _PATTERNS: list[tuple[re.Pattern, str]] = [
 def sanitize_for_audit(text: str) -> str:
     """Remove PII patterns from text before logging.
 
-    Applies all Canadian PII pattern detections and replaces with
+    Applies all public-sector PII pattern detections and replaces with
     redaction markers. Safe to call on any text — non-PII content
     passes through unchanged.
     """

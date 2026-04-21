@@ -7,6 +7,6 @@ export const useSystemInfo = () => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.system.info(),
-    queryFn: () => client.get<SystemInfo>("/v1/eva/system/info"),
+    queryFn: () => client.get<SystemInfo>("/v1/aia/system/info"),
   });
 };

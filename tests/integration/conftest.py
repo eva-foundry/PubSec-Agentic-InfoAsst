@@ -105,7 +105,7 @@ def sample_team_member(workspace_id: str, now_iso: str) -> TeamMember:
         id=_uid(),
         workspace_id=workspace_id,
         user_id=f"user-{uuid.uuid4().hex[:6]}",
-        email="integ-test@demo.gc.ca",
+        email="integ-test@example.org",
         name="Integration Tester",
         role="contributor",
         added_at=now_iso,

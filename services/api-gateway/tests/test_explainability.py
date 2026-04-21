@@ -1,4 +1,4 @@
-"""Tests for the EVA explainability engine."""
+"""Tests for the AIA explainability engine."""
 
 from __future__ import annotations
 

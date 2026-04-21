@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="EVA Agentic API Gateway", version="0.1.0")
+    app = FastAPI(title="AIA API Gateway", version="0.1.0")
 
     # --- Middleware (outermost first) ---
 
@@ -54,33 +54,33 @@ def create_app() -> FastAPI:
 
     # Infrastructure
     app.include_router(health.router, tags=["health"])
-    app.include_router(auth.router, prefix="/v1/eva/auth", tags=["auth"])
+    app.include_router(auth.router, prefix="/v1/aia/auth", tags=["auth"])
 
     # Chat & RAG
-    app.include_router(chat.router, prefix="/v1/eva", tags=["chat"])
+    app.include_router(chat.router, prefix="/v1/aia", tags=["chat"])
 
     # Document management
-    app.include_router(documents.router, prefix="/v1/eva", tags=["documents"])
+    app.include_router(documents.router, prefix="/v1/aia", tags=["documents"])
 
     # Portal 1 — Self-Service
-    app.include_router(workspaces.router, prefix="/v1/eva", tags=["workspaces"])
-    app.include_router(archetypes.router, prefix="/v1/eva", tags=["archetypes"])
-    app.include_router(bookings.router, prefix="/v1/eva", tags=["bookings"])
-    app.include_router(teams.router, prefix="/v1/eva", tags=["teams"])
-    app.include_router(surveys.router, prefix="/v1/eva", tags=["surveys"])
+    app.include_router(workspaces.router, prefix="/v1/aia", tags=["workspaces"])
+    app.include_router(archetypes.router, prefix="/v1/aia", tags=["archetypes"])
+    app.include_router(bookings.router, prefix="/v1/aia", tags=["bookings"])
+    app.include_router(teams.router, prefix="/v1/aia", tags=["teams"])
+    app.include_router(surveys.router, prefix="/v1/aia", tags=["surveys"])
 
     # Portal 2 — Business Admin
-    app.include_router(admin.router, prefix="/v1/eva", tags=["admin"])
+    app.include_router(admin.router, prefix="/v1/aia", tags=["admin"])
 
     # Portal 3 — Operations & Support
-    app.include_router(ops.router, prefix="/v1/eva", tags=["ops"])
+    app.include_router(ops.router, prefix="/v1/aia", tags=["ops"])
 
     # Cross-cutting
-    app.include_router(citations.router, prefix="/v1/eva", tags=["citations"])
-    app.include_router(system.router, prefix="/v1/eva", tags=["system"])
+    app.include_router(citations.router, prefix="/v1/aia", tags=["citations"])
+    app.include_router(system.router, prefix="/v1/aia", tags=["system"])
 
     # Debug endpoints — gated by EVA_DEBUG=true
-    app.include_router(debug.router, prefix="/v1/eva", tags=["debug"])
+    app.include_router(debug.router, prefix="/v1/aia", tags=["debug"])
 
     @app.on_event("startup")
     async def startup():

@@ -22,6 +22,7 @@ import Chat from "./pages/Chat";
 import Catalog from "./pages/Catalog";
 import MyWorkspace from "./pages/MyWorkspace";
 import Onboarding from "./pages/Onboarding";
+import AdminWorkspaces from "./pages/AdminWorkspaces";
 import Models from "./pages/Models";
 import Cost from "./pages/Cost";
 import AIOps from "./pages/AIOps";
@@ -68,6 +69,7 @@ const App = () => (
 
                         {/* Admin portal */}
                         <Route path="/onboarding" element={gated(<Onboarding />, "admin")} />
+                        <Route path="/admin/workspaces" element={gated(<AdminWorkspaces />, "admin")} />
                         <Route path="/models" element={gated(<Models />, "admin")} />
                         <Route path="/compliance" element={gated(<Compliance />, "admin")} />
                         <Route path="/red-team" element={gated(<RedTeam />, "admin")} />

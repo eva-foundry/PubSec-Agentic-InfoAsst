@@ -1,4 +1,4 @@
-"""ReAct agent orchestrator — the core of EVA Agentic's chat pipeline.
+"""ReAct agent orchestrator — the core of AIA's chat pipeline.
 
 Replaces MSIA's hardcoded linear approach with an observable, tool-calling
 agent loop.  Every step is streamed as NDJSON for real-time UI transparency.
@@ -43,7 +43,7 @@ _UNGROUNDED_DEFAULT_CONFIDENCE = 0.5
 # ---------------------------------------------------------------------------
 
 _QUERY_REWRITE_SYSTEM = """\
-You are a search-query optimizer for a Canadian government knowledge base.
+You are a search-query optimizer for a enterprise knowledge base.
 Given a user question and conversation history, produce a single optimized
 search query that maximizes retrieval recall.
 
@@ -56,8 +56,8 @@ Rules:
 """
 
 _RAG_SYSTEM = """\
-You are EVA, a bilingual (EN/FR) assistant for Employment and Social \
-Development Canada (ESDC). Answer the user's question based ONLY on the \
+You are AIA, a bilingual (EN/FR) assistant for Employment and Social \
+Development Canada (Organization). Answer the user's question based ONLY on the \
 provided sources. Follow these rules strictly:
 
 1. Ground every claim in the sources. Use inline citations like [1], [2].
@@ -71,11 +71,11 @@ Sources:
 """
 
 _UNGROUNDED_SYSTEM = """\
-You are EVA, a bilingual (EN/FR) assistant for Employment and Social \
-Development Canada (ESDC). You are operating in ungrounded mode — no \
+You are AIA, a bilingual (EN/FR) assistant for Employment and Social \
+Development Canada (Organization). You are operating in ungrounded mode — no \
 document retrieval is performed. Respond helpfully based on your general \
 knowledge. Always clarify that your answer is not grounded in official \
-ESDC documents and may not reflect current policy.
+Organization documents and may not reflect current policy.
 """
 
 
@@ -102,6 +102,9 @@ class MockModelClient:
     Used when no real Azure OpenAI client is available (local dev, tests).
     """
 
+    def __init__(self) -> None:
+        self.last_usage: dict | None = None
+
     async def generate_query(self, system: str, user_message: str, history: list[dict]) -> str:
         """Generate an optimized search query from the user message."""
         return user_message
@@ -121,6 +124,17 @@ class MockModelClient:
         words = response.split(" ")
         for i, word in enumerate(words):
             yield word + (" " if i < len(words) - 1 else "")
+
+        # Synthesize a usage chunk from the input+output lengths so the
+        # downstream telemetry path behaves identically to Azure OpenAI.
+        prompt_chars = len(system) + sum(len(m.get("content", "")) for m in messages)
+        prompt_tokens = max(1, prompt_chars // 4)
+        completion_tokens = max(1, len(response) // 4)
+        self.last_usage = {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
+        }
 
 
 class AgentOrchestrator:
@@ -224,7 +238,7 @@ class AgentOrchestrator:
         message_id = str(uuid.uuid4())
         tracker = ProvenanceTracker(
             correlation_id=correlation_id,
-            agent_id="eva-rag-agent",
+            agent_id="aia-rag-agent",
             trace_id=self.trace_id,
         )
 
@@ -337,7 +351,7 @@ class AgentOrchestrator:
 
         top_k = (overrides or {}).get("top_k", 5)
         tracker.add_policy_applied("grounding-required")
-        tracker.add_policy_applied("protected-b-boundary")
+        tracker.add_policy_applied("sensitive-boundary")
 
         # ---- Step 1: Query rewrite ----
         step_id = tracker.add_step(
@@ -709,7 +723,7 @@ class AgentOrchestrator:
                 retrieval_summary="0 sources retrieved; 0 cited; ungrounded mode",
                 reasoning_summary=(
                     "Answered using general model knowledge without document retrieval. "
-                    "Response is not grounded in official ESDC documents."
+                    "Response is not grounded in official Organization documents."
                 ),
                 negative_evidence=[
                     "No document search was performed (ungrounded mode).",

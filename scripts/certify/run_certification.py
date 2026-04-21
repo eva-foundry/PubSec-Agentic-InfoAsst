@@ -9,10 +9,10 @@ Output:
     evidence/
     ├── certification-report.json      # Machine-readable results
     ├── certification-report.md        # Human-readable report
-    ├── itsg33-controls.json           # Per-control evidence
-    └── eva-principles.json            # Per-principle evidence
+    ├── nist80053-controls.json           # Per-control evidence
+    └── aia-principles.json            # Per-principle evidence
 
-ITSG-33: CA-2 (Security Assessments), CA-7 (Continuous Monitoring)
+NIST 800-53: CA-2 (Security Assessments), CA-7 (Continuous Monitoring)
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ class CheckResult:
     check_id: int = 0
     control_id: str = ""
     control_name: str = ""
-    category: str = ""  # "itsg33" | "eva"
+    category: str = ""  # "nist80053" | "aia"
     method: str = ""
     pass_criteria: str = ""
     passed: bool = False
@@ -70,43 +70,43 @@ class CertificationRunner:
         )
 
         checks = [
-            # ITSG-33 Controls (1-25)
-            (1, "AC-2", "Account Management", "itsg33", self._check_entra_groups),
-            (2, "AC-3", "Access Enforcement", "itsg33", self._check_rbac_enforcement),
-            (3, "AC-6", "Least Privilege", "itsg33", self._check_least_privilege),
-            (4, "AU-2", "Audit Events", "itsg33", self._check_audit_events),
-            (5, "AU-3", "Audit Content", "itsg33", self._check_provenance_fields),
-            (6, "AU-4", "Audit Storage", "itsg33", self._check_log_analytics),
-            (7, "AU-6", "Audit Review", "itsg33", self._check_compliance_dashboard),
-            (8, "AU-9", "Audit Protection", "itsg33", self._check_log_immutability),
-            (9, "AU-11", "Audit Retention", "itsg33", self._check_retention_policy),
-            (10, "CM-2", "Baseline Config", "itsg33", self._check_bicep_iac),
-            (11, "CM-3", "Change Control", "itsg33", self._check_ci_promotion),
-            (12, "CM-6", "Config Settings", "itsg33", self._check_policy_engine),
-            (13, "IA-2", "User Identification", "itsg33", self._check_entra_sso),
-            (14, "IA-5", "Authenticator Mgmt", "itsg33", self._check_no_local_auth),
-            (15, "SC-7", "Boundary Protection", "itsg33", self._check_network_hardening),
-            (16, "SC-8", "Transmission Confidentiality", "itsg33", self._check_tls),
-            (17, "SC-12", "Key Management", "itsg33", self._check_keyvault),
-            (18, "SC-28", "Protection at Rest", "itsg33", self._check_cmk_encryption),
-            (19, "SI-2", "Flaw Remediation", "itsg33", self._check_vuln_scanning),
-            (20, "SI-3", "Malicious Code Protection", "itsg33", self._check_content_safety),
-            (21, "SI-4", "System Monitoring", "itsg33", self._check_otel),
-            (22, "SI-10", "Input Validation", "itsg33", self._check_prompt_shield),
-            (23, "SA-11", "Dev Security Testing", "itsg33", self._check_security_tests),
-            (24, "CA-7", "Continuous Monitoring", "itsg33", self._check_continuous_monitoring),
-            (25, "CP-9", "Backup", "itsg33", self._check_backup),
-            # EVA Principles (26-35)
-            (26, "EVA-01", "Confidence Scoring", "eva", self._check_confidence),
-            (27, "EVA-02", "Explainability", "eva", self._check_explainability),
-            (28, "EVA-03", "Source Freshness", "eva", self._check_freshness),
-            (29, "EVA-04", "Graceful Degradation", "eva", self._check_degradation),
-            (30, "EVA-05", "Behavioral Fingerprint", "eva", self._check_fingerprint),
-            (31, "EVA-06", "Feedback Loop", "eva", self._check_feedback),
-            (32, "EVA-07", "Conflict Resolution", "eva", self._check_conflict_resolution),
-            (33, "EVA-08", "Bilingual Parity", "eva", self._check_bilingual),
-            (34, "EVA-09", "Provenance Chain", "eva", self._check_provenance_chain),
-            (35, "EVA-10", "PII Protection", "eva", self._check_pii_protection),
+            # NIST 800-53 Controls (1-25)
+            (1, "AC-2", "Account Management", "nist80053", self._check_entra_groups),
+            (2, "AC-3", "Access Enforcement", "nist80053", self._check_rbac_enforcement),
+            (3, "AC-6", "Least Privilege", "nist80053", self._check_least_privilege),
+            (4, "AU-2", "Audit Events", "nist80053", self._check_audit_events),
+            (5, "AU-3", "Audit Content", "nist80053", self._check_provenance_fields),
+            (6, "AU-4", "Audit Storage", "nist80053", self._check_log_analytics),
+            (7, "AU-6", "Audit Review", "nist80053", self._check_compliance_dashboard),
+            (8, "AU-9", "Audit Protection", "nist80053", self._check_log_immutability),
+            (9, "AU-11", "Audit Retention", "nist80053", self._check_retention_policy),
+            (10, "CM-2", "Baseline Config", "nist80053", self._check_bicep_iac),
+            (11, "CM-3", "Change Control", "nist80053", self._check_ci_promotion),
+            (12, "CM-6", "Config Settings", "nist80053", self._check_policy_engine),
+            (13, "IA-2", "User Identification", "nist80053", self._check_entra_sso),
+            (14, "IA-5", "Authenticator Mgmt", "nist80053", self._check_no_local_auth),
+            (15, "SC-7", "Boundary Protection", "nist80053", self._check_network_hardening),
+            (16, "SC-8", "Transmission Confidentiality", "nist80053", self._check_tls),
+            (17, "SC-12", "Key Management", "nist80053", self._check_keyvault),
+            (18, "SC-28", "Protection at Rest", "nist80053", self._check_cmk_encryption),
+            (19, "SI-2", "Flaw Remediation", "nist80053", self._check_vuln_scanning),
+            (20, "SI-3", "Malicious Code Protection", "nist80053", self._check_content_safety),
+            (21, "SI-4", "System Monitoring", "nist80053", self._check_otel),
+            (22, "SI-10", "Input Validation", "nist80053", self._check_prompt_shield),
+            (23, "SA-11", "Dev Security Testing", "nist80053", self._check_security_tests),
+            (24, "CA-7", "Continuous Monitoring", "nist80053", self._check_continuous_monitoring),
+            (25, "CP-9", "Backup", "nist80053", self._check_backup),
+            # AIA Principles (26-35)
+            (26, "AIA-01", "Confidence Scoring", "aia", self._check_confidence),
+            (27, "AIA-02", "Explainability", "aia", self._check_explainability),
+            (28, "AIA-03", "Source Freshness", "aia", self._check_freshness),
+            (29, "AIA-04", "Graceful Degradation", "aia", self._check_degradation),
+            (30, "AIA-05", "Behavioral Fingerprint", "aia", self._check_fingerprint),
+            (31, "AIA-06", "Feedback Loop", "aia", self._check_feedback),
+            (32, "AIA-07", "Conflict Resolution", "aia", self._check_conflict_resolution),
+            (33, "AIA-08", "Bilingual Parity", "aia", self._check_bilingual),
+            (34, "AIA-09", "Provenance Chain", "aia", self._check_provenance_chain),
+            (35, "AIA-10", "PII Protection", "aia", self._check_pii_protection),
         ]
 
         report.total_checks = len(checks)
@@ -168,7 +168,7 @@ class CertificationRunner:
         except Exception:
             return 0
 
-    # --- ITSG-33 checks ---
+    # --- NIST 800-53 checks ---
 
     def _check_entra_groups(self) -> CheckResult:
         r = CheckResult(method="file_check", pass_criteria="Entra group mapping exists with role resolution")
@@ -254,7 +254,7 @@ class CertificationRunner:
         return r
 
     def _check_policy_engine(self) -> CheckResult:
-        r = CheckResult(method="file_check", pass_criteria="Policy engine with TBS/ESDC rules")
+        r = CheckResult(method="file_check", pass_criteria="Policy engine with TBS/Organization rules")
         r.passed = (
             self._file_exists("services/api-gateway/app/guardrails/policy_engine.py")
             and self._file_exists("services/api-gateway/app/guardrails/policy_rules.json")
@@ -297,7 +297,7 @@ class CertificationRunner:
 
     def _check_cmk_encryption(self) -> CheckResult:
         r = CheckResult(method="bicep_check", pass_criteria="CMK encryption keys defined")
-        r.passed = self._file_contains("infra/modules/keyvault/main.bicep", "eva-storage-cmk")
+        r.passed = self._file_contains("infra/modules/keyvault/main.bicep", "aia-storage-cmk")
         return r
 
     def _check_vuln_scanning(self) -> CheckResult:
@@ -361,7 +361,7 @@ class CertificationRunner:
         )
         return r
 
-    # --- EVA Principle checks ---
+    # --- AIA Principle checks ---
 
     def _check_confidence(self) -> CheckResult:
         r = CheckResult(method="file_check", pass_criteria="Confidence scoring module exists")
@@ -427,7 +427,7 @@ class CertificationRunner:
 def generate_markdown_report(report: CertificationReport) -> str:
     """Generate human-readable markdown report."""
     lines = [
-        "# EVA Agentic — ATO Certification Report",
+        "# AIA — ATO Certification Report",
         "",
         f"**Report ID:** {report.report_id}",
         f"**Timestamp:** {report.timestamp}",
@@ -443,27 +443,27 @@ def generate_markdown_report(report: CertificationReport) -> str:
         f"| Failed | {report.failed} |",
         f"| Pass rate | {report.passed / report.total_checks * 100:.1f}% |",
         "",
-        "## ITSG-33 Controls",
+        "## NIST 800-53 Controls",
         "",
         "| # | Control | Name | Status |",
         "|---|---------|------|--------|",
     ]
 
     for r in report.results:
-        if r.category == "itsg33":
+        if r.category == "nist80053":
             status = "✅" if r.passed else "❌"
             lines.append(f"| {r.check_id} | {r.control_id} | {r.control_name} | {status} |")
 
     lines.extend([
         "",
-        "## EVA Design Principles",
+        "## AIA Design Principles",
         "",
         "| # | Principle | Name | Status |",
         "|---|-----------|------|--------|",
     ])
 
     for r in report.results:
-        if r.category == "eva":
+        if r.category == "aia":
             status = "✅" if r.passed else "❌"
             lines.append(f"| {r.check_id} | {r.control_id} | {r.control_name} | {status} |")
 
@@ -480,14 +480,14 @@ def generate_markdown_report(report: CertificationReport) -> str:
     lines.extend([
         "",
         "---",
-        f"*Generated by EVA Agentic Certification Script — {report.timestamp}*",
+        f"*Generated by AIA Certification Script — {report.timestamp}*",
     ])
 
     return "\n".join(lines)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="EVA Agentic ATO Certification")
+    parser = argparse.ArgumentParser(description="AIA ATO Certification")
     parser.add_argument("--env", default="staging", help="Target environment")
     parser.add_argument("--output", default="evidence/", help="Output directory")
     parser.add_argument("--project-root", default=".", help="Project root directory")
@@ -499,7 +499,7 @@ def main():
     project_root = Path(args.project_root)
 
     print(f"\n{'='*60}")
-    print(f"  EVA Agentic — ATO Certification")
+    print(f"  AIA — ATO Certification")
     print(f"  Environment: {args.env}")
     print(f"  Project root: {project_root.resolve()}")
     print(f"  Time: {datetime.now(timezone.utc).isoformat()}")
@@ -517,14 +517,14 @@ def main():
     md_path.write_text(generate_markdown_report(report), encoding="utf-8")
 
     # Write per-category reports
-    itsg33 = [r for r in report.results if r.category == "itsg33"]
-    eva = [r for r in report.results if r.category == "eva"]
+    nist80053 = [r for r in report.results if r.category == "nist80053"]
+    aia_results = [r for r in report.results if r.category == "aia"]
 
-    (output_dir / "itsg33-controls.json").write_text(
-        json.dumps([asdict(r) for r in itsg33], indent=2, default=str), encoding="utf-8"
+    (output_dir / "nist80053-controls.json").write_text(
+        json.dumps([asdict(r) for r in nist80053], indent=2, default=str), encoding="utf-8"
     )
-    (output_dir / "eva-principles.json").write_text(
-        json.dumps([asdict(r) for r in eva], indent=2, default=str), encoding="utf-8"
+    (output_dir / "aia-principles.json").write_text(
+        json.dumps([asdict(r) for r in aia_results], indent=2, default=str), encoding="utf-8"
     )
 
     # Final summary

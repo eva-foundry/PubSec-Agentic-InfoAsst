@@ -10,12 +10,12 @@ const primeAuth = async (page: Page) => {
       JSON.stringify({
         user: {
           user_id: 'demo-alice',
-          email: 'alice@demo.gc.ca',
+          email: 'alice@example.org',
           name: 'Alice Chen',
           role: 'contributor',
           portal_access: ['self-service'],
           workspace_grants: ['ws-oas-act', 'ws-ei-juris'],
-          data_classification_level: 'protected_b',
+          data_classification_level: 'sensitive',
           language: 'en',
         },
       }),
@@ -30,7 +30,7 @@ test.describe('Chat: live NDJSON stream', () => {
     await primeAuth(page);
     await page.goto('/chat');
 
-    // Wait for the workspace list to populate from /v1/eva/workspaces.
+    // Wait for the workspace list to populate from /v1/aia/workspaces.
     await expect(page.getByRole('combobox', { name: /workspace/i })).toBeVisible();
 
     const composer = page.getByRole('textbox', { name: 'Message input' });

@@ -1,5 +1,5 @@
 // ============================================================================
-// P53 EVA Agentic — Static Web App (portal-unified frontend)
+// P53 AIA — Static Web App (portal-unified frontend)
 // Standard tier — allows custom auth providers and a staging origin in front
 // of the Container App. The SPA bundle is deployed by CI via `az staticwebapp deploy`.
 // ============================================================================
@@ -17,7 +17,7 @@ param tags object
 // Static Web App
 // ---------------------------------------------------------------------------
 
-var swaName = 'eva-portal-${environmentName}'
+var swaName = 'aia-portal-${environmentName}'
 
 resource swa 'Microsoft.Web/staticSites@2023-12-01' = {
   name: swaName

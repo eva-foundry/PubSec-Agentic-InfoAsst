@@ -11,12 +11,12 @@ const primeAuth = () => {
     JSON.stringify({
       user: {
         user_id: "demo-alice",
-        email: "alice@demo.gc.ca",
+        email: "alice@example.org",
         name: "Alice Chen",
         role: "contributor",
         portal_access: ["self-service"],
         workspace_grants: ["ws-oas-act"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -56,7 +56,7 @@ describe("MyWorkspace: real backend wiring", () => {
   it("POSTs to /teams/{bookingId}/members when inviting", async () => {
     const posts: Array<Record<string, unknown>> = [];
     server.use(
-      http.post("*/v1/eva/teams/:bookingId/members", async ({ request }) => {
+      http.post("*/v1/aia/teams/:bookingId/members", async ({ request }) => {
         posts.push((await request.json()) as Record<string, unknown>);
         return HttpResponse.json(
           {

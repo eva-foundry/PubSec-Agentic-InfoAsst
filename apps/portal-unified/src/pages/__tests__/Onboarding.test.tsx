@@ -11,12 +11,12 @@ const primeAdmin = () => {
     JSON.stringify({
       user: {
         user_id: "demo-carol",
-        email: "carol@demo.gc.ca",
+        email: "carol@example.org",
         name: "Carol Admin",
         role: "admin",
         portal_access: ["self-service", "admin"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -33,7 +33,7 @@ describe("Onboarding wizard", () => {
   it("POSTs to /admin/tenants/init when Finish is clicked", async () => {
     const posts: Array<Record<string, unknown>> = [];
     server.use(
-      http.post("*/v1/eva/admin/tenants/init", async ({ request }) => {
+      http.post("*/v1/aia/admin/tenants/init", async ({ request }) => {
         posts.push((await request.json()) as Record<string, unknown>);
         return HttpResponse.json(
           { client_id: "cl-abc", interview_id: "iv-xyz", status: "initialized" },
@@ -53,14 +53,14 @@ describe("Onboarding wizard", () => {
 
     await u.click(screen.getByRole("button", { name: /finish onboarding/i }));
     await u.type(screen.getByLabelText(/organization name/i), "Acme Public");
-    await u.type(screen.getByLabelText(/primary admin email/i), "admin@acme.gc.ca");
+    await u.type(screen.getByLabelText(/primary admin email/i), "admin@example.org");
     await u.click(screen.getByRole("button", { name: /initialize tenant/i }));
 
     await waitFor(() => expect(posts).toHaveLength(1));
     expect(posts[0]).toMatchObject({
       org_name: "Acme Public",
-      primary_admin_email: "admin@acme.gc.ca",
-      default_classification: "protected_a",
+      primary_admin_email: "admin@example.org",
+      default_classification: "restricted",
       default_mode: "Advisory",
       preferred_archetype: "kb",
     });
@@ -69,7 +69,7 @@ describe("Onboarding wizard", () => {
   it("blocks submit when required fields are empty", async () => {
     const posts: Array<Record<string, unknown>> = [];
     server.use(
-      http.post("*/v1/eva/admin/tenants/init", async ({ request }) => {
+      http.post("*/v1/aia/admin/tenants/init", async ({ request }) => {
         posts.push((await request.json()) as Record<string, unknown>);
         return HttpResponse.json({ client_id: "cl-test", interview_id: "iv-test", status: "initialized" }, { status: 201 });
       }),

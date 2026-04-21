@@ -11,12 +11,12 @@ const primeOps = () => {
     JSON.stringify({
       user: {
         user_id: "demo-dave",
-        email: "dave@demo.gc.ca",
+        email: "dave@example.org",
         name: "Dave Thompson",
         role: "admin",
         portal_access: ["self-service", "admin", "ops"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -56,7 +56,7 @@ describe("RedTeam: runner", () => {
 
   it("returns to the Run control when the start call fails", async () => {
     server.use(
-      http.post("*/v1/eva/ops/eval/challenges", () =>
+      http.post("*/v1/aia/ops/eval/challenges", () =>
         HttpResponse.json({ detail: "nope" }, { status: 500 }),
       ),
     );

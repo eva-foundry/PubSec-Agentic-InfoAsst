@@ -65,6 +65,7 @@ class CosmosTelemetryStore:
                 "cost_by_workspace": {},
                 "cost_by_model": {},
                 "cost_by_client": {},
+                "cost_by_cost_centre": {},
                 "forecast_cad": 0.0,
                 "waste_score": 0.0,
                 "chargeback_coverage": 0.0,
@@ -102,6 +103,16 @@ class CosmosTelemetryStore:
             cost_by_client[c]["cost_cad"] = round(cost_by_client[c]["cost_cad"] + r.cost_cad, 6)
             cost_by_client[c]["queries"] += 1
 
+        cost_by_cost_centre: dict[str, dict] = {}
+        for r in records:
+            cc = r.cost_centre or "unassigned"
+            if cc not in cost_by_cost_centre:
+                cost_by_cost_centre[cc] = {"cost_cad": 0.0, "queries": 0}
+            cost_by_cost_centre[cc]["cost_cad"] = round(
+                cost_by_cost_centre[cc]["cost_cad"] + r.cost_cad, 6
+            )
+            cost_by_cost_centre[cc]["queries"] += 1
+
         forecast_cad = round((total_cost / days) * 30, 4) if days > 0 else 0.0
         tagged_cost = sum(r.cost_cad for r in records if r.workspace_id)
         chargeback_coverage = (
@@ -122,6 +133,7 @@ class CosmosTelemetryStore:
             "cost_by_workspace": cost_by_workspace,
             "cost_by_model": cost_by_model,
             "cost_by_client": cost_by_client,
+            "cost_by_cost_centre": cost_by_cost_centre,
             "forecast_cad": forecast_cad,
             "waste_score": waste_score,
             "chargeback_coverage": chargeback_coverage,

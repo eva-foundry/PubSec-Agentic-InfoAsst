@@ -11,12 +11,12 @@ const primeAnon = () => {
     JSON.stringify({
       user: {
         user_id: "demo-alice",
-        email: "alice@demo.gc.ca",
+        email: "alice@example.org",
         name: "Alice Chen",
         role: "contributor",
         portal_access: ["self-service"],
         workspace_grants: ["ws-oas-act"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -62,14 +62,14 @@ describe("Catalog archetypes", () => {
   it("wizard POSTs name + archetype + classification to /workspaces", async () => {
     const bodies: Array<Record<string, unknown>> = [];
     server.use(
-      http.post("*/v1/eva/workspaces", async ({ request }) => {
+      http.post("*/v1/aia/workspaces", async ({ request }) => {
         bodies.push((await request.json()) as Record<string, unknown>);
         return HttpResponse.json(
           {
             id: "ws-new",
             name: (bodies[0] as { name: string }).name,
             archetype: (bodies[0] as { archetype: string }).archetype,
-            data_classification: "protected_a",
+            data_classification: "restricted",
             status: "draft",
             owner_id: "demo-alice",
             type: "kb",
@@ -113,13 +113,13 @@ describe("Catalog archetypes", () => {
     expect(bodies[0]).toMatchObject({
       name: "Knowledge Base",
       archetype: "kb",
-      data_classification: "protected_a",
+      data_classification: "restricted",
     });
   });
 
   it("shows an empty state when the endpoint errors", async () => {
     server.use(
-      http.get("*/v1/eva/archetypes", () =>
+      http.get("*/v1/aia/archetypes", () =>
         HttpResponse.json({ detail: "unavailable" }, { status: 503 }),
       ),
     );

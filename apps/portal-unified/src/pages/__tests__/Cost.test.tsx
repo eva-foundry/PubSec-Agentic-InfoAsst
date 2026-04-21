@@ -35,7 +35,7 @@ describe("Cost", () => {
 
   it("surfaces a retry empty-state when the finops endpoint errors", async () => {
     server.use(
-      http.get("*/v1/eva/ops/metrics/finops", () =>
+      http.get("*/v1/aia/ops/metrics/finops", () =>
         HttpResponse.json({ detail: "database unavailable" }, { status: 503 }),
       ),
     );

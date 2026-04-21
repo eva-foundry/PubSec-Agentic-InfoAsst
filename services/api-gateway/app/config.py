@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    app_name: str = "EVA Agentic API Gateway"
+    app_name: str = "AIA API Gateway"
     debug: bool = False
 
     # --- Feature toggle ---
@@ -27,18 +27,18 @@ class Settings(BaseSettings):
     # --- Azure AI Search ---
     azure_search_endpoint: str = ""
     azure_search_api_key: str = ""
-    azure_search_index_prefix: str = "eva-workspace"
+    azure_search_index_prefix: str = "aia-workspace"
 
     # --- Cosmos DB ---
     cosmos_endpoint: str = ""
     cosmos_key: str = ""
-    cosmos_database_workspaces: str = "eva-workspaces"
-    cosmos_database_platform: str = "eva-platform"
+    cosmos_database_workspaces: str = "aia-workspaces"
+    cosmos_database_platform: str = "aia-platform"
     cosmos_database_status: str = "statusdb"
 
     # --- Azure Blob Storage ---
     azure_storage_connection_string: str = ""
-    azure_storage_container_prefix: str = "eva-workspace"
+    azure_storage_container_prefix: str = "aia-workspace"
 
     # --- APIM ---
     apim_gateway_url: str = ""

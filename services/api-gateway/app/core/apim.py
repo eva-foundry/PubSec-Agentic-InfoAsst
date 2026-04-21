@@ -26,7 +26,7 @@ class FinOpsContext:
 
     app_id: str = "eva-agentic"
     user_group: str = "default"
-    classification: str = "protected_b"
+    classification: str = "sensitive"
     workspace_id: str = ""
 
 

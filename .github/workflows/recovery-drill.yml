@@ -1,4 +1,4 @@
-# Weekly automated recovery drill — ITSG-33 CP-9, CP-10
+# Weekly automated recovery drill — NIST 800-53 CP-9, CP-10
 name: Recovery Drill
 
 on:

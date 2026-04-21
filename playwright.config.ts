@@ -32,7 +32,7 @@ export default defineConfig({
     ? {}
     : {
         webServer: {
-          command: 'npm run dev --workspace=@eva/portal-unified',
+          command: 'npm run dev --workspace=@aia/portal-unified',
           port: 5173,
           timeout: 30_000,
           reuseExistingServer: !process.env.CI,

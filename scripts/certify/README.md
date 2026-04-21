@@ -1,12 +1,12 @@
-# EVA Agentic — Automated ATO Certification
+# AIA — Automated ATO Certification
 
 ## Overview
 
-The certification script (`run_certification.py`) implements **Phase 3.4: Continuous Authorization Dashboard** and automated evidence collection for the EVA Agentic project's Authority to Operate (ATO) compliance posture.
+The certification script (`run_certification.py`) implements **Phase 3.4: Continuous Authorization Dashboard** and automated evidence collection for the AIA project's Authority to Operate (ATO) compliance posture.
 
 This script runs all 35 certification checks:
-- **25 ITSG-33 controls** (CA-2, CA-7 per NIST RMF)
-- **10 EVA-specific design principles**
+- **25 NIST 800-53 controls** (CA-2, CA-7 per NIST RMF)
+- **10 AIA-specific design principles**
 
 Output is a machine-readable evidence package for CIO review.
 
@@ -21,7 +21,7 @@ python3 scripts/certify/run_certification.py --env staging --output evidence/
 ```bash
 python3 scripts/certify/run_certification.py \
   --env production \
-  --project-root /path/to/eva-refactor \
+  --project-root /path/to/aia-refactor \
   --output /var/evidence/
 ```
 
@@ -38,8 +38,8 @@ All outputs are written to the `--output` directory:
 evidence/
 ├── certification-report.json      # Machine-readable results (all 35 checks)
 ├── certification-report.md        # Human-readable report
-├── itsg33-controls.json           # ITSG-33 controls only
-└── eva-principles.json            # EVA principles only
+├── nist80053-controls.json           # NIST 800-53 controls only
+└── aia-principles.json            # AIA principles only
 ```
 
 ### Report structure
@@ -59,7 +59,7 @@ evidence/
       "check_id": 1,
       "control_id": "AC-2",
       "control_name": "Account Management",
-      "category": "itsg33",
+      "category": "nist80053",
       "method": "file_check",
       "pass_criteria": "Entra group mapping exists with role resolution",
       "passed": true,
@@ -74,7 +74,7 @@ evidence/
 
 **Markdown report (certification-report.md):**
 ```
-# EVA Agentic — ATO Certification Report
+# AIA — ATO Certification Report
 
 **Result:** ✅ READY FOR ATO (or ❌ NOT READY — gaps remain)
 
@@ -84,7 +84,7 @@ evidence/
 | Passed | 34 |
 | Failed | 1 |
 
-## ITSG-33 Controls
+## NIST 800-53 Controls
 | # | Control | Name | Status |
 | 1 | AC-2 | Account Management | ✅ |
 ...
@@ -92,7 +92,7 @@ evidence/
 
 ## Check Categories
 
-### ITSG-33 Controls (1-25)
+### NIST 800-53 Controls (1-25)
 
 **AC — Access Control (3 checks)**
 1. AC-2 — Account Management
@@ -133,18 +133,18 @@ evidence/
 24. CA-7 — Continuous Monitoring
 25. CP-9 — Backup
 
-### EVA Design Principles (26-35)
+### AIA Design Principles (26-35)
 
-26. EVA-01 — Confidence Scoring
-27. EVA-02 — Explainability
-28. EVA-03 — Source Freshness
-29. EVA-04 — Graceful Degradation
-30. EVA-05 — Behavioral Fingerprint
-31. EVA-06 — Feedback Loop
-32. EVA-07 — Conflict Resolution
-33. EVA-08 — Bilingual Parity
-34. EVA-09 — Provenance Chain
-35. EVA-10 — PII Protection
+26. AIA-01 — Confidence Scoring
+27. AIA-02 — Explainability
+28. AIA-03 — Source Freshness
+29. AIA-04 — Graceful Degradation
+30. AIA-05 — Behavioral Fingerprint
+31. AIA-06 — Feedback Loop
+32. AIA-07 — Conflict Resolution
+33. AIA-08 — Bilingual Parity
+34. AIA-09 — Provenance Chain
+35. AIA-10 — PII Protection
 
 ## Check Methods
 
@@ -179,17 +179,17 @@ This dashboard **IS the SA&A evidence**. The certification script is the **backe
 
 ## Compliance References
 
-- **ITSG-33** — Baseline Canadian government security controls
+- **NIST 800-53** — Baseline enterprise security controls
   - CA-2 (Security Assessments) — Continuous monitoring dashboard
   - CA-7 (Continuous Monitoring) — Automated certification checks
 
 - **NIST AI RMF** — Risk management framework for AI
   - Govern, Map, Measure, Manage phases
 
-- **ESDC AI Reference Architecture (AIRA)** — Approved Jan 29, 2025
-  - EVA Agentic aligns with AIRA Layer 3 (Agent Orchestrator) requirements
+- **Organization AI Reference Architecture (AIRA)** — Approved Jan 29, 2025
+  - AIA aligns with AIRA Layer 3 (Agent Orchestrator) requirements
 
-- **EVA Foundation Technical Design** (v0.4, March 2025)
+- **AIA Foundation Technical Design** (v0.4, March 2025)
   - Design principles for confidence, explainability, provenance, PII protection
 
 ## Adding New Checks
@@ -207,7 +207,7 @@ To add a new check:
 
 2. Add to `checks` list in `run_all()`:
    ```python
-   (36, "MY-01", "My Control Name", "itsg33", self._check_my_control),
+   (36, "MY-01", "My Control Name", "nist80053", self._check_my_control),
    ```
 
 3. Update `CONTROL_FAMILIES` in `ComplianceDashboard.tsx` to display the new check.
@@ -224,7 +224,7 @@ To add a new check:
 python3 scripts/certify/run_certification.py --env staging --output /tmp/test-evidence/
 
 # Test against custom project root
-python3 scripts/certify/run_certification.py --project-root ~/eva-refactor --output /tmp/test-evidence/
+python3 scripts/certify/run_certification.py --project-root ~/aia-refactor --output /tmp/test-evidence/
 
 # Verify JSON output
 python3 -m json.tool /tmp/test-evidence/certification-report.json | less
@@ -261,4 +261,4 @@ Typical CI/CD pipeline usage:
 For questions or to report issues:
 1. Check the CLAUDE.md project guidance
 2. Review Road-to-ATO-n-Continuous-Authorization.md
-3. File an issue in the EVA Foundation repository
+3. File an issue in the AIA Foundation repository

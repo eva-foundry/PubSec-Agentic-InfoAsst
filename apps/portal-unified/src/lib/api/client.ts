@@ -166,7 +166,7 @@ export const createApiClient = (opts: ApiClientOptions): ApiClient => {
       h.forEach((v, k) => {
         plain[k] = v;
       });
-      return streamNdjson<ChatEvent>(buildUrl(opts.baseUrl, "/v1/eva/chat"), {
+      return streamNdjson<ChatEvent>(buildUrl(opts.baseUrl, "/v1/aia/chat"), {
         method: "POST",
         headers: plain,
         body: JSON.stringify(body),
@@ -183,7 +183,7 @@ export const createApiClient = (opts: ApiClientOptions): ApiClient => {
       });
       const qs = `?run_id=${encodeURIComponent(runId)}`;
       return streamNdjson<EvalStreamEvent>(
-        buildUrl(opts.baseUrl, `/v1/eva/ops/eval/results${qs}`),
+        buildUrl(opts.baseUrl, `/v1/aia/ops/eval/results${qs}`),
         {
           method: "GET",
           headers: plain,

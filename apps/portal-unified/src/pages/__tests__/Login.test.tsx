@@ -31,13 +31,13 @@ describe("Login", () => {
       const raw = localStorage.getItem("aia.auth.v1");
       expect(raw).toBeTruthy();
       const parsed = JSON.parse(raw!);
-      expect(parsed.user.email).toBe("alice@demo.gc.ca");
+      expect(parsed.user.email).toBe("alice@example.org");
     });
   });
 
   it("shows a connection-error alert when /auth/demo/users is unreachable", async () => {
     server.use(
-      http.get("*/v1/eva/auth/demo/users", () => HttpResponse.error()),
+      http.get("*/v1/aia/auth/demo/users", () => HttpResponse.error()),
     );
     renderWithProviders(<Login />);
     await waitFor(() =>

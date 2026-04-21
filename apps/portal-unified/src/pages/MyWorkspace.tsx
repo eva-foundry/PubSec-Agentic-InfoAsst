@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConversations } from "@/lib/api/hooks/useChat";
-import { useDocuments } from "@/lib/api/hooks/useDocuments";
+import { useDocuments, useUploadDocument } from "@/lib/api/hooks/useDocuments";
+import { useWorkspaces } from "@/lib/api/hooks/useWorkspaces";
 import {
   useAddTeamMember, useBookings, useRemoveTeamMember, useTeamMembers, useUpdateMemberRole,
 } from "@/lib/api/hooks/useTeam";
@@ -15,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, FileText, UserPlus, Search, Trash2 } from "lucide-react";
+import { CheckCircle2, FileText, Upload, UserPlus, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/EmptyState";
 import { toast } from "sonner";
@@ -48,6 +49,34 @@ export default function MyWorkspace() {
   const addMember = useAddTeamMember();
   const updateRole = useUpdateMemberRole();
   const removeMember = useRemoveTeamMember();
+
+  const workspaces = useWorkspaces();
+  const [uploadWorkspaceId, setUploadWorkspaceId] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadMutation = useUploadDocument();
+
+  const activeUploadWs =
+    uploadWorkspaceId || workspaces.data?.[0]?.id || "";
+
+  const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!activeUploadWs) {
+      toast.error("No workspace available to upload to.");
+      return;
+    }
+    uploadMutation.mutate(
+      { workspaceId: activeUploadWs, file },
+      {
+        onSuccess: (doc) =>
+          toast.success(`Uploaded ${doc.file_name ?? file.name}`, {
+            description: `to ${activeUploadWs}`,
+          }),
+        onError: (err) => toast.error(`Upload failed: ${(err as Error).message}`),
+      },
+    );
+    e.target.value = "";
+  };
 
   const documents = useDocuments({});
   const filteredDocs = useMemo(
@@ -153,18 +182,22 @@ export default function MyWorkspace() {
           {filteredConvos.length === 0 ? (
             <EmptyState title="No conversations match" description="Try a different search term." />
           ) : (
-            filteredConvos.map((t) => (
-              <div key={t.id} className="ui-card rounded-lg p-4 flex items-center gap-3">
-                <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium truncate">{t.title}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {t.workspace_id ?? "—"} · {new Date(t.updated_at).toLocaleDateString()}
+            filteredConvos.map((t) => {
+              const ts = t.last_message_at ? new Date(t.last_message_at) : null;
+              const tsLabel = ts && !Number.isNaN(ts.getTime()) ? ts.toLocaleDateString() : "—";
+              return (
+                <div key={t.conversation_id} className="ui-card rounded-lg p-4 flex items-center gap-3">
+                  <FileText className="h-4 w-4 text-product shrink-0" aria-hidden />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{t.title}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.workspace_id ?? "—"} · {tsLabel}
+                    </div>
                   </div>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>Open</Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/chat")}>Open</Button>
-              </div>
-            ))
+              );
+            })
           )}
         </TabsContent>
 
@@ -269,8 +302,8 @@ export default function MyWorkspace() {
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-2 mt-6">
-          <div className="ui-card rounded-lg p-3">
-            <div className="relative">
+          <div className="ui-card rounded-lg p-3 flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
               <Input
                 value={docQuery}
@@ -280,6 +313,39 @@ export default function MyWorkspace() {
                 aria-label="Search documents"
               />
             </div>
+            <Select
+              value={activeUploadWs}
+              onValueChange={setUploadWorkspaceId}
+            >
+              <SelectTrigger
+                className="w-[220px] h-9"
+                aria-label="Upload target workspace"
+              >
+                <SelectValue placeholder="Choose workspace…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(workspaces.data ?? []).map((ws) => (
+                  <SelectItem key={ws.id} value={ws.id}>
+                    {ws.name}{ws.cost_centre ? ` · ${ws.cost_centre}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={onFilePicked}
+              aria-label="Upload document"
+            />
+            <Button
+              className="bg-gradient-accent"
+              disabled={!activeUploadWs || uploadMutation.isPending}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {uploadMutation.isPending ? "Uploading…" : "Upload"}
+            </Button>
           </div>
           {documents.isLoading ? (
             <div className="space-y-2">
@@ -290,7 +356,7 @@ export default function MyWorkspace() {
           ) : filteredDocs.length === 0 ? (
             <EmptyState
               title={(documents.data?.length ?? 0) === 0 ? "No documents yet" : "No documents match"}
-              description={(documents.data?.length ?? 0) === 0 ? "Upload documents via the workspace onboarding flow." : "Try a different search term."}
+              description={(documents.data?.length ?? 0) === 0 ? "Pick a workspace above and click Upload to add your first document." : "Try a different search term."}
             />
           ) : (
             filteredDocs.map((d) => {

@@ -1,6 +1,6 @@
 // ============================================================================
-// P53 EVA Agentic — Root Orchestration
-// Provisions P53-specific resources on the P75 EVA-vNext chassis.
+// P53 AIA — Root Orchestration
+// Provisions P53-specific resources on the P75 AIA-vNext chassis.
 // Does NOT provision APIM, VNet, Foundry, OpenAI, AI Search, or Doc Intelligence.
 // ============================================================================
 
@@ -12,7 +12,7 @@ param environmentName string
 @description('Azure region for all resources')
 param location string = 'canadacentral'
 
-@description('Name of the P75 APIM instance to register the eva-agentic product on')
+@description('Name of the P75 APIM instance to register the aia-agentic product on')
 param p75ApimName string
 
 @description('Resource group where the P75 APIM instance lives')
@@ -25,7 +25,7 @@ param p75VnetName string = ''
 param p75SubnetId string = ''
 
 @description('Container image tag for the api-gateway (SHA or semver)')
-param apiGatewayImage string = 'ghcr.io/eva-foundry/eva-api-gateway:latest'
+param apiGatewayImage string = 'ghcr.io/eva-foundry/aia-api-gateway:latest'
 
 @description('Azure AI Search endpoint (shared P75 resource)')
 param azureSearchEndpoint string = ''
@@ -37,7 +37,7 @@ param azureOpenAIEndpoint string = ''
 param swaLocation string = 'eastus2'
 
 var tags = {
-  project: 'eva-agentic'
+  project: 'aia-agentic'
   environment: environmentName
 }
 
@@ -67,7 +67,7 @@ module cosmos 'modules/cosmos/main.bicep' = {
 }
 
 // ---------------------------------------------------------------------------
-// APIM Product — register eva-agentic on P75's existing APIM
+// APIM Product — register aia-agentic on P75's existing APIM
 // ---------------------------------------------------------------------------
 module apimProduct 'modules/apim-product/main.bicep' = {
   name: 'apim-product-${environmentName}'

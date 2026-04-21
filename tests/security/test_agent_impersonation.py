@@ -9,7 +9,7 @@ Tests the ProvenanceTracker and correlation ID infrastructure to ensure:
 - Provenance records are complete and immutable after build
 
 Reference: Agentic State Vision principle #3 (Agent Identity),
-EVA Design Principles (forensic audit trail).
+AIA Design Principles (forensic audit trail).
 """
 
 import os
@@ -47,7 +47,7 @@ def _default_fingerprint() -> BehavioralFingerprint:
 
 def _build_tracker(
     correlation_id: str = "corr-1",
-    agent_id: str = "eva-rag-agent",
+    agent_id: str = "aia-rag-agent",
     trace_id: str = "trace-1",
 ) -> ProvenanceTracker:
     """Create a tracker with minimum required fields set."""
@@ -119,9 +119,9 @@ class TestAgentIdentity:
     """Verify that agent_id is properly recorded and non-empty."""
 
     def test_agent_id_recorded_in_provenance(self):
-        tracker = _build_tracker(agent_id="eva-rag-agent")
+        tracker = _build_tracker(agent_id="aia-rag-agent")
         record = tracker.build()
-        assert record.agent_id == "eva-rag-agent"
+        assert record.agent_id == "aia-rag-agent"
 
     def test_agent_id_cannot_be_empty(self):
         """Empty agent_id should produce a record with empty string --
@@ -132,17 +132,17 @@ class TestAgentIdentity:
         assert record.agent_id == ""
 
     def test_different_agents_produce_different_records(self):
-        t1 = _build_tracker(agent_id="eva-rag-agent")
-        t2 = _build_tracker(agent_id="eva-jurisprudence-agent")
+        t1 = _build_tracker(agent_id="aia-rag-agent")
+        t2 = _build_tracker(agent_id="aia-jurisprudence-agent")
         r1 = t1.build()
         r2 = t2.build()
         assert r1.agent_id != r2.agent_id
 
     def test_agent_id_with_special_chars(self):
         """Agent IDs should support namespace-style naming."""
-        tracker = _build_tracker(agent_id="eva/rag-agent/v2.1")
+        tracker = _build_tracker(agent_id="aia/rag-agent/v2.1")
         record = tracker.build()
-        assert record.agent_id == "eva/rag-agent/v2.1"
+        assert record.agent_id == "aia/rag-agent/v2.1"
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +229,7 @@ class TestProvenanceImmutability:
         tracker.add_policy_applied("grounding-required")
         record = tracker.build()
 
-        tracker.add_policy_applied("protected-b-boundary")
+        tracker.add_policy_applied("sensitive-boundary")
         assert record.policies_applied == ["grounding-required"]
 
 

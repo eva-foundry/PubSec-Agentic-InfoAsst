@@ -24,16 +24,16 @@ def client() -> TestClient:
 
 
 def _admin_headers() -> dict[str, str]:
-    return {"x-demo-user-email": "dave@demo.gc.ca"}
+    return {"x-demo-user-email": "dave@example.org"}
 
 
 def _non_admin_headers() -> dict[str, str]:
-    return {"x-demo-user-email": "alice@demo.gc.ca"}
+    return {"x-demo-user-email": "alice@example.org"}
 
 
 class TestListDeployments:
     def test_returns_array_not_wrapper(self, client: TestClient) -> None:
-        resp = client.get("/v1/eva/ops/deployments", headers=_admin_headers())
+        resp = client.get("/v1/aia/ops/deployments", headers=_admin_headers())
         assert resp.status_code == 200
         body = resp.json()
         assert isinstance(body, list)
@@ -43,7 +43,7 @@ class TestListDeployments:
             assert key in first
 
     def test_exactly_one_active_record_by_default(self, client: TestClient) -> None:
-        resp = client.get("/v1/eva/ops/deployments", headers=_admin_headers())
+        resp = client.get("/v1/aia/ops/deployments", headers=_admin_headers())
         actives = [d for d in resp.json() if d["status"] == "active"]
         assert len(actives) == 1
 
@@ -52,7 +52,7 @@ class TestRollback:
     def test_admin_can_rollback_to_prior_version(self, client: TestClient) -> None:
         # v0.1.3 is active by default; rollback to v0.1.2.
         resp = client.post(
-            "/v1/eva/admin/deployments/v0.1.2/rollback",
+            "/v1/aia/admin/deployments/v0.1.2/rollback",
             headers=_admin_headers(),
             json={"rationale": "calibration regression on answer grounding"},
         )
@@ -63,14 +63,14 @@ class TestRollback:
         assert "calibration regression" in body["notes"]
 
         # The old active (v0.1.3) now shows rolled-back.
-        listing = client.get("/v1/eva/ops/deployments", headers=_admin_headers()).json()
+        listing = client.get("/v1/aia/ops/deployments", headers=_admin_headers()).json()
         current = next(d for d in listing if d["version"] == "v0.1.3")
         assert current["status"] == "rolled-back"
         assert "calibration regression" in current["notes"]
 
     def test_non_admin_gets_403(self, client: TestClient) -> None:
         resp = client.post(
-            "/v1/eva/admin/deployments/v0.1.2/rollback",
+            "/v1/aia/admin/deployments/v0.1.2/rollback",
             headers=_non_admin_headers(),
             json={"rationale": "nope"},
         )
@@ -78,7 +78,7 @@ class TestRollback:
 
     def test_unknown_version_returns_409(self, client: TestClient) -> None:
         resp = client.post(
-            "/v1/eva/admin/deployments/v999/rollback",
+            "/v1/aia/admin/deployments/v999/rollback",
             headers=_admin_headers(),
             json={"rationale": "test"},
         )
@@ -88,7 +88,7 @@ class TestRollback:
     def test_rollback_to_active_returns_409(self, client: TestClient) -> None:
         # v0.1.3 is already active; rolling back to it is a no-op error.
         resp = client.post(
-            "/v1/eva/admin/deployments/v0.1.3/rollback",
+            "/v1/aia/admin/deployments/v0.1.3/rollback",
             headers=_admin_headers(),
             json={"rationale": "test"},
         )
@@ -97,7 +97,7 @@ class TestRollback:
 
     def test_missing_rationale_returns_422(self, client: TestClient) -> None:
         resp = client.post(
-            "/v1/eva/admin/deployments/v0.1.2/rollback",
+            "/v1/aia/admin/deployments/v0.1.2/rollback",
             headers=_admin_headers(),
             json={},
         )
@@ -105,7 +105,7 @@ class TestRollback:
 
     def test_short_rationale_returns_422(self, client: TestClient) -> None:
         resp = client.post(
-            "/v1/eva/admin/deployments/v0.1.2/rollback",
+            "/v1/aia/admin/deployments/v0.1.2/rollback",
             headers=_admin_headers(),
             json={"rationale": "hi"},
         )

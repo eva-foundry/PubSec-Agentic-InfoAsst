@@ -12,12 +12,12 @@ const primeAdminOps = async (page: Page) => {
       JSON.stringify({
         user: {
           user_id: 'demo-dave',
-          email: 'dave@demo.gc.ca',
+          email: 'dave@example.org',
           name: 'Dave Thompson',
           role: 'admin',
           portal_access: ['self-service', 'admin', 'ops'],
           workspace_grants: ['all'],
-          data_classification_level: 'protected_b',
+          data_classification_level: 'sensitive',
           language: 'en',
         },
       }),
@@ -48,7 +48,11 @@ test.describe('per-feature E2E — live backend', () => {
 
   test('Chat page streams a grounded answer', async ({ page }) => {
     await page.goto('/chat');
-    await expect(page.getByRole('heading', { name: /chat/i }).first()).toBeVisible({ timeout: 15_000 });
+    // Chat page has no always-visible heading (empty-state h2 disappears once
+    // conversations render). Assert on the grounded/ungrounded mode switch.
+    await expect(page.getByRole('button', { name: /grounded/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('Compliance audit log renders rows', async ({ page }) => {
@@ -73,7 +77,7 @@ test.describe('per-feature E2E — live backend', () => {
 
   test('Drift monitor renders charts for a workspace', async ({ page }) => {
     await page.goto('/drift');
-    await expect(page.getByRole('heading', { name: /drift/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /drift/i }).first()).toBeVisible();
     await expect(page.getByText(/Model drift|Prompt drift|Corpus drift/i).first()).toBeVisible({
       timeout: 15_000,
     });
@@ -95,7 +99,7 @@ test.describe('per-feature E2E — live backend', () => {
 
   test('Models page lists registered models', async ({ page }) => {
     await page.goto('/models');
-    await expect(page.getByRole('heading', { name: /models/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /model/i }).first()).toBeVisible();
     await expect(page.getByText(/gpt-5|model/i).first()).toBeVisible({ timeout: 15_000 });
   });
 

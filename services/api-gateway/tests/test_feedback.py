@@ -239,7 +239,7 @@ def test_capture_question_analytics():
 
 def test_feedback_api_endpoint_returns_201():
     response = client.post(
-        "/v1/eva/chat/feedback",
+        "/v1/aia/chat/feedback",
         json={
             "conversation_id": "conv-api-1",
             "message_id": "msg-api-1",
@@ -247,7 +247,7 @@ def test_feedback_api_endpoint_returns_201():
             "original_answer": "Test answer",
             "confidence_score": 0.9,
         },
-        headers={"x-demo-user-email": "alice@demo.gc.ca"},
+        headers={"x-demo-user-email": "alice@example.org"},
     )
     assert response.status_code == 201
     data = response.json()

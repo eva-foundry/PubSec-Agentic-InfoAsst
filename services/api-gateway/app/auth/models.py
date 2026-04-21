@@ -8,5 +8,5 @@ class UserContext(BaseModel):
     role: str  # "reader" | "contributor" | "admin"
     portal_access: list[str]  # ["self-service", "admin", "ops"]
     workspace_grants: list[str]  # workspace IDs user can access
-    data_classification_level: str  # "unclassified" | "protected_a" | "protected_b"
+    data_classification_level: str  # "unclassified" | "restricted" | "sensitive"
     language: str  # "en" | "fr"

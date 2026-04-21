@@ -17,7 +17,7 @@ class TranslationTool(Tool):
     metadata = ToolMetadata(
         name="translate",
         description="EN\u2194FR translation via Azure Translator",
-        classification_ceiling="protected_b",
+        classification_ceiling="sensitive",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,

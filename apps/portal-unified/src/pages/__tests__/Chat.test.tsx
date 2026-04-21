@@ -9,12 +9,12 @@ import { http, HttpResponse } from "msw";
 const primeAuth = () => {
   const user = {
     user_id: "demo-alice",
-    email: "alice@demo.gc.ca",
+    email: "alice@example.org",
     name: "Alice Chen",
     role: "contributor",
     portal_access: ["self-service"],
     workspace_grants: ["ws-oas-act"],
-    data_classification_level: "protected_b",
+    data_classification_level: "sensitive",
     language: "en",
   };
   localStorage.setItem("aia.auth.v1", JSON.stringify({ user }));
@@ -55,7 +55,7 @@ describe("Chat: NDJSON streaming", () => {
   it("surfaces the degradation banner when the stream emits a nested degradation event", async () => {
     primeAuth();
     server.use(
-      http.post("*/v1/eva/chat", () => {
+      http.post("*/v1/aia/chat", () => {
         const events = [
           {
             type: "provenance",
@@ -78,7 +78,7 @@ describe("Chat: NDJSON streaming", () => {
             type: "provenance_complete",
             provenance: {
               correlation_id: "c1",
-              agent_id: "eva-rag-agent",
+              agent_id: "aia-rag-agent",
               delegation_chain: [],
               sources_consulted: 0,
               sources_cited: 0,

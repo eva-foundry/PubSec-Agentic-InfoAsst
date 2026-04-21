@@ -35,7 +35,7 @@ def _index_name(prefix: str, workspace_id: str) -> str:
 
 
 def _build_index_schema(index_name: str, dimensions: int = 1536) -> SearchIndex:
-    """Build the index schema matching the EVA vector-index spec."""
+    """Build the index schema matching the AIA vector-index spec."""
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True, filterable=True),
         SearchableField(name="content", type=SearchFieldDataType.String),
@@ -80,7 +80,7 @@ class AzureSearchVectorStore:
         self,
         endpoint: str,
         api_key: str,
-        index_prefix: str = "eva-workspace",
+        index_prefix: str = "aia-workspace",
         dimensions: int = 1536,
     ) -> None:
         self._endpoint = endpoint

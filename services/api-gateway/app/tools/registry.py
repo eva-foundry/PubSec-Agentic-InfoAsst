@@ -16,14 +16,14 @@ class ToolMetadata:
 
     name: str
     description: str
-    classification_ceiling: str  # "unclassified" | "protected_a" | "protected_b"
+    classification_ceiling: str  # "unclassified" | "restricted" | "sensitive"
     data_residency: str  # "canada_central" | "canada_east"
     bilingual: bool
     hitl_required: bool
 
 
 class Tool(ABC):
-    """Base class for all tools in the EVA agent pipeline."""
+    """Base class for all tools in the AIA agent pipeline."""
 
     metadata: ToolMetadata
 
