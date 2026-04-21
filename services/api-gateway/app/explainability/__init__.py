@@ -1,4 +1,4 @@
-"""EVA Explainability Engine — retrieval path, reasoning summaries, negative evidence."""
+"""AIA Explainability Engine — retrieval path, reasoning summaries, negative evidence."""
 
 from .builder import ExplainabilityBuilder
 from .negative_evidence import NegativeEvidenceDetector

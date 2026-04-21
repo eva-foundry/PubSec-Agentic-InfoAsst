@@ -35,6 +35,10 @@ class APIMTelemetryRecord(BaseModel):
     # middleware reading x-user-group / x-classification from the request.
     user_group: str = ""
     classification: str = ""
+    # Cost-centre attribution (Phase H.1) — derived from the target
+    # workspace's `cost_centre` at telemetry-write time so FinOps rollups
+    # chargeback by program/project without every client passing it.
+    cost_centre: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +154,7 @@ class TelemetryStore:
                 "cost_by_workspace": {},
                 "cost_by_model": {},
                 "cost_by_client": {},
+                "cost_by_cost_centre": {},
                 "forecast_cad": 0.0,
                 "waste_score": 0.0,
                 "chargeback_coverage": 0.0,
@@ -189,6 +194,16 @@ class TelemetryStore:
             cost_by_client[c]["cost_cad"] = round(cost_by_client[c]["cost_cad"] + r.cost_cad, 6)
             cost_by_client[c]["queries"] += 1
 
+        cost_by_cost_centre: dict[str, dict] = {}
+        for r in records:
+            cc = r.cost_centre or "unassigned"
+            if cc not in cost_by_cost_centre:
+                cost_by_cost_centre[cc] = {"cost_cad": 0.0, "queries": 0}
+            cost_by_cost_centre[cc]["cost_cad"] = round(
+                cost_by_cost_centre[cc]["cost_cad"] + r.cost_cad, 6
+            )
+            cost_by_cost_centre[cc]["queries"] += 1
+
         # --- Forecast: linear EOM projection at current daily burn ---
         forecast_cad = round((total_cost / days) * 30, 4) if days > 0 else 0.0
 
@@ -216,6 +231,7 @@ class TelemetryStore:
             "cost_by_workspace": cost_by_workspace,
             "cost_by_model": cost_by_model,
             "cost_by_client": cost_by_client,
+            "cost_by_cost_centre": cost_by_cost_centre,
             "forecast_cad": forecast_cad,
             "waste_score": waste_score,
             "chargeback_coverage": chargeback_coverage,

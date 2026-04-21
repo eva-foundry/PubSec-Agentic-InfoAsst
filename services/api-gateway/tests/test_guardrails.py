@@ -1,4 +1,4 @@
-"""Tests for the EVA guardrails engine."""
+"""Tests for the AIA guardrails engine."""
 
 from __future__ import annotations
 
@@ -307,7 +307,7 @@ class TestPromptShield:
         assert result.passed is False
 
     def test_passes_normal_input(self):
-        result = self.shield.check("What is the leave policy for ESDC employees?")
+        result = self.shield.check("What is the leave policy for Organization employees?")
         assert result.passed is True
         assert result.risk_level == "none"
         assert result.matched_patterns == []

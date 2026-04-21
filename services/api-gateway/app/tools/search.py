@@ -22,7 +22,7 @@ class SearchTool(Tool):
     metadata = ToolMetadata(
         name="search",
         description="Vector search over workspace documents",
-        classification_ceiling="protected_b",
+        classification_ceiling="sensitive",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,

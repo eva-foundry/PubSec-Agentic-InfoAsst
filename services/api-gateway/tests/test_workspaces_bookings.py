@@ -23,10 +23,10 @@ client = TestClient(app)
 
 # --- Helpers ---
 
-ALICE = {"x-demo-user-email": "alice@demo.gc.ca"}  # contributor, grants: ws-oas-act, ws-ei-juris
-BOB = {"x-demo-user-email": "bob@demo.gc.ca"}  # reader, grants: ws-oas-act
-CAROL = {"x-demo-user-email": "carol@demo.gc.ca"}  # admin, grants: all
-DAVE = {"x-demo-user-email": "dave@demo.gc.ca"}  # admin, grants: all
+ALICE = {"x-demo-user-email": "alice@example.org"}  # contributor, grants: ws-oas-act, ws-ei-juris
+BOB = {"x-demo-user-email": "bob@example.org"}  # reader, grants: ws-oas-act
+CAROL = {"x-demo-user-email": "carol@example.org"}  # admin, grants: all
+DAVE = {"x-demo-user-email": "dave@example.org"}  # admin, grants: all
 
 
 # ==================== WORKSPACE TESTS ====================
@@ -34,7 +34,7 @@ DAVE = {"x-demo-user-email": "dave@demo.gc.ca"}  # admin, grants: all
 
 class TestWorkspaces:
     def test_list_returns_seeded_data(self):
-        resp = client.get("/v1/eva/workspaces", headers=CAROL)
+        resp = client.get("/v1/aia/workspaces", headers=CAROL)
         assert resp.status_code == 200
         workspaces = resp.json()
         assert len(workspaces) == 5
@@ -43,7 +43,7 @@ class TestWorkspaces:
 
     def test_list_filtered_by_grants(self):
         """Alice has grants for ws-oas-act and ws-ei-juris."""
-        resp = client.get("/v1/eva/workspaces", headers=ALICE)
+        resp = client.get("/v1/aia/workspaces", headers=ALICE)
         assert resp.status_code == 200
         workspaces = resp.json()
         assert len(workspaces) == 2
@@ -52,32 +52,32 @@ class TestWorkspaces:
 
     def test_list_filtered_bob_sees_subset(self):
         """Bob has grant for ws-oas-act only."""
-        resp = client.get("/v1/eva/workspaces", headers=BOB)
+        resp = client.get("/v1/aia/workspaces", headers=BOB)
         assert resp.status_code == 200
         workspaces = resp.json()
         assert len(workspaces) == 1
         assert workspaces[0]["id"] == "ws-oas-act"
 
     def test_admin_sees_all(self):
-        resp = client.get("/v1/eva/workspaces", headers=CAROL)
+        resp = client.get("/v1/aia/workspaces", headers=CAROL)
         assert resp.status_code == 200
         assert len(resp.json()) == 5
 
     def test_get_workspace_detail(self):
-        resp = client.get("/v1/eva/workspaces/ws-oas-act", headers=CAROL)
+        resp = client.get("/v1/aia/workspaces/ws-oas-act", headers=CAROL)
         assert resp.status_code == 200
         data = resp.json()
         assert data["id"] == "ws-oas-act"
         assert data["name"] == "OAS Act Legislation"
-        assert data["data_classification"] == "protected_b"
+        assert data["data_classification"] == "sensitive"
 
     def test_workspace_not_found(self):
-        resp = client.get("/v1/eva/workspaces/ws-nonexistent", headers=CAROL)
+        resp = client.get("/v1/aia/workspaces/ws-nonexistent", headers=CAROL)
         assert resp.status_code == 404
 
     def test_workspace_access_denied(self):
         """Alice doesn't have ws-sandbox in her grants."""
-        resp = client.get("/v1/eva/workspaces/ws-sandbox", headers=ALICE)
+        resp = client.get("/v1/aia/workspaces/ws-sandbox", headers=ALICE)
         assert resp.status_code == 403
 
 
@@ -87,7 +87,7 @@ class TestWorkspaces:
 class TestBookings:
     def test_create_booking_calculates_cost(self):
         resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-bdm-km",
                 "start_date": "2026-05-01",
@@ -106,7 +106,7 @@ class TestBookings:
 
     def test_create_booking_workspace_not_found(self):
         resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-nonexistent",
                 "start_date": "2026-05-01",
@@ -119,7 +119,7 @@ class TestBookings:
     def test_create_booking_access_denied(self):
         """Alice doesn't have access to ws-sandbox."""
         resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -131,21 +131,21 @@ class TestBookings:
 
     def test_list_bookings_by_user(self):
         # Alice already has seeded bookings (bk-alice-oas, bk-alice-faq)
-        resp = client.get("/v1/eva/bookings", headers=ALICE)
+        resp = client.get("/v1/aia/bookings", headers=ALICE)
         assert resp.status_code == 200
         bookings = resp.json()
         assert len(bookings) == 2
         assert all(b["requester_id"] == "demo-alice" for b in bookings)
 
         # Bob sees nothing
-        resp = client.get("/v1/eva/bookings", headers=BOB)
+        resp = client.get("/v1/aia/bookings", headers=BOB)
         assert resp.status_code == 200
         assert len(resp.json()) == 0
 
     def test_booking_lifecycle_create_activate_complete(self):
         # Create
         create_resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -159,7 +159,7 @@ class TestBookings:
 
         # Activate
         activate_resp = client.patch(
-            f"/v1/eva/bookings/{booking_id}",
+            f"/v1/aia/bookings/{booking_id}",
             json={"status": "active"},
             headers=CAROL,
         )
@@ -171,7 +171,7 @@ class TestBookings:
 
         # Complete
         complete_resp = client.patch(
-            f"/v1/eva/bookings/{booking_id}",
+            f"/v1/aia/bookings/{booking_id}",
             json={"status": "completed"},
             headers=CAROL,
         )
@@ -180,7 +180,7 @@ class TestBookings:
 
     def test_booking_invalid_transition(self):
         create_resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -192,7 +192,7 @@ class TestBookings:
 
         # pending -> completed is not valid (must go through active)
         resp = client.patch(
-            f"/v1/eva/bookings/{booking_id}",
+            f"/v1/aia/bookings/{booking_id}",
             json={"status": "completed"},
             headers=CAROL,
         )
@@ -200,7 +200,7 @@ class TestBookings:
 
     def test_booking_cancellation(self):
         create_resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -210,13 +210,13 @@ class TestBookings:
         )
         booking_id = create_resp.json()["id"]
 
-        resp = client.delete(f"/v1/eva/bookings/{booking_id}", headers=CAROL)
+        resp = client.delete(f"/v1/aia/bookings/{booking_id}", headers=CAROL)
         assert resp.status_code == 204
 
         # Verify it's cancelled — Carol has 3 seeded bookings (none) + 1 created = 1 from this test
         # Actually, seeded bookings are for Alice and Eve, not Carol.
         # Carol created 1 booking in this test, which is now cancelled.
-        list_resp = client.get("/v1/eva/bookings", headers=CAROL)
+        list_resp = client.get("/v1/aia/bookings", headers=CAROL)
         bookings = list_resp.json()
         assert len(bookings) == 1
         assert bookings[0]["status"] == "cancelled"
@@ -224,7 +224,7 @@ class TestBookings:
     def test_booking_ownership_enforced(self):
         """Bob can't update Carol's booking."""
         create_resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -235,7 +235,7 @@ class TestBookings:
         booking_id = create_resp.json()["id"]
 
         resp = client.patch(
-            f"/v1/eva/bookings/{booking_id}",
+            f"/v1/aia/bookings/{booking_id}",
             json={"status": "active"},
             headers=BOB,
         )
@@ -249,7 +249,7 @@ class TestTeams:
     def _setup_booking(self) -> str:
         """Create a booking as Carol and return its ID."""
         resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -264,9 +264,9 @@ class TestTeams:
 
         # Add a member
         resp = client.post(
-            f"/v1/eva/teams/{booking_id}/members",
+            f"/v1/aia/teams/{booking_id}/members",
             json={
-                "email": "alice@demo.gc.ca",
+                "email": "alice@example.org",
                 "name": "Alice Chen",
                 "user_id": "demo-alice",
                 "role": "contributor",
@@ -276,10 +276,10 @@ class TestTeams:
         assert resp.status_code == 201
         member = resp.json()
         assert member["role"] == "contributor"
-        assert member["email"] == "alice@demo.gc.ca"
+        assert member["email"] == "alice@example.org"
 
         # List members
-        resp = client.get(f"/v1/eva/teams/{booking_id}/members", headers=CAROL)
+        resp = client.get(f"/v1/aia/teams/{booking_id}/members", headers=CAROL)
         assert resp.status_code == 200
         assert len(resp.json()) == 1
 
@@ -288,9 +288,9 @@ class TestTeams:
 
         # Add member
         client.post(
-            f"/v1/eva/teams/{booking_id}/members",
+            f"/v1/aia/teams/{booking_id}/members",
             json={
-                "email": "bob@demo.gc.ca",
+                "email": "bob@example.org",
                 "name": "Bob Wilson",
                 "user_id": "demo-bob",
                 "role": "reader",
@@ -300,7 +300,7 @@ class TestTeams:
 
         # Update role
         resp = client.patch(
-            f"/v1/eva/teams/{booking_id}/members/demo-bob",
+            f"/v1/aia/teams/{booking_id}/members/demo-bob",
             json={"role": "contributor"},
             headers=CAROL,
         )
@@ -312,20 +312,20 @@ class TestTeams:
 
         # Add then remove
         client.post(
-            f"/v1/eva/teams/{booking_id}/members",
+            f"/v1/aia/teams/{booking_id}/members",
             json={
-                "email": "bob@demo.gc.ca",
+                "email": "bob@example.org",
                 "name": "Bob Wilson",
                 "user_id": "demo-bob",
                 "role": "reader",
             },
             headers=CAROL,
         )
-        resp = client.delete(f"/v1/eva/teams/{booking_id}/members/demo-bob", headers=CAROL)
+        resp = client.delete(f"/v1/aia/teams/{booking_id}/members/demo-bob", headers=CAROL)
         assert resp.status_code == 204
 
         # Verify removed
-        resp = client.get(f"/v1/eva/teams/{booking_id}/members", headers=CAROL)
+        resp = client.get(f"/v1/aia/teams/{booking_id}/members", headers=CAROL)
         assert len(resp.json()) == 0
 
     def test_non_admin_cannot_manage_team(self):
@@ -333,8 +333,8 @@ class TestTeams:
 
         # Bob (reader, not admin, not booking owner) tries to add a member
         resp = client.post(
-            f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "eve@demo.gc.ca", "name": "Eve Tremblay", "role": "reader"},
+            f"/v1/aia/teams/{booking_id}/members",
+            json={"email": "eve@example.org", "name": "Eve Tremblay", "role": "reader"},
             headers=BOB,
         )
         assert resp.status_code == 403
@@ -343,8 +343,8 @@ class TestTeams:
         booking_id = self._setup_booking()
 
         resp = client.post(
-            f"/v1/eva/teams/{booking_id}/members",
-            json={"email": "bob@demo.gc.ca", "name": "Bob", "role": "superadmin"},
+            f"/v1/aia/teams/{booking_id}/members",
+            json={"email": "bob@example.org", "name": "Bob", "role": "superadmin"},
             headers=CAROL,
         )
         assert resp.status_code == 400
@@ -355,9 +355,9 @@ class TestTeams:
 
         # Add Alice as contributor
         client.post(
-            f"/v1/eva/teams/{booking_id}/members",
+            f"/v1/aia/teams/{booking_id}/members",
             json={
-                "email": "alice@demo.gc.ca",
+                "email": "alice@example.org",
                 "name": "Alice Chen",
                 "user_id": "demo-alice",
                 "role": "contributor",
@@ -366,7 +366,7 @@ class TestTeams:
         )
 
         # Alice can list members
-        resp = client.get(f"/v1/eva/teams/{booking_id}/members", headers=ALICE)
+        resp = client.get(f"/v1/aia/teams/{booking_id}/members", headers=ALICE)
         assert resp.status_code == 200
         assert len(resp.json()) == 1
 
@@ -378,7 +378,7 @@ class TestSurveys:
     def _setup_active_booking(self) -> str:
         """Create and activate a booking as Carol."""
         resp = client.post(
-            "/v1/eva/bookings",
+            "/v1/aia/bookings",
             json={
                 "workspace_id": "ws-sandbox",
                 "start_date": "2026-05-01",
@@ -388,7 +388,7 @@ class TestSurveys:
         )
         booking_id = resp.json()["id"]
         client.patch(
-            f"/v1/eva/bookings/{booking_id}",
+            f"/v1/aia/bookings/{booking_id}",
             json={"status": "active"},
             headers=CAROL,
         )
@@ -398,13 +398,13 @@ class TestSurveys:
         booking_id = self._setup_active_booking()
 
         resp = client.post(
-            "/v1/eva/surveys/entry",
+            "/v1/aia/surveys/entry",
             json={
                 "booking_id": booking_id,
                 "use_case": "Document analysis for OAS claims",
                 "expected_users": 10,
                 "expected_data_volume_gb": 5.0,
-                "data_classification": "protected_a",
+                "data_classification": "restricted",
                 "business_justification": "Need AI-assisted review of claim documents",
             },
             headers=CAROL,
@@ -416,7 +416,7 @@ class TestSurveys:
         assert data["id"].startswith("es-")
 
         # Verify booking was updated
-        bookings = client.get("/v1/eva/bookings", headers=CAROL).json()
+        bookings = client.get("/v1/aia/bookings", headers=CAROL).json()
         bk = next(b for b in bookings if b["id"] == booking_id)
         assert bk["entry_survey_completed"] is True
 
@@ -430,17 +430,17 @@ class TestSurveys:
             "expected_data_volume_gb": 1.0,
             "business_justification": "Testing",
         }
-        resp1 = client.post("/v1/eva/surveys/entry", json=payload, headers=CAROL)
+        resp1 = client.post("/v1/aia/surveys/entry", json=payload, headers=CAROL)
         assert resp1.status_code == 201
 
-        resp2 = client.post("/v1/eva/surveys/entry", json=payload, headers=CAROL)
+        resp2 = client.post("/v1/aia/surveys/entry", json=payload, headers=CAROL)
         assert resp2.status_code == 409
 
     def test_exit_survey_marks_booking_completed(self):
         booking_id = self._setup_active_booking()
 
         resp = client.post(
-            "/v1/eva/surveys/exit",
+            "/v1/aia/surveys/exit",
             json={
                 "booking_id": booking_id,
                 "satisfaction_rating": 4,
@@ -457,14 +457,14 @@ class TestSurveys:
         assert data["id"].startswith("xs-")
 
         # Verify booking is now completed
-        bookings = client.get("/v1/eva/bookings", headers=CAROL).json()
+        bookings = client.get("/v1/aia/bookings", headers=CAROL).json()
         bk = next(b for b in bookings if b["id"] == booking_id)
         assert bk["status"] == "completed"
         assert bk["exit_survey_completed"] is True
 
     def test_survey_booking_not_found(self):
         resp = client.post(
-            "/v1/eva/surveys/entry",
+            "/v1/aia/surveys/entry",
             json={
                 "booking_id": "bk-nonexistent",
                 "use_case": "Test",
@@ -481,7 +481,7 @@ class TestSurveys:
         booking_id = self._setup_active_booking()
 
         resp = client.post(
-            "/v1/eva/surveys/entry",
+            "/v1/aia/surveys/entry",
             json={
                 "booking_id": booking_id,
                 "use_case": "Hijack",

@@ -1,5 +1,5 @@
 // ============================================================================
-// P53 EVA Agentic — Storage Account + Queues
+// P53 AIA — Storage Account + Queues
 // Blob containers are created dynamically by the app, not by IaC.
 // ============================================================================
 
@@ -79,31 +79,31 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01'
 @description('Queue for PDF document submissions')
 resource queuePdfSubmit 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = {
   parent: queueService
-  name: 'eva-pdf-submit'
+  name: 'aia-pdf-submit'
 }
 
 @description('Queue for non-PDF document submissions')
 resource queueNonPdfSubmit 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = {
   parent: queueService
-  name: 'eva-non-pdf-submit'
+  name: 'aia-non-pdf-submit'
 }
 
 @description('Queue for text enrichment pipeline stage')
 resource queueTextEnrichment 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = {
   parent: queueService
-  name: 'eva-text-enrichment'
+  name: 'aia-text-enrichment'
 }
 
 @description('Queue for embeddings pipeline stage')
 resource queueEmbeddings 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = {
   parent: queueService
-  name: 'eva-embeddings'
+  name: 'aia-embeddings'
 }
 
 @description('Queue for image enrichment pipeline stage')
 resource queueImageEnrichment 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-05-01' = {
   parent: queueService
-  name: 'eva-image-enrichment'
+  name: 'aia-image-enrichment'
 }
 
 // ============================================================================

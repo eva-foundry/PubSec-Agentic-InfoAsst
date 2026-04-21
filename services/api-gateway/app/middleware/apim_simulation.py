@@ -14,9 +14,20 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 
-from ..stores import telemetry_store
+from ..stores import telemetry_store, workspace_store
 from ..stores.compat import aio
-from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
+from ..stores.telemetry_store import APIMTelemetryRecord
+
+
+async def _cost_centre_for(workspace_id: str) -> str:
+    """Resolve a workspace's cost-centre (or '' if none / not found)."""
+    if not workspace_id:
+        return ""
+    try:
+        ws = await aio(workspace_store.get(workspace_id))
+    except Exception:
+        return ""
+    return (ws.cost_centre or "") if ws else ""
 
 
 class APIMSimulationMiddleware(BaseHTTPMiddleware):
@@ -38,7 +49,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
         # --- Cost-attribution headers from the frontend (Phase E) ---
         # Frontend injects these via ApiProvider.getHeaderContext so FinOps
         # rollups attribute spend to the right app / user group / classification.
-        client_app_id = request.headers.get("x-app-id", "eva-agentic")
+        client_app_id = request.headers.get("x-app-id", "aia-agentic")
         user_group = request.headers.get("x-user-group", "")
         classification = request.headers.get("x-classification", "")
 
@@ -49,7 +60,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
 
         # --- Set APIM response headers ---
         response.headers["x-correlation-id"] = correlation_id
-        response.headers["x-app-id"] = "eva-agentic"
+        response.headers["x-app-id"] = "aia-agentic"
         response.headers["x-request-duration-ms"] = str(elapsed_ms)
 
         # --- Set session cookie if new ---
@@ -63,16 +74,21 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
             )
 
         # --- Record telemetry for API calls (skip health/static) ---
+        # The chat endpoint records its own telemetry post-stream with real
+        # token counts from Azure OpenAI; skip the heuristic here to avoid
+        # double-counting.
         path = request.url.path
-        if path.startswith("/v1/eva/") and request.method in ("POST", "GET"):
-            # Estimate tokens based on path (rough heuristic for demo)
-            is_chat = "chat" in path
-            prompt_tokens = 800 if is_chat else 50
-            completion_tokens = 600 if is_chat else 0
-            deployment = "chat-default" if is_chat else "embeddings-default"
-            model_name = "gpt-5-mini" if is_chat else "text-embedding-3-small"
-            cost = estimate_cost(deployment, prompt_tokens, completion_tokens) if is_chat else 0.0
+        is_chat = path.startswith("/v1/aia/chat") and not path.endswith("/feedback")
+        if path.startswith("/v1/aia/") and request.method in ("POST", "GET") and not is_chat:
+            # Non-chat requests (workspaces, admin, ops) bill only for the
+            # small embeddings-like overhead — no chat completion fired.
+            prompt_tokens = 50
+            completion_tokens = 0
+            deployment = "embeddings-default"
+            model_name = "text-embedding-3-small"
+            cost = 0.0
 
+            cost_centre = await _cost_centre_for(workspace_id)
             record = APIMTelemetryRecord(
                 correlation_id=correlation_id,
                 workspace_id=workspace_id,
@@ -89,6 +105,7 @@ class APIMSimulationMiddleware(BaseHTTPMiddleware):
                 status_code=response.status_code,
                 user_group=user_group,
                 classification=classification,
+                cost_centre=cost_centre,
             )
             await aio(telemetry_store.add(record))
 

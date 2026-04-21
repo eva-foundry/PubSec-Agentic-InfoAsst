@@ -60,12 +60,12 @@ test.describe('visual regression', () => {
         JSON.stringify({
           user: {
             user_id: 'demo-dave',
-            email: 'dave@demo.gc.ca',
+            email: 'dave@example.org',
             name: 'Dave Thompson',
             role: 'admin',
             portal_access: ['self-service', 'admin', 'ops'],
             workspace_grants: ['all'],
-            data_classification_level: 'protected_b',
+            data_classification_level: 'sensitive',
             language: 'en',
           },
         }),

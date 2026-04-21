@@ -8,11 +8,11 @@ Arbitration hierarchy (highest authority wins):
   1. Legislation (Acts of Parliament)
   2. Regulations (Governor in Council)
   3. Tribunal decisions (SST, courts)
-  4. Policy directives (TBS, ESDC)
+  4. Policy directives (TBS, Organization)
   5. Operational guidance (manuals, SOPs)
   6. General knowledge (model generation)
 
-ITSG-33: SI-5 (Security Alerts & Advisories) — extended to agent conflicts
+NIST 800-53: SI-5 (Security Alerts & Advisories) — extended to agent conflicts
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from typing import Any
 
 from .audit import AuditLogger
 
-logger = logging.getLogger("eva.guardrails.conflict")
+logger = logging.getLogger("aia.guardrails.conflict")
 _audit = AuditLogger()
 
 

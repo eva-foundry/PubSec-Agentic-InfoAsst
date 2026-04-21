@@ -4,7 +4,7 @@ Automated validation of backup policies and point-in-time recovery readiness acr
 
 ## Overview
 
-The recovery drill validates that data persistence controls meet ITSG-33 CP-9 and CP-10 requirements:
+The recovery drill validates that data persistence controls meet NIST 800-53 CP-9 and CP-10 requirements:
 
 - **CP-9**: Information System Backup
   - Cosmos DB continuous backup with point-in-time restore (PITR)
@@ -73,7 +73,7 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ### Cosmos DB (HITL Memory, Agent State, Vector Embeddings)
 
-| Test | ITSG-33 | Check |
+| Test | NIST 800-53 | Check |
 |------|---------|-------|
 | CP9-COSMOS-001 | CP-9 | Continuous backup enabled |
 | CP9-COSMOS-002 | CP-9 | PITR available (7 or 30-day window) |
@@ -82,7 +82,7 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ### Blob Storage (Documents, Indexes, Artifacts)
 
-| Test | ITSG-33 | Check |
+| Test | NIST 800-53 | Check |
 |------|---------|-------|
 | CP9-BLOB-001 | CP-9 | Versioning enabled (all versions kept) |
 | CP9-BLOB-002 | CP-9 | Soft delete enabled (14 days) |
@@ -92,7 +92,7 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ### Audit Storage (Log Analytics Exports)
 
-| Test | ITSG-33 | Check |
+| Test | NIST 800-53 | Check |
 |------|---------|-------|
 | AU9-IMMUTABLE-001 | AU-9 | WORM immutability (365 days, irreversible) |
 
@@ -100,7 +100,7 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ### Key Vault (Master Keys, Connection Strings)
 
-| Test | ITSG-33 | Check |
+| Test | NIST 800-53 | Check |
 |------|---------|-------|
 | CP9-KV-001 | CP-9 | Soft delete enabled (90 days) |
 | CP9-KV-002 | CP-9 | Purge protection enabled |
@@ -109,9 +109,9 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ## Compliance Mapping
 
-- **CP-9**: Backup of all information system components (ITSG-33 §5.10)
-- **CP-10**: System recovery procedures (ITSG-33 §5.11)
-- **AU-9**: Protection of audit records (ITSG-33 §5.4.8)
+- **CP-9**: Backup of all information system components (NIST 800-53 §5.10)
+- **CP-10**: System recovery procedures (NIST 800-53 §5.11)
+- **AU-9**: Protection of audit records (NIST 800-53 §5.4.8)
 
 Evidence reports feed into:
 - Business Continuity Plan (BCP) validation
@@ -165,7 +165,7 @@ az keyvault secret recover --vault-name eva-keyvault-prod --name my-secret
 
 ## Compliance Notes
 
-- **Protected B**: All backup data remains in Canada Central/East (no cross-region redundancy to comply with data residency)
+- **sensitive**: All backup data remains in Canada Central/East (no cross-region redundancy to comply with data residency)
 - **Immutability**: Audit logs are write-once, read-many (WORM) — prevents tampering
 - **Encryption at rest**: All backups encrypted with customer-managed keys in Key Vault
 - **Retention**: Backup windows (7 days PITR, 14 days soft delete, 90 days Key Vault) meet compliance retention minimums

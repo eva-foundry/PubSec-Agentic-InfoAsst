@@ -1,6 +1,6 @@
 """Agent identity and delegation chain.
 
-Every agent and tool in the EVA Agentic pipeline gets a distinct identity.
+Every agent and tool in the AIA pipeline gets a distinct identity.
 No shared service accounts — each identity carries its own scoped permissions
 and participates in an auditable delegation chain.
 """

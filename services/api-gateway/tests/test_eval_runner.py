@@ -10,8 +10,8 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.stores import eval_run_store
 
-DAVE = {"x-demo-user-email": "dave@demo.gc.ca"}  # ops
-ALICE = {"x-demo-user-email": "alice@demo.gc.ca"}  # no ops
+DAVE = {"x-demo-user-email": "dave@example.org"}  # ops
+ALICE = {"x-demo-user-email": "alice@example.org"}  # no ops
 
 
 @pytest.fixture(autouse=True)
@@ -35,7 +35,7 @@ BODY = {
 
 class TestStartEval:
     def test_returns_run_id_and_queued_status(self, client: TestClient):
-        resp = client.post("/v1/eva/ops/eval/challenges", headers=DAVE, json=BODY)
+        resp = client.post("/v1/aia/ops/eval/challenges", headers=DAVE, json=BODY)
         assert resp.status_code == 200
         body = resp.json()
         assert body["run_id"].startswith("run-")
@@ -45,13 +45,13 @@ class TestStartEval:
 
     def test_requires_ops(self, client: TestClient):
         resp = client.post(
-            "/v1/eva/ops/eval/challenges", headers=ALICE, json=BODY
+            "/v1/aia/ops/eval/challenges", headers=ALICE, json=BODY
         )
         assert resp.status_code == 403
 
     def test_invalid_categories_returns_422(self, client: TestClient):
         resp = client.post(
-            "/v1/eva/ops/eval/challenges",
+            "/v1/aia/ops/eval/challenges",
             headers=DAVE,
             json={**BODY, "categories": ["not-a-real-category"]},
         )
@@ -59,7 +59,7 @@ class TestStartEval:
 
     def test_empty_categories_returns_422(self, client: TestClient):
         resp = client.post(
-            "/v1/eva/ops/eval/challenges",
+            "/v1/aia/ops/eval/challenges",
             headers=DAVE,
             json={**BODY, "categories": []},
         )
@@ -69,11 +69,11 @@ class TestStartEval:
 class TestStreamResults:
     def test_streams_probe_events_then_complete(self, client: TestClient):
         start = client.post(
-            "/v1/eva/ops/eval/challenges", headers=DAVE, json=BODY
+            "/v1/aia/ops/eval/challenges", headers=DAVE, json=BODY
         ).json()
         run_id = start["run_id"]
         resp = client.get(
-            f"/v1/eva/ops/eval/results?run_id={run_id}", headers=DAVE
+            f"/v1/aia/ops/eval/results?run_id={run_id}", headers=DAVE
         )
         assert resp.status_code == 200
         assert resp.headers["content-type"].startswith("application/x-ndjson")
@@ -88,10 +88,10 @@ class TestStreamResults:
 
     def test_probe_event_shape(self, client: TestClient):
         start = client.post(
-            "/v1/eva/ops/eval/challenges", headers=DAVE, json=BODY
+            "/v1/aia/ops/eval/challenges", headers=DAVE, json=BODY
         ).json()
         resp = client.get(
-            f"/v1/eva/ops/eval/results?run_id={start['run_id']}", headers=DAVE
+            f"/v1/aia/ops/eval/results?run_id={start['run_id']}", headers=DAVE
         )
         first = json.loads(resp.text.split("\n")[0])
         assert set(first) == {
@@ -101,16 +101,16 @@ class TestStreamResults:
 
     def test_unknown_run_returns_404(self, client: TestClient):
         resp = client.get(
-            "/v1/eva/ops/eval/results?run_id=run-ghost", headers=DAVE
+            "/v1/aia/ops/eval/results?run_id=run-ghost", headers=DAVE
         )
         assert resp.status_code == 404
 
     def test_requires_ops(self, client: TestClient):
         start = client.post(
-            "/v1/eva/ops/eval/challenges", headers=DAVE, json=BODY
+            "/v1/aia/ops/eval/challenges", headers=DAVE, json=BODY
         ).json()
         resp = client.get(
-            f"/v1/eva/ops/eval/results?run_id={start['run_id']}", headers=ALICE
+            f"/v1/aia/ops/eval/results?run_id={start['run_id']}", headers=ALICE
         )
         assert resp.status_code == 403
 
@@ -119,13 +119,13 @@ class TestStreamResults:
         distributions (seed mixes run_id, so counts may vary). Instead assert
         the same run_id streams identical events on replay."""
         start = client.post(
-            "/v1/eva/ops/eval/challenges", headers=DAVE, json=BODY
+            "/v1/aia/ops/eval/challenges", headers=DAVE, json=BODY
         ).json()
         rid = start["run_id"]
         a = client.get(
-            f"/v1/eva/ops/eval/results?run_id={rid}", headers=DAVE
+            f"/v1/aia/ops/eval/results?run_id={rid}", headers=DAVE
         ).text
         b = client.get(
-            f"/v1/eva/ops/eval/results?run_id={rid}", headers=DAVE
+            f"/v1/aia/ops/eval/results?run_id={rid}", headers=DAVE
         ).text
         assert a == b

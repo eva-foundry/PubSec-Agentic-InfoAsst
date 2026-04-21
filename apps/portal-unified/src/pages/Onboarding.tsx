@@ -90,7 +90,7 @@ export default function Onboarding() {
   const [primaryEmail, setPrimaryEmail] = useState("");
   const [archetype, setArchetype] = useState("kb");
   const [mode, setMode] = useState<"Advisory" | "Decision-informing">("Advisory");
-  const [classification, setClassification] = useState<"unclassified" | "protected_a" | "protected_b">("protected_a");
+  const [classification, setClassification] = useState<"unclassified" | "restricted" | "sensitive">("restricted");
   const completeOnboarding = useCompleteOnboarding();
 
   useEffect(() => {
@@ -232,7 +232,7 @@ export default function Onboarding() {
                 type="email"
                 value={primaryEmail}
                 onChange={(e) => setPrimaryEmail(e.target.value)}
-                placeholder="admin@acme.gc.ca"
+                placeholder="admin@example.org"
               />
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -272,8 +272,8 @@ export default function Onboarding() {
                   className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs"
                 >
                   <option value="unclassified">Unclassified</option>
-                  <option value="protected_a">Protected A</option>
-                  <option value="protected_b">Protected B</option>
+                  <option value="restricted">restricted</option>
+                  <option value="sensitive">sensitive</option>
                 </select>
               </div>
             </div>

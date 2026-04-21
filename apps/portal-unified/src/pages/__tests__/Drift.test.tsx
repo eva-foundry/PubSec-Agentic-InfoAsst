@@ -11,12 +11,12 @@ const primeOps = () => {
     JSON.stringify({
       user: {
         user_id: "demo-dave",
-        email: "dave@demo.gc.ca",
+        email: "dave@example.org",
         name: "Dave Thompson",
         role: "admin",
         portal_access: ["self-service", "admin", "ops"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -47,7 +47,7 @@ describe("Drift monitor", () => {
     const u = userEvent.setup();
     const windows: string[] = [];
     server.use(
-      http.get("*/v1/eva/ops/metrics/drift", ({ request }) => {
+      http.get("*/v1/aia/ops/metrics/drift", ({ request }) => {
         const window = new URL(request.url).searchParams.get("window") ?? "30d";
         windows.push(window);
         return HttpResponse.json({
@@ -73,7 +73,7 @@ describe("Drift monitor", () => {
 
   it("shows an error empty-state when the endpoint fails", async () => {
     server.use(
-      http.get("*/v1/eva/ops/metrics/drift", () =>
+      http.get("*/v1/aia/ops/metrics/drift", () =>
         HttpResponse.json({ detail: "unavailable" }, { status: 503 }),
       ),
     );

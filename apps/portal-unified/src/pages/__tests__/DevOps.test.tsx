@@ -10,12 +10,12 @@ const primeAdmin = () => {
     JSON.stringify({
       user: {
         user_id: "demo-dave",
-        email: "dave@demo.gc.ca",
+        email: "dave@example.org",
         name: "Dave Thompson",
         role: "admin",
         portal_access: ["self-service", "admin", "ops"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -28,12 +28,12 @@ const primeReader = () => {
     JSON.stringify({
       user: {
         user_id: "demo-bob",
-        email: "bob@demo.gc.ca",
+        email: "bob@example.org",
         name: "Bob Wilson",
         role: "reader",
         portal_access: ["self-service", "ops"],
         workspace_grants: ["ws-oas-act"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),

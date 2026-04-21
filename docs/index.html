@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>EVA Agentic — Documentation Library</title>
+<title>AIA — Documentation Library</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -484,7 +484,7 @@ const { useState, useEffect, useRef, useCallback, useMemo, Fragment } = React;
 // ─── i18n ───
 const i18n = {
   en: {
-    siteTitle: "EVA Agentic",
+    siteTitle: "AIA",
     docLibrary: "Documentation Library",
     search: "Search documentation...",
     home: "Home",
@@ -496,11 +496,11 @@ const i18n = {
     reference: "Reference",
     resources: "Resources",
     frPending: "[FR translation pending]",
-    gcBrand: "Government of Canada",
+    gcBrand: "enterprise",
     footerNotice: "Employment and Social Development Canada — AI Centre of Enablement",
   },
   fr: {
-    siteTitle: "EVA Agentique",
+    siteTitle: "AIA Agentique",
     docLibrary: "Bibliothèque de documentation",
     search: "Rechercher dans la documentation...",
     home: "Accueil",
@@ -536,7 +536,7 @@ const NAV = [
   { id: "admin-finops", label: { en: "FinOps", fr: "FinOps" }, parent: "admin" },
   { id: "admin-guardrails", label: { en: "Guardrails Config", fr: "Configuration des garde-fous" }, parent: "admin" },
   { id: "user", label: { en: "End-User Guide", fr: "Guide de l'utilisateur" }, icon: "👤", section: "guides", badge: "new" },
-  { id: "user-chat", label: { en: "Using EVA Chat", fr: "Utiliser EVA Chat" }, parent: "user" },
+  { id: "user-chat", label: { en: "Using AIA Chat", fr: "Utiliser AIA Chat" }, parent: "user" },
   { id: "user-documents", label: { en: "Document Upload", fr: "Téléversement de documents" }, parent: "user" },
   { id: "user-workspaces", label: { en: "Workspace Booking", fr: "Réservation d'espaces" }, parent: "user" },
   { id: "user-teams", label: { en: "Team Management", fr: "Gestion des équipes" }, parent: "user" },
@@ -564,7 +564,7 @@ const NAV = [
   { id: "finops-outcomes", label: { en: "Outcome-Based KPIs", fr: "ICP basés sur les résultats" }, parent: "finops" },
   { id: "ato", label: { en: "ATO & Compliance", fr: "ATO et conformité" }, icon: "🛡", section: "guides", badge: "new" },
   { id: "ato-vision", label: { en: "Self-Evidencing Vision", fr: "Vision auto-probante" }, parent: "ato" },
-  { id: "ato-itsg33", label: { en: "ITSG-33 Control Mapping", fr: "Cartographie des contrôles ITSG-33" }, parent: "ato" },
+  { id: "ato-nist80053", label: { en: "NIST 800-53 Control Mapping", fr: "Cartographie des contrôles NIST 800-53" }, parent: "ato" },
   { id: "ato-evidence", label: { en: "Evidence Artifacts", fr: "Artéfacts probants" }, parent: "ato" },
   { id: "ato-gaps", label: { en: "Gap Assessment", fr: "Évaluation des écarts" }, parent: "ato" },
   { id: "ato-roadmap", label: { en: "Path to Authorization", fr: "Chemin vers l'autorisation" }, parent: "ato" },
@@ -616,12 +616,12 @@ function HomePage({ lang, navigate }) {
     { id: 'arch', icon: '🏗', bg: '#E8EDF2', title: { en: 'Architecture & Design Guide', fr: 'Guide d\'architecture et conception' }, desc: { en: 'Six-layer model, agent orchestration, ingestion pipeline, design principles, data models, and RAG patterns.', fr: t.frPending }, tags: ['19 principles', '6 layers', 'Mermaid diagrams'] },
     { id: 'admin', icon: '⚙', bg: '#E8F5E9', title: { en: 'Administrator & Operations Guide', fr: 'Guide d\'administration et opérations' }, desc: { en: 'Deployment, workspace management, RBAC, monitoring, FinOps cost attribution, guardrails configuration.', fr: t.frPending }, tags: ['Bicep IaC', 'RBAC', 'FinOps', 'OTEL'] },
     { id: 'user', icon: '👤', bg: '#E3F2FD', title: { en: 'End-User Guide', fr: 'Guide de l\'utilisateur' }, desc: { en: 'Chat with citations, document upload and tracking, workspace booking, team management, surveys.', fr: t.frPending }, tags: ['Portal 1', 'Chat', 'Documents'] },
-    { id: 'techdes', icon: '📐', bg: '#E0F2F1', title: { en: 'Technical Design Document', fr: 'Document de conception technique' }, desc: { en: 'Component architecture, interfaces, data architecture, security architecture, deployment topology, non-functional requirements. The formal TechDes.', fr: t.frPending }, tags: ['TechDes', 'P75 chassis', 'Bicep IaC', 'ITSG-33'] },
-    { id: 'conops', icon: '🎯', bg: '#FBE9E7', title: { en: 'Concept of Operations', fr: 'Concept d\'opérations' }, desc: { en: 'Operational concept, stakeholder map, day-in-the-life scenarios, support model (L1/L2/L3), service lifecycle, governance structure, transition plan.', fr: t.frPending }, tags: ['ConOps', 'Governance', 'AICM', 'Lifecycle'] },
+    { id: 'techdes', icon: '📐', bg: '#E0F2F1', title: { en: 'Technical Design Document', fr: 'Document de conception technique' }, desc: { en: 'Component architecture, interfaces, data architecture, security architecture, deployment topology, non-functional requirements. The formal TechDes.', fr: t.frPending }, tags: ['TechDes', 'P75 chassis', 'Bicep IaC', 'NIST 800-53'] },
+    { id: 'conops', icon: '🎯', bg: '#FBE9E7', title: { en: 'Concept of Operations', fr: 'Concept d\'opérations' }, desc: { en: 'Operational concept, stakeholder map, day-in-the-life scenarios, support model (L1/L2/L3), service lifecycle, governance structure, transition plan.', fr: t.frPending }, tags: ['ConOps', 'Governance', 'RAI', 'Lifecycle'] },
     { id: 'finops', icon: '💰', bg: '#FFF9C4', title: { en: 'FinOps Guide', fr: 'Guide FinOps' }, desc: { en: 'Cost model, APIM instrumentation, P77 Toolkit integration, chargeback, budget alerts, waste detection, outcome-based KPIs, AOE gate logic.', fr: t.frPending }, tags: ['P77', 'FOCUS 1.2', 'Chargeback', 'AOE Gate'] },
-    { id: 'ato', icon: '🛡', bg: '#E8EAF6', title: { en: 'ATO & Continuous Authorization', fr: 'ATO et autorisation continue' }, desc: { en: 'Self-evidencing ATO: ITSG-33 control mapping verified against actual code, evidence artifacts, honest gap assessment, path to CIO authorization. No sugar-coating.', fr: t.frPending }, tags: ['ITSG-33', 'SA&A', 'Self-Evidencing', 'Gap Analysis'] },
+    { id: 'ato', icon: '🛡', bg: '#E8EAF6', title: { en: 'ATO & Continuous Authorization', fr: 'ATO et autorisation continue' }, desc: { en: 'Self-evidencing ATO: NIST 800-53 control mapping verified against actual code, evidence artifacts, honest gap assessment, path to CIO authorization. No sugar-coating.', fr: t.frPending }, tags: ['NIST 800-53', 'SA&A', 'Self-Evidencing', 'Gap Analysis'] },
     { id: 'ref-api', icon: '⟨⟩', bg: '#F3E5F5', title: { en: 'API Reference', fr: 'Référence API' }, desc: { en: 'REST endpoint specifications, request/response schemas, NDJSON streaming protocol, authentication.', fr: t.frPending }, tags: ['REST', 'NDJSON', 'Draft'] },
-    { id: 'ref-security', icon: '🔒', bg: '#FFEBEE', title: { en: 'Security Guide', fr: 'Guide de sécurité' }, desc: { en: 'ITSG-33 controls, Protected B compliance, threat model, prompt injection defense, audit trail.', fr: t.frPending }, tags: ['ITSG-33', 'Protected B', 'Draft'] },
+    { id: 'ref-security', icon: '🔒', bg: '#FFEBEE', title: { en: 'Security Guide', fr: 'Guide de sécurité' }, desc: { en: 'NIST 800-53 controls, sensitive compliance, threat model, prompt injection defense, audit trail.', fr: t.frPending }, tags: ['NIST 800-53', 'sensitive', 'Draft'] },
     { id: 'res-release', icon: '🏷', bg: '#FFF8E1', title: { en: 'Release Notes', fr: 'Notes de version' }, desc: { en: 'Version history, changelog, migration notes, known issues.', fr: t.frPending }, tags: ['v0.4.0-preview'] },
   ];
 
@@ -629,17 +629,17 @@ function HomePage({ lang, navigate }) {
     React.createElement('h1', null, t.docLibrary),
     React.createElement('p', { style: { fontSize: '16px', color: 'var(--text-secondary)', marginBottom: 8 } },
       lang === 'en'
-        ? 'Enterprise documentation for EVA Agentic — the governed, multi-step AI assistant platform built on Azure AI Foundry for Employment and Social Development Canada.'
+        ? 'Enterprise documentation for AIA — the governed, multi-step AI assistant platform built on Azure AI Foundry for Employment and Social Development Canada.'
         : t.frPending
     ),
     React.createElement('p', { style: { fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: 24 } },
       lang === 'en'
-        ? 'Aligned to the ESDC AI Reference Architecture (AIRA), the Agentic State 12-layer framework, and the EVA Foundation Technical Design & ConOps v0.4.'
+        ? 'Aligned to the Organization AI Reference Architecture (AIRA), the Agentic State 12-layer framework, and the AIA Foundation Technical Design & ConOps v0.4.'
         : t.frPending
     ),
     React.createElement(Callout, { type: 'info', title: 'Preview Release' },
       lang === 'en'
-        ? 'This documentation covers EVA Agentic v0.4.0-preview. Sections marked "Draft" are under active development. French translations are in progress.'
+        ? 'This documentation covers AIA v0.4.0-preview. Sections marked "Draft" are under active development. French translations are in progress.'
         : t.frPending
     ),
     React.createElement('h2', { style: { borderBottom: 'none', marginTop: 16 } }, lang === 'en' ? 'Documentation Catalog' : 'Catalogue de documentation'),
@@ -666,8 +666,8 @@ function HomePage({ lang, navigate }) {
     React.createElement('h2', null, lang === 'en' ? 'Platform at a Glance' : 'Aperçu de la plateforme'),
     React.createElement(Mermaid, {
       chart: `graph TB
-  subgraph "EVA Agentic Platform"
-    UI["L1 · EVA UI<br/>WCAG 2.1 AA · EN/FR"]
+  subgraph "AIA Platform"
+    UI["L1 · AIA UI<br/>WCAG 2.1 AA · EN/FR"]
     APIM["L2 · APIM Gateway<br/>Entra ID · FinOps Headers"]
     ORCH["L3 · Agent Orchestrator<br/>ReAct Loop · Tool Registry · Memory"]
     GUARD["L4 · Guardrails & RAI<br/>Content Safety · HITL · Audit"]
@@ -682,7 +682,7 @@ function HomePage({ lang, navigate }) {
   style GUARD fill:#FFEBEE,stroke:#C62828,color:#B71C1C
   style LLM fill:#E8F5E9,stroke:#2E7D32,color:#1B5E20
   style DATA fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C`,
-      caption: 'Figure 1 — EVA Agentic Six-Layer Architecture'
+      caption: 'Figure 1 — AIA Six-Layer Architecture'
     }),
     React.createElement('h2', null, lang === 'en' ? 'Quick Links' : 'Liens rapides'),
     React.createElement('table', null,
@@ -695,9 +695,9 @@ function HomePage({ lang, navigate }) {
       React.createElement('tbody', null,
         [
           [lang === 'en' ? 'Understand the system architecture' : t.frPending, 'arch', lang === 'en' ? 'Architecture Guide → System Overview' : t.frPending],
-          [lang === 'en' ? 'Deploy EVA Agentic' : t.frPending, 'admin-deploy', lang === 'en' ? 'Admin Guide → Deployment' : t.frPending],
+          [lang === 'en' ? 'Deploy AIA' : t.frPending, 'admin-deploy', lang === 'en' ? 'Admin Guide → Deployment' : t.frPending],
           [lang === 'en' ? 'Configure workspaces and RBAC' : t.frPending, 'admin-workspaces', lang === 'en' ? 'Admin Guide → Workspace Management' : t.frPending],
-          [lang === 'en' ? 'Chat with EVA and upload documents' : t.frPending, 'user-chat', lang === 'en' ? 'End-User Guide → Using EVA Chat' : t.frPending],
+          [lang === 'en' ? 'Chat with AIA and upload documents' : t.frPending, 'user-chat', lang === 'en' ? 'End-User Guide → Using AIA Chat' : t.frPending],
           [lang === 'en' ? 'Monitor costs and set up FinOps' : t.frPending, 'admin-finops', lang === 'en' ? 'Admin Guide → FinOps' : t.frPending],
           [lang === 'en' ? 'Review design principles' : t.frPending, 'arch-principles', lang === 'en' ? 'Architecture Guide → Design Principles' : t.frPending],
         ].map(([task, id, dest], i) =>
@@ -721,11 +721,11 @@ function HomePage({ lang, navigate }) {
       ),
       React.createElement('tbody', null,
         [
-          ['EVA Foundation Technical Design & ConOps', 'v0.4', 'March 2025'],
-          ['ESDC AI Reference Architecture (AIRA)', 'EARB Approved', 'Jan 29, 2025'],
+          ['AIA Foundation Technical Design & ConOps', 'v0.4', 'March 2025'],
+          ['Organization AI Reference Architecture (AIRA)', 'EARB Approved', 'Jan 29, 2025'],
           ['Agentic State 12-Layer Framework', 'Ilves, Kilian et al.', '2025'],
-          ['EVA Foundation Business Case', 'V1', 'Marco Presta'],
-          ['EVA Foundational Requirements Matrix', 'V1', 'Ayre, Leach'],
+          ['AIA Foundation Business Case', 'V1', 'Marco Presta'],
+          ['AIA Foundational Requirements Matrix', 'V1', 'Ayre, Leach'],
         ].map(([doc, ver, status], i) =>
           React.createElement('tr', { key: i },
             React.createElement('td', null, doc),
@@ -757,9 +757,9 @@ function ArchPage({ section, lang }) {
 function ArchOverviewSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Architecture & Design Guide'),
-    React.createElement('p', null, 'EVA Agentic is a governed, multi-step agentic RAG platform that replaces the monolithic Microsoft PubSec-Info-Assistant (MSIA) with an enterprise-grade, auditable, bilingual assistant service. It runs on Azure AI Foundry within ESDC\'s existing P75 infrastructure chassis.'),
+    React.createElement('p', null, 'AIA is a governed, multi-step agentic RAG platform that replaces the monolithic Microsoft PubSec-Info-Assistant (MSIA) with an enterprise-grade, auditable, bilingual assistant service. It runs on Azure AI Foundry within Organization\'s existing P75 infrastructure chassis.'),
     React.createElement(Callout, { type: 'info', title: 'Relationship to MSIA' },
-      'MSIA is the functional requirements reference — what needs to work (upload, chunk, embed, search, chat, cite). EVA Agentic reimplements every capability as governed Foundry tools with classification ceilings, data residency declarations, and full OTEL tracing. No MSIA code is ported.'
+      'MSIA is the functional requirements reference — what needs to work (upload, chunk, embed, search, chat, cite). AIA reimplements every capability as governed Foundry tools with classification ceilings, data residency declarations, and full OTEL tracing. No MSIA code is ported.'
     ),
     React.createElement('h2', null, 'Architecture Philosophy'),
     React.createElement('p', null, 'The platform is designed around three core tenets:'),
@@ -769,10 +769,10 @@ function ArchOverviewSection({ lang }) {
       React.createElement('li', null, React.createElement('strong', null, 'Every answer carries provenance.'), ' Confidence score, retrieval path, reasoning chain, source freshness, behavioral fingerprint (model + prompt + corpus + policy versions), and full audit trail — on every single response.')
     ),
     React.createElement('h2', null, 'Infrastructure Context'),
-    React.createElement('p', null, 'EVA Agentic does not build parallel infrastructure. It consumes the P75 chassis:'),
+    React.createElement('p', null, 'AIA does not build parallel infrastructure. It consumes the P75 chassis:'),
     React.createElement(Mermaid, {
       chart: `graph LR
-  subgraph "P75 · EVA vNext Infrastructure"
+  subgraph "P75 · AIA vNext Infrastructure"
     APIM["APIM Public Edge"]
     AOAI["Azure OpenAI<br/>gpt-5-mini · gpt-5.1"]
     AIS["AI Search"]
@@ -783,7 +783,7 @@ function ArchOverviewSection({ lang }) {
     APPINS["Application Insights"]
     ENTRA["Entra ID + JWT/JWKS"]
   end
-  subgraph "P53 · EVA Agentic"
+  subgraph "P53 · AIA"
     GW["API Gateway"]
     ORCH["Agent Orchestrator"]
     PIPE["Doc Pipeline"]
@@ -840,7 +840,7 @@ function ArchOverviewSection({ lang }) {
     React.createElement('h2', null, 'Three-Portal System'),
     React.createElement(Mermaid, {
       chart: `graph TB
-  subgraph "EVA DA Management System"
+  subgraph "AIA DA Management System"
     P1["Portal 1 · Self-Service<br/>Workspace catalog, booking,<br/>team RBAC, chat, documents"]
     P2["Portal 2 · Business Management<br/>Client onboarding, workspace<br/>assignment, interviews, central booking"]
     P3["Portal 3 · Operations & Support<br/>FinOps · AIOps · LiveOps · DevOps"]
@@ -860,15 +860,15 @@ function ArchOverviewSection({ lang }) {
 function ArchSixLayersSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Six-Layer Architecture Model'),
-    React.createElement('p', null, 'EVA Agentic is structured as six distinct layers, each with clear responsibilities, security boundaries, and observability surfaces. Azure AI Foundry governs Layers 3 through 5.'),
+    React.createElement('p', null, 'AIA is structured as six distinct layers, each with clear responsibilities, security boundaries, and observability surfaces. Azure AI Foundry governs Layers 3 through 5.'),
     React.createElement(Mermaid, {
       chart: `graph TB
-  L1["<b>L1 · EVA UI</b><br/>WCAG 2.1 AA · Bilingual EN/FR<br/>Agentic step indicators · Screen-reader announced<br/>GCDS + shadcn/ui + Tailwind + react-i18next"]
+  L1["<b>L1 · AIA UI</b><br/>WCAG 2.1 AA · Bilingual EN/FR<br/>Agentic step indicators · Screen-reader announced<br/>GCDS + shadcn/ui + Tailwind + react-i18next"]
   L2["<b>L2 · APIM Gateway</b><br/>Entra ID SSO · FinOps headers<br/>x-app-id · x-user-group · x-classification<br/>Rate limits · SCED/VNet only"]
   L3["<b>L3 · Agent Orchestrator</b><br/>Azure AI Foundry Agent Service<br/>ReAct loop + step reflect<br/>Tool Registry · Memory (Redis/Cosmos/AI Search)"]
-  L4["<b>L4 · Guardrails & Responsible AI</b><br/>Content Safety · Prompt Shield<br/>Grounding Enforcement · Citation Requirement<br/>HITL checkpoints (AICM L2+) · Audit Trail"]
+  L4["<b>L4 · Guardrails & Responsible AI</b><br/>Content Safety · Prompt Shield<br/>Grounding Enforcement · Citation Requirement<br/>HITL checkpoints (RAI L2+) · Audit Trail"]
   L5["<b>L5 · Azure OpenAI</b><br/>GPT-4o default · Managed via Foundry<br/>Model Registry · Deployment catalog"]
-  L6["<b>L6 · Knowledge & Data</b><br/>AI Search (hybrid: keyword + vector + semantic)<br/>Blob Storage · Vector Index<br/>ESDC data sources"]
+  L6["<b>L6 · Knowledge & Data</b><br/>AI Search (hybrid: keyword + vector + semantic)<br/>Blob Storage · Vector Index<br/>Organization data sources"]
   L1 --> L2 --> L3
   L3 --> L4 --> L5
   L3 --> L6
@@ -880,7 +880,7 @@ function ArchSixLayersSection({ lang }) {
   style L6 fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C`,
       caption: 'Figure 4 — Six-Layer Architecture (detailed)'
     }),
-    React.createElement('h2', null, 'Layer 1 — EVA UI'),
+    React.createElement('h2', null, 'Layer 1 — AIA UI'),
     React.createElement('p', null, 'The presentation layer serves three portals (self-service, business management, operations) built on React 19 + Vite 6 + TypeScript 5.7. The UI stack combines GC Design System mandatory chrome (header, footer, nav, language toggle) with shadcn/ui + Radix UI for application components, styled with Tailwind CSS v4 using GC design tokens as CSS variables.'),
     React.createElement('p', null, 'All strings are externalized via react-i18next with EN/FR JSON catalogs. Accessibility is baseline GCDS plus axe-core automated testing and screen reader verification — WCAG 2.1 AA floor, EN 301 549 target. Agentic step indicators are screen-reader-announced via ARIA live regions.'),
     React.createElement('table', null,
@@ -913,7 +913,7 @@ function ArchSixLayersSection({ lang }) {
         [
           ['x-app-id', 'Application/workspace identifier for cost attribution'],
           ['x-user-group', 'Entra ID group for RBAC enforcement'],
-          ['x-classification', 'Data classification ceiling (Protected B or lower)'],
+          ['x-classification', 'Data classification ceiling (sensitive or lower)'],
           ['x-correlation-id', 'End-to-end request correlation for OTEL tracing'],
         ].map(([h, p], i) => React.createElement('tr', { key: i },
           React.createElement('td', null, React.createElement('code', null, h)),
@@ -985,7 +985,7 @@ function ArchPipelineSection({ lang }) {
     }),
     React.createElement('h2', null, 'Pipeline Stages'),
     React.createElement('h3', null, '1. File Detection & Routing'),
-    React.createElement('p', null, 'When a file lands in blob storage, the file_uploaded handler detects the file type and routes it to the appropriate extraction path. Unlike MSIA which routes purely by extension, EVA Agentic performs archetype detection — determining not just file format but document type (legislation, case law, policy, general) to select the optimal processing strategy.'),
+    React.createElement('p', null, 'When a file lands in blob storage, the file_uploaded handler detects the file type and routes it to the appropriate extraction path. Unlike MSIA which routes purely by extension, AIA performs archetype detection — determining not just file format but document type (legislation, case law, policy, general) to select the optimal processing strategy.'),
     React.createElement('h3', null, '2. Extraction'),
     React.createElement('p', null, 'PDF extraction uses Azure Document Intelligence (Form Recognizer) behind a factory abstraction — the extraction engine is configurable per workspace. Non-PDF formats (DOCX, TXT, HTML, CSV, etc.) use layout parsing. Both produce a structured document map with paragraph roles (title, section heading, body text, table), page numbers, and table HTML.'),
     React.createElement('h3', null, '3. Chunking'),
@@ -1012,7 +1012,7 @@ function ArchPipelineSection({ lang }) {
     React.createElement('h3', null, '5. Indexing'),
     React.createElement('p', null, 'The final index entry in AI Search contains: content text, content vector (HNSW with cosine similarity), file metadata (name, title, section, pages), workspace_id for scoping, freshness metadata (last_verified, last_updated), and provenance links (trace_id from the ingestion OTEL trace).'),
     React.createElement(Callout, { type: 'info', title: 'MSIA Comparison' },
-      'MSIA uses a queue-based architecture with separate Azure Functions per stage. EVA Agentic reimplements the same functional pipeline but with OTEL spans on every stage, circuit breakers (Principle 4), archetype-driven chunking, and full provenance artifacts. The retry pattern (exponential backoff with max requeue) is preserved but wrapped in circuit breaker logic.'
+      'MSIA uses a queue-based architecture with separate Azure Functions per stage. AIA reimplements the same functional pipeline but with OTEL spans on every stage, circuit breakers (Principle 4), archetype-driven chunking, and full provenance artifacts. The retry pattern (exponential backoff with max requeue) is preserved but wrapped in circuit breaker logic.'
     ),
   );
 }
@@ -1083,10 +1083,10 @@ function ArchOrchestratorSection({ lang }) {
       )),
       React.createElement('tbody', null,
         [
-          ['classification_ceiling', 'Protected B or lower — determines what data the tool may access'],
+          ['classification_ceiling', 'sensitive or lower — determines what data the tool may access'],
           ['data_residency', 'Canada Central / Canada East only — hard constraint'],
           ['bilingual_support', 'Yes/No — non-bilingual tools auto-route through translation'],
-          ['hitl_required', 'Boolean — triggers HITL checkpoint when tool is invoked for AICM L2+ workspaces'],
+          ['hitl_required', 'Boolean — triggers HITL checkpoint when tool is invoked for RAI L2+ workspaces'],
         ].map(([f, r], i) => React.createElement('tr', { key: i },
           React.createElement('td', null, React.createElement('code', null, f)),
           React.createElement('td', null, r),
@@ -1102,28 +1102,28 @@ function ArchOrchestratorSection({ lang }) {
 function ArchPrinciplesSection({ lang }) {
   const principles = [
     { num: 1, name: 'Forensic-Grade Audit Trail', src: 'Agentic State', desc: 'Every agent action logs: subject, actor, delegation chain, purpose, resource accessed, policy decision. OTEL-compatible.' },
-    { num: 2, name: 'Compliance-as-Code', src: 'Agentic State', desc: 'TBS/ESDC rules as executable policy at runtime, not documentation.' },
+    { num: 2, name: 'Compliance-as-Code', src: 'Agentic State', desc: 'TBS/Organization rules as executable policy at runtime, not documentation.' },
     { num: 3, name: 'Agent Identity & Scoped Authority', src: 'Agentic State', desc: 'Each agent/tool gets distinct identity with ephemeral, auditable permissions. No shared service accounts.' },
     { num: 4, name: 'Human Escalation Tiers', src: 'Agentic State', desc: 'Auto-resolve → flagged-for-review → requires-human. Confidence-driven, not blanket HITL.' },
     { num: 5, name: 'Outcome-Based FinOps', src: 'Agentic State', desc: 'Resolution rate, time-to-answer, citation accuracy alongside consumption cost.' },
     { num: 6, name: 'Data Provenance', src: 'Agentic State', desc: 'Every response correlates to source documents, agent steps, policy decisions, and delegation chain.' },
     { num: 7, name: 'Proactive over Reactive', src: 'Agentic State', desc: 'Push-based anticipatory workflows, not just query-response.' },
-    { num: 8, name: 'Confidence Scoring & Disclosure', src: 'EVA Addition', desc: '0–1 confidence from retrieval relevance, source coverage, grounding quality. Surfaced to user, feeds escalation, logged in audit.' },
-    { num: 9, name: 'Explainability & Reasoning Transparency', src: 'EVA Addition', desc: 'Retrieval path visibility, reasoning chain, negative evidence, two-layer detail (user + auditor).' },
-    { num: 10, name: 'Temporal Validity & Source Freshness', src: 'EVA Addition', desc: 'Mandatory last-verified dates, freshness-aware ranking, staleness disclosure, corpus health monitoring.' },
-    { num: 11, name: 'Graceful Degradation', src: 'EVA Addition', desc: 'Fallback hierarchy: full RAG → partial + disclosure → cached → "contact us". No silent hallucination.' },
-    { num: 12, name: 'Multi-Agent Conflict Resolution', src: 'EVA Addition', desc: 'Detect conflicting answers, surface with attribution, arbitrate by authority hierarchy.' },
-    { num: 13, name: 'Feedback Loops & Continuous Improvement', src: 'EVA Addition', desc: 'Correction capture, retrieval quality feedback, confidence calibration, source quality scoring.' },
-    { num: 14, name: 'Version Control & Rollback', src: 'EVA Addition', desc: 'Behavioral fingerprint per response. Change tracking. A/B testing. Regression detection.' },
-    { num: 15, name: 'Contextual Adaptation Beyond Language', src: 'EVA Addition', desc: 'Adaptive complexity, cognitive accessibility, channel-appropriate rendering, Indigenous language awareness.' },
-    { num: 16, name: 'Sandbox & Simulation Testing', src: 'EVA Addition', desc: 'Production-like sandbox, red-teaming, scenario-based regression, bias audits, pre-deployment gate.' },
+    { num: 8, name: 'Confidence Scoring & Disclosure', src: 'AIA Addition', desc: '0–1 confidence from retrieval relevance, source coverage, grounding quality. Surfaced to user, feeds escalation, logged in audit.' },
+    { num: 9, name: 'Explainability & Reasoning Transparency', src: 'AIA Addition', desc: 'Retrieval path visibility, reasoning chain, negative evidence, two-layer detail (user + auditor).' },
+    { num: 10, name: 'Temporal Validity & Source Freshness', src: 'AIA Addition', desc: 'Mandatory last-verified dates, freshness-aware ranking, staleness disclosure, corpus health monitoring.' },
+    { num: 11, name: 'Graceful Degradation', src: 'AIA Addition', desc: 'Fallback hierarchy: full RAG → partial + disclosure → cached → "contact us". No silent hallucination.' },
+    { num: 12, name: 'Multi-Agent Conflict Resolution', src: 'AIA Addition', desc: 'Detect conflicting answers, surface with attribution, arbitrate by authority hierarchy.' },
+    { num: 13, name: 'Feedback Loops & Continuous Improvement', src: 'AIA Addition', desc: 'Correction capture, retrieval quality feedback, confidence calibration, source quality scoring.' },
+    { num: 14, name: 'Version Control & Rollback', src: 'AIA Addition', desc: 'Behavioral fingerprint per response. Change tracking. A/B testing. Regression detection.' },
+    { num: 15, name: 'Contextual Adaptation Beyond Language', src: 'AIA Addition', desc: 'Adaptive complexity, cognitive accessibility, channel-appropriate rendering, Indigenous language awareness.' },
+    { num: 16, name: 'Sandbox & Simulation Testing', src: 'AIA Addition', desc: 'Production-like sandbox, red-teaming, scenario-based regression, bias audits, pre-deployment gate.' },
     { num: 17, name: 'Bilingual, Accessible, Culture-Ready', src: 'Agentic State', desc: 'EN/FR bilingual and WCAG 2.1 AA by default. Design for orchestrators, not processors.' },
     { num: 18, name: 'Privacy-by-Design with Data Minimization', src: 'Agentic State', desc: 'Agents access only what needed. Purpose limitation enforced programmatically.' },
     { num: 19, name: 'Security for Autonomy', src: 'Agentic State', desc: 'Agent-specific threat models: prompt injection, impersonation, privilege escalation, cascading failures.' },
   ];
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Design Principles'),
-    React.createElement('p', null, 'EVA Agentic is governed by 19 design principles drawn from two sources: 10 from the Agentic State 12-layer framework (Ilves, Kilian et al., 2025) adapted for EVA, and 9 additional principles that fill practical gaps discovered when building RAG agents in a government setting.'),
+    React.createElement('p', null, 'AIA is governed by 19 design principles drawn from two sources: 10 from the Agentic State 12-layer framework (Ilves, Kilian et al., 2025) adapted for AIA, and 9 additional principles that fill practical gaps discovered when building RAG agents in a government setting.'),
     React.createElement(Callout, { type: 'info', title: 'Architectural Invariants' },
       'These are not Phase 5 bolt-ons. They are architectural invariants from Phase 0. Every answer carries: confidence score, explainability, source freshness, behavioral fingerprint, and full provenance chain.'
     ),
@@ -1138,7 +1138,7 @@ function ArchPrinciplesSection({ lang }) {
         principles.map(p => React.createElement('tr', { key: p.num },
           React.createElement('td', null, p.num),
           React.createElement('td', null, React.createElement('strong', null, p.name)),
-          React.createElement('td', null, React.createElement('span', { className: `card-tag`, style: { background: p.src === 'EVA Addition' ? '#E8F5E9' : '#E3F2FD' } }, p.src)),
+          React.createElement('td', null, React.createElement('span', { className: `card-tag`, style: { background: p.src === 'AIA Addition' ? '#E8F5E9' : '#E3F2FD' } }, p.src)),
           React.createElement('td', null, p.desc),
         ))
       )
@@ -1150,17 +1150,17 @@ function ArchDataModelSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Data Model & RAG Architecture'),
     React.createElement('h2', null, 'Multi-Index Architecture'),
-    React.createElement('p', null, 'EVA Agentic uses one AI Search service with N workspace-scoped indexes. Each workspace gets a dedicated index for content, plus access to shared metadata in Cosmos DB.'),
+    React.createElement('p', null, 'AIA uses one AI Search service with N workspace-scoped indexes. Each workspace gets a dedicated index for content, plus access to shared metadata in Cosmos DB.'),
     React.createElement('pre', null, React.createElement('code', null,
 `AI Search Service (single instance)
-├── eva-workspace-{workspace_id}-index    # Per-workspace content
+├── aia-workspace-{workspace_id}-index    # Per-workspace content
 │   Fields: id, content, contentVector, file_name, title,
 │           section, pages, workspace_id, data_classification,
 │           last_verified, source_quality_score, chunk_strategy,
 │           language, enrichment_entities, enrichment_keyphrases
 │   Vector: HNSW (cosine, 1536 dimensions)
 │   Scoring: BM25 + vector + semantic reranker
-└── eva-shared-metadata-index             # Cross-workspace catalog`)),
+└── aia-shared-metadata-index             # Cross-workspace catalog`)),
     React.createElement('h2', null, 'RAG Retrieval Modes'),
     React.createElement('p', null, 'Three retrieval modes inherited from MSIA, enhanced with freshness and confidence:'),
     React.createElement('table', null,
@@ -1248,9 +1248,9 @@ function AdminPage({ section, lang }) {
 function AdminOverviewSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Administrator & Operations Guide'),
-    React.createElement('p', null, 'This guide covers deployment, configuration, workspace management, identity and access control, monitoring, FinOps cost attribution, and guardrails configuration for EVA Agentic.'),
+    React.createElement('p', null, 'This guide covers deployment, configuration, workspace management, identity and access control, monitoring, FinOps cost attribution, and guardrails configuration for AIA.'),
     React.createElement(Callout, { type: 'warn', title: 'Audience' },
-      'This guide is for AICoE administrators (Portal 2 — Business Management) and operations staff (Portal 3 — Operations & Support). End users should refer to the End-User Guide.'
+      'This guide is for Information Assistant team administrators (Portal 2 — Business Management) and operations staff (Portal 3 — Operations & Support). End users should refer to the End-User Guide.'
     ),
     React.createElement('h2', null, 'Operations Disciplines'),
     React.createElement('p', null, 'Portal 3 covers four operations disciplines:'),
@@ -1279,7 +1279,7 @@ function AdminDeploySection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Deployment'),
     React.createElement('h2', null, 'Prerequisites'),
-    React.createElement('p', null, 'EVA Agentic deploys on the P75 infrastructure chassis. Before deploying P53 components, ensure:'),
+    React.createElement('p', null, 'AIA deploys on the P75 infrastructure chassis. Before deploying P53 components, ensure:'),
     React.createElement('ul', null,
       React.createElement('li', null, 'P75 infrastructure is provisioned (APIM, Azure OpenAI, AI Search, Cosmos DB, VNet)'),
       React.createElement('li', null, 'Entra ID app registrations are configured (or AUTH_MODE=demo for development)'),
@@ -1335,7 +1335,7 @@ make lint    # Lint Python + TypeScript`)),
 function AdminWorkspacesSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Workspace Management'),
-    React.createElement('p', null, 'Workspaces are the fundamental unit of organization in EVA Agentic. Each workspace represents a distinct EVA DA index with its own document corpus, team membership, RBAC configuration, chunking strategy, and cost attribution.'),
+    React.createElement('p', null, 'Workspaces are the fundamental unit of organization in AIA. Each workspace represents a distinct AIA DA index with its own document corpus, team membership, RBAC configuration, chunking strategy, and cost attribution.'),
     React.createElement('h2', null, 'Workspace Types'),
     React.createElement('table', null,
       React.createElement('thead', null, React.createElement('tr', null,
@@ -1343,7 +1343,7 @@ function AdminWorkspacesSection({ lang }) {
       )),
       React.createElement('tbody', null,
         [
-          ['Standard', 'Default workspace with standard quotas and shared compute', 'Most EVA DA instances'],
+          ['Standard', 'Default workspace with standard quotas and shared compute', 'Most AIA DA instances'],
           ['Premium', 'Dedicated compute, higher quotas, priority support', 'High-volume or latency-sensitive workspaces'],
           ['Sandbox', 'Isolated testing environment, no production data access', 'Development, red-teaming, regression testing'],
           ['Restricted', 'Enhanced access controls, additional audit logging', 'Sensitive data (e.g., HR, legal)'],
@@ -1451,7 +1451,7 @@ function AdminMonitoringSection({ lang }) {
 function AdminFinopsSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'FinOps'),
-    React.createElement('p', null, 'EVA Agentic\'s FinOps model extends beyond consumption tracking to outcome-based cost attribution. The FinOps Command Center in Portal 3 consumes P77 FinOps Toolkit APIs — it does not rebuild them.'),
+    React.createElement('p', null, 'AIA\'s FinOps model extends beyond consumption tracking to outcome-based cost attribution. The FinOps Command Center in Portal 3 consumes P77 FinOps Toolkit APIs — it does not rebuild them.'),
     React.createElement('h2', null, 'Cost Attribution Flow'),
     React.createElement(Mermaid, {
       chart: `graph LR
@@ -1494,10 +1494,10 @@ function AdminGuardrailsSection({ lang }) {
         ))
       )
     ),
-    React.createElement('h2', null, 'AICM Gate Logic'),
+    React.createElement('h2', null, 'RAI Gate Logic'),
     React.createElement('table', null,
       React.createElement('thead', null, React.createElement('tr', null,
-        React.createElement('th', null, 'AICM Level'), React.createElement('th', null, 'Gate Behavior')
+        React.createElement('th', null, 'RAI Level'), React.createElement('th', null, 'Gate Behavior')
       )),
       React.createElement('tbody', null,
         [
@@ -1510,7 +1510,7 @@ function AdminGuardrailsSection({ lang }) {
       )
     ),
     React.createElement(Callout, { type: 'info', title: 'Per-Workspace, Not Per-Project' },
-      'AICM level is a property of how the output is consumed, configured per workspace — not hardcoded per use case name. The same EVA Agentic platform can serve advisory (L1) and decision-informing (L2+) workspaces simultaneously.'
+      'RAI level is a property of how the output is consumed, configured per workspace — not hardcoded per use case name. The same AIA platform can serve advisory (L1) and decision-informing (L2+) workspaces simultaneously.'
     ),
   );
 }
@@ -1531,9 +1531,9 @@ function UserPage({ section, lang }) {
 function UserOverviewSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'End-User Guide'),
-    React.createElement('p', null, 'EVA Agentic helps you find answers from trusted government documents using AI-powered smart assistance. This guide covers everything you need to get started: chatting with EVA, uploading documents, booking workspaces, and managing your team.'),
+    React.createElement('p', null, 'AIA helps you find answers from trusted government documents using AI-powered smart assistance. This guide covers everything you need to get started: chatting with AIA, uploading documents, booking workspaces, and managing your team.'),
     React.createElement(Callout, { type: 'success', title: 'Smart Assistance, Not Automation' },
-      'EVA retrieves information from trusted sources and generates answers with citations. It does not make decisions for you — it provides evidence-based assistance so you can make informed decisions. Always verify critical information with the cited sources.'
+      'AIA retrieves information from trusted sources and generates answers with citations. It does not make decisions for you — it provides evidence-based assistance so you can make informed decisions. Always verify critical information with the cited sources.'
     ),
     React.createElement('h2', null, 'What You Can Do'),
     React.createElement('table', null,
@@ -1560,12 +1560,12 @@ function UserOverviewSection({ lang }) {
 
 function UserChatSection({ lang }) {
   return React.createElement(Fragment, null,
-    React.createElement('h1', null, 'Using EVA Chat'),
-    React.createElement('p', null, 'EVA Chat is the primary interface for asking questions. It uses Retrieval-Augmented Generation (RAG) — your question is matched against documents in your workspace, relevant passages are retrieved, and an AI model generates an answer grounded in those sources.'),
+    React.createElement('h1', null, 'Using AIA Chat'),
+    React.createElement('p', null, 'AIA Chat is the primary interface for asking questions. It uses Retrieval-Augmented Generation (RAG) — your question is matched against documents in your workspace, relevant passages are retrieved, and an AI model generates an answer grounded in those sources.'),
     React.createElement('h2', null, 'How Chat Works'),
     React.createElement(Mermaid, {
       chart: `graph LR
-  Q["You ask<br/>a question"] --> R["EVA searches<br/>your workspace"] --> A["AI generates<br/>a grounded answer"] --> C["You see answer<br/>+ source citations"]
+  Q["You ask<br/>a question"] --> R["AIA searches<br/>your workspace"] --> A["AI generates<br/>a grounded answer"] --> C["You see answer<br/>+ source citations"]
   style Q fill:#E3F2FD,stroke:#1565C0
   style R fill:#FFF3E0,stroke:#E65100
   style A fill:#E8F5E9,stroke:#2E7D32
@@ -1573,25 +1573,25 @@ function UserChatSection({ lang }) {
       caption: 'Figure 10 — Chat flow: question → search → generate → cite'
     }),
     React.createElement('h2', null, 'What You See in a Response'),
-    React.createElement('p', null, 'Every EVA response includes:'),
+    React.createElement('p', null, 'Every AIA response includes:'),
     React.createElement('ul', null,
       React.createElement('li', null, React.createElement('strong', null, 'The answer'), ' — generated from retrieved documents, in your preferred language'),
       React.createElement('li', null, React.createElement('strong', null, 'Source citations'), ' — clickable references to the exact documents and sections used'),
-      React.createElement('li', null, React.createElement('strong', null, 'Confidence indicator'), ' — how confident EVA is in the answer (High / Medium / Low)'),
-      React.createElement('li', null, React.createElement('strong', null, 'Agent steps'), ' — expandable trace showing what EVA did: which tools it called, what it searched for, what it found'),
-      React.createElement('li', null, React.createElement('strong', null, 'Freshness notice'), ' — if sources are older than expected, EVA tells you'),
+      React.createElement('li', null, React.createElement('strong', null, 'Confidence indicator'), ' — how confident AIA is in the answer (High / Medium / Low)'),
+      React.createElement('li', null, React.createElement('strong', null, 'Agent steps'), ' — expandable trace showing what AIA did: which tools it called, what it searched for, what it found'),
+      React.createElement('li', null, React.createElement('strong', null, 'Freshness notice'), ' — if sources are older than expected, AIA tells you'),
     ),
     React.createElement('h2', null, 'Tips for Better Results'),
     React.createElement('ul', null,
       React.createElement('li', null, 'Be specific — "What are the eligibility criteria for OAS under section 3?" works better than "Tell me about OAS"'),
-      React.createElement('li', null, 'Ask in either language — EVA is fully bilingual and will respond in the language you ask'),
+      React.createElement('li', null, 'Ask in either language — AIA is fully bilingual and will respond in the language you ask'),
       React.createElement('li', null, 'Check the citations — always verify important answers by reviewing the cited source documents'),
-      React.createElement('li', null, 'Use follow-up questions — EVA maintains conversation context within a session'),
+      React.createElement('li', null, 'Use follow-up questions — AIA maintains conversation context within a session'),
     ),
-    React.createElement('h2', null, 'When EVA Says "I Don\'t Know"'),
-    React.createElement('p', null, 'EVA will not fabricate answers. If it cannot find relevant sources in your workspace, it will tell you — and may suggest alternative approaches or contacts. This is by design: a transparent "I don\'t have enough information" is always better than a confident-sounding wrong answer.'),
+    React.createElement('h2', null, 'When AIA Says "I Don\'t Know"'),
+    React.createElement('p', null, 'AIA will not fabricate answers. If it cannot find relevant sources in your workspace, it will tell you — and may suggest alternative approaches or contacts. This is by design: a transparent "I don\'t have enough information" is always better than a confident-sounding wrong answer.'),
     React.createElement(Callout, { type: 'info', title: 'Providing Feedback' },
-      'You can accept or reject any EVA response using the feedback buttons. If you reject a response, you can optionally explain what was wrong. This feedback helps calibrate EVA\'s confidence scoring and improve retrieval quality over time.'
+      'You can accept or reject any AIA response using the feedback buttons. If you reject a response, you can optionally explain what was wrong. This feedback helps calibrate AIA\'s confidence scoring and improve retrieval quality over time.'
     ),
   );
 }
@@ -1599,7 +1599,7 @@ function UserChatSection({ lang }) {
 function UserDocumentsSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Document Upload & Management'),
-    React.createElement('p', null, 'Contributors and Admins can upload documents to their workspace\'s knowledge base. Once processed, documents become searchable via EVA Chat.'),
+    React.createElement('p', null, 'Contributors and Admins can upload documents to their workspace\'s knowledge base. Once processed, documents become searchable via AIA Chat.'),
     React.createElement('h2', null, 'Supported File Types'),
     React.createElement('table', null,
       React.createElement('thead', null, React.createElement('tr', null,
@@ -1640,7 +1640,7 @@ function UserDocumentsSection({ lang }) {
 function UserWorkspacesSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Workspace Booking'),
-    React.createElement('p', null, 'Workspaces are your team\'s dedicated knowledge environment in EVA. Each workspace has its own document collection, search index, and team membership.'),
+    React.createElement('p', null, 'Workspaces are your team\'s dedicated knowledge environment in AIA. Each workspace has its own document collection, search index, and team membership.'),
     React.createElement('h2', null, 'Booking a Workspace'),
     React.createElement('ol', null,
       React.createElement('li', null, 'Navigate to the ', React.createElement('strong', null, 'Workspace Catalog'), ' from the main menu'),
@@ -1701,9 +1701,9 @@ function TechDesPage({ section, lang }) {
 function TechDesContextSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'System Context & Boundaries'),
-    React.createElement('p', null, 'EVA Agentic is a comprehensive rebuild of Microsoft\'s PubSec-Info-Assistant (MSIA) into a governed, multi-step agentic RAG platform. This Technical Design Document defines the component architecture, interfaces, data model, security architecture, deployment topology, and non-functional requirements for an enterprise AI service aligned to ESDC\'s AI Reference Architecture (AIRA, EARB approved January 2025) and the EVA Foundation Technical Design & ConOps v0.4 (March 2025).'),
+    React.createElement('p', null, 'AIA is a comprehensive rebuild of Microsoft\'s PubSec-Info-Assistant (MSIA) into a governed, multi-step agentic RAG platform. This Technical Design Document defines the component architecture, interfaces, data model, security architecture, deployment topology, and non-functional requirements for an enterprise AI service aligned to Organization\'s AI Reference Architecture (AIRA, EARB approved January 2025) and the AIA Foundation Technical Design & ConOps v0.4 (March 2025).'),
     React.createElement('h2', null, 'Project Positioning'),
-    React.createElement('p', null, 'EVA Agentic runs on the P75 EVA-vNext infrastructure chassis, which provides:'),
+    React.createElement('p', null, 'AIA runs on the P75 AIA-vNext infrastructure chassis, which provides:'),
     React.createElement('ul', null,
       React.createElement('li', null, React.createElement('strong', null, 'APIM Public Edge') + ' — single enforcement point for all AI calls, Entra ID SSO, FinOps header validation'),
       React.createElement('li', null, React.createElement('strong', null, 'Azure AI Foundry') + ' — agent orchestration (Agent Service), model registry, prompt versioning, safety evaluations, tracing'),
@@ -1717,7 +1717,7 @@ function TechDesContextSection({ lang }) {
       React.createElement('li', null, React.createElement('strong', null, 'OpenTelemetry + Application Insights') + ' — tracing and observability')
     ),
     React.createElement('h2', null, 'P53 Boundary & Responsibility'),
-    React.createElement('p', null, 'P53 (EVA Agentic) provisions only its own resources:'),
+    React.createElement('p', null, 'P53 (AIA) provisions only its own resources:'),
     React.createElement('table', null,
       React.createElement('thead', null,
         React.createElement('tr', null,
@@ -1728,9 +1728,9 @@ function TechDesContextSection({ lang }) {
       ),
       React.createElement('tbody', null,
         [
-          ['Workspace Blob Storage', 'Per-workspace container for uploaded documents', 'Protected B, Canada Central'],
-          ['AI Search Indexes', 'Dynamic index per workspace: eva-workspace-{id}-index', 'Hybrid search, HNSW vector, semantic reranking'],
-          ['Cosmos DB Containers', 'statusdb (doc tracking), eva-workspaces (metadata), demo-users (test data)', 'Conversation history, RBAC, audit trail'],
+          ['Workspace Blob Storage', 'Per-workspace container for uploaded documents', 'sensitive, Canada Central'],
+          ['AI Search Indexes', 'Dynamic index per workspace: aia-workspace-{id}-index', 'Hybrid search, HNSW vector, semantic reranking'],
+          ['Cosmos DB Containers', 'statusdb (doc tracking), aia-workspaces (metadata), demo-users (test data)', 'Conversation history, RBAC, audit trail'],
           ['APIM Product Registration', 'Rate limits, cost-attribution header enforcement, API version management', 'Scoped to P53 operations'],
           ['Redis Cache', 'Session state, inference result caching, vector similarity cache', 'Ephemeral, no PII'],
         ].map(([res, purpose, scope], i) =>
@@ -1743,12 +1743,12 @@ function TechDesContextSection({ lang }) {
       )
     ),
     React.createElement(Callout, { type: 'info', title: 'No Parallel Infrastructure' },
-      'EVA Agentic does not provision Azure OpenAI, AI Search (service level), Document Intelligence, Service Bus, Cosmos DB, Entra ID, or networking. P53 resources integrate with P75 via well-defined APIs and APIM. This prevents infrastructure duplication and ensures centralized cost attribution, security policy, and operational governance.'
+      'AIA does not provision Azure OpenAI, AI Search (service level), Document Intelligence, Service Bus, Cosmos DB, Entra ID, or networking. P53 resources integrate with P75 via well-defined APIs and APIM. This prevents infrastructure duplication and ensures centralized cost attribution, security policy, and operational governance.'
     ),
     React.createElement('h2', null, 'System Boundary Diagram'),
     React.createElement(Mermaid, {
       chart: `graph TB
-  subgraph "P75 · EVA vNext Infrastructure Chassis"
+  subgraph "P75 · AIA vNext Infrastructure Chassis"
     APIM["<b>APIM Public Edge</b><br/>Rate limits · SSO<br/>FinOps headers"]
     AOAI["<b>Azure OpenAI</b><br/>GPT-5-mini · GPT-5.1<br/>Managed via Foundry"]
     AIS["<b>AI Search</b><br/>Hybrid index<br/>HNSW vector<br/>Semantic reranker"]
@@ -1759,7 +1759,7 @@ function TechDesContextSection({ lang }) {
     APPINS["<b>Application<br/>Insights</b><br/>Tracing<br/>Logging"]
     ENTRA["<b>Entra ID</b><br/>JWT/JWKS<br/>RBAC"]
   end
-  subgraph "P53 · EVA Agentic"
+  subgraph "P53 · AIA"
     GW["<b>API Gateway</b><br/>REST endpoints<br/>Routing<br/>Auth"]
     ORCH["<b>Agent<br/>Orchestrator</b><br/>ReAct loop<br/>Tool registry<br/>Memory"]
     PIPE["<b>Doc Pipeline</b><br/>Chunking<br/>Embedding<br/>Indexing"]
@@ -1804,13 +1804,13 @@ function TechDesContextSection({ lang }) {
       ),
       React.createElement('tbody', null,
         [
-          ['Protected B Data Classification', 'All compute and storage in Canada Central/East. No public IPs. All traffic via SCED/VNet. No unencrypted persistence.', 'ITSG-33 SC-12 (encryption), ESDC security baseline'],
-          ['ITSG-33 Controls', 'AC (Entra ID + RBAC), AU (audit logging + tracing), CM (config management + versioning), IA (SSO + multi-factor), SC (TLS 1.3 + AES-256), SI (content filtering), SA (safety evals)', 'Federal security standard (NIST SP 800-53 aligned)'],
+          ['sensitive Data Classification', 'All compute and storage in Canada Central/East. No public IPs. All traffic via SCED/VNet. No unencrypted persistence.', 'NIST 800-53 SC-12 (encryption), Organization security baseline'],
+          ['NIST 800-53 Controls', 'AC (Entra ID + RBAC), AU (audit logging + tracing), CM (config management + versioning), IA (SSO + multi-factor), SC (TLS 1.3 + AES-256), SI (content filtering), SA (safety evals)', 'Federal security standard (NIST SP 800-53 aligned)'],
           ['WCAG 2.1 AA Accessibility', 'Keyboard navigation, screen reader support, high contrast, focus indicators, resizable text, agentic step indicators announced via ARIA live regions', 'Inclusive design + government standard'],
           ['Bilingual EN/FR', 'All UI strings externalized via react-i18next. Language-parameterized prompts (not hardcoded). Translation tool is first-class citizen. Non-bilingual tools auto-route through translation.', 'Official languages, AIRA requirement'],
           ['RAG-First', 'No fine-tuning on user data. Every answer includes pinpoint citations to source chunks. Confidence score + provenance chain on every response.', 'Grounding enforcement, prevent hallucination'],
           ['All AI via APIM', 'Zero direct Azure OpenAI calls. All requests carry x-app-id, x-user-group, x-classification, x-correlation-id headers. APIM is sole enforcement point.', 'Cost attribution, rate limiting, security audit, request tracing'],
-          ['Shared Trunk', 'All features merge back to EVA Foundation core. Feature branches only. No project-specific forks.', 'Minimize maintenance burden, maximize code reuse'],
+          ['Shared Trunk', 'All features merge back to AIA Foundation core. Feature branches only. No project-specific forks.', 'Minimize maintenance burden, maximize code reuse'],
           ['No User Data Retraining', 'Conversation logs are never used to fine-tune or retrain models. Ephemeral session state only.', 'Privacy (AUD06), user trust'],
           ['Anonymized Logging', 'No PII (names, emails, SSNs, etc.) in Azure Log Analytics. All logs use hash IDs and correlation UUIDs.', 'Privacy (AUD02/AUD05), compliance'],
         ].map(([constraint, req, rationale], i) =>
@@ -1828,15 +1828,15 @@ function TechDesContextSection({ lang }) {
 function TechDesComponentsSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Component Architecture'),
-    React.createElement('p', null, 'EVA Agentic is structured as six distinct architectural layers, each with clear responsibilities, security boundaries, and observability surfaces. Azure AI Foundry governs layers 3–5 (Agent Service, model registry, safety evals, tracing).'),
+    React.createElement('p', null, 'AIA is structured as six distinct architectural layers, each with clear responsibilities, security boundaries, and observability surfaces. Azure AI Foundry governs layers 3–5 (Agent Service, model registry, safety evals, tracing).'),
     React.createElement(Mermaid, {
       chart: `graph TB
-  L1["<b>L1 · EVA UI</b><br/>WCAG 2.1 AA · Bilingual EN/FR<br/>Agentic step indicators<br/>GCDS + shadcn/ui + Tailwind"]
+  L1["<b>L1 · AIA UI</b><br/>WCAG 2.1 AA · Bilingual EN/FR<br/>Agentic step indicators<br/>GCDS + shadcn/ui + Tailwind"]
   L2["<b>L2 · APIM Gateway</b><br/>Entra ID SSO · FinOps headers<br/>x-app-id · x-user-group · x-classification<br/>Rate limits · SCED/VNet only"]
   L3["<b>L3 · Agent Orchestrator</b><br/>Azure AI Foundry Agent Service<br/>ReAct loop + step reflection<br/>Tool Registry · Memory<br/>Redis/Cosmos/AI Search"]
   L4["<b>L4 · Guardrails</b><br/>9 modules for responsible AI<br/>Content Safety · Prompt Shield<br/>Grounding · HITL checkpoints<br/>Audit trail"]
   L5["<b>L5 · Azure OpenAI</b><br/>GPT-4o default · Model registry<br/>Managed via Foundry<br/>Deployment catalog"]
-  L6["<b>L6 · Knowledge & Data</b><br/>AI Search hybrid<br/>Blob Storage · Vector Index<br/>ESDC data sources"]
+  L6["<b>L6 · Knowledge & Data</b><br/>AI Search hybrid<br/>Blob Storage · Vector Index<br/>Organization data sources"]
   L1 --> L2
   L2 --> L3
   L3 --> L4
@@ -1850,7 +1850,7 @@ function TechDesComponentsSection({ lang }) {
   style L6 fill:#F3E5F5,stroke:#6A1B9A,color:#4A148C,stroke-width:2px`,
       caption: 'Figure 2 — Six-Layer Architecture Model'
     }),
-    React.createElement('h2', null, 'Layer 1 — EVA UI'),
+    React.createElement('h2', null, 'Layer 1 — AIA UI'),
     React.createElement('p', null, 'The presentation layer comprises three portals (self-service, business management, operations) built on a unified React 19 + Vite 6 + TypeScript 5.7 stack. All UI strings are externalized via react-i18next with EN/FR JSON catalogs — no hardcoded text.'),
     React.createElement('table', null,
       React.createElement('thead', null,
@@ -1896,7 +1896,7 @@ function TechDesComponentsSection({ lang }) {
     ),
     React.createElement('p', null, React.createElement('strong', null, 'Tool Registry:') + ' Every tool declares at registration:'),
     React.createElement('ul', null,
-      React.createElement('li', null, 'Classification ceiling (Protected B or lower)'),
+      React.createElement('li', null, 'Classification ceiling (sensitive or lower)'),
       React.createElement('li', null, 'Data residency requirement (Canada Central/East only)'),
       React.createElement('li', null, 'Bilingual support (yes/no)'),
       React.createElement('li', null, 'HITL-required flag (mandatory human review before response)'),
@@ -1926,7 +1926,7 @@ function TechDesComponentsSection({ lang }) {
           ['ConfidenceScorer', 'Computes 0–1 confidence from retrieval relevance score, source coverage (multi-source vs. single), grounding adherence', 'Retrieval context + generated answer', 'Confidence score + uncertainty disclosure'],
           ['GroundingEnforcer', 'Validates all claims in the answer are supported by retrieved chunks. Blocks hallucinations and unsupported inferences.', 'Answer + cited chunks', 'Grounding verdict (pass/fail) + unsupported spans'],
           ['PromptShield', 'ML-based detection of prompt injection, jailbreak attempts, and adversarial inputs. Blocks or flags suspicious queries.', 'User query + conversation history', 'Safety verdict + risk score + flagged patterns'],
-          ['EscalationEngine', 'Routes to auto-resolve (high confidence, pass grounding) / flagged-for-review (AICM L1, advisory) / requires-human (AICM L2+, decision-informing).', 'Confidence + grounding + classification', 'Routing decision + HITL queue link'],
+          ['EscalationEngine', 'Routes to auto-resolve (high confidence, pass grounding) / flagged-for-review (RAI L1, advisory) / requires-human (RAI L2+, decision-informing).', 'Confidence + grounding + classification', 'Routing decision + HITL queue link'],
           ['FreshnessChecker', 'Validates source currency. Discloses staleness when retrieved documents exceed age threshold (configurable per workspace).', 'Citation metadata (ingestion_date, freshness_date)', 'Freshness verdict + age warning'],
           ['DegradationManager', 'Circuit breakers per dependency (AI Search down, OpenAI over quota). Graceful fallback: vector search → keyword search → FAQ lookup → "I don\'t know"', 'Dependency health + fallback config', 'Degraded response (with disclosure) or escalation'],
           ['AuditLogger', 'Logs every agent step: tool name, input hash, latency, token count, output hash, error if any. No PII.', 'Agent step event', 'Audit entry (Cosmos DB + Application Insights)'],
@@ -1942,13 +1942,13 @@ function TechDesComponentsSection({ lang }) {
         )
       )
     ),
-    React.createElement(Callout, { type: 'warn', title: 'AICM Gating' },
-      'AICM (Algorithmic Impact Assessment) Level 1 (advisory) gates: human reviews all outputs post-hoc. Level 2+ (decision-informing) gates: mandatory HITL checkpoint before response surfaces to user. Level configuration is per-workspace, not per-tool.'
+    React.createElement(Callout, { type: 'warn', title: 'RAI Gating' },
+      'RAI (Algorithmic Impact Assessment) Level 1 (advisory) gates: human reviews all outputs post-hoc. Level 2+ (decision-informing) gates: mandatory HITL checkpoint before response surfaces to user. Level configuration is per-workspace, not per-tool.'
     ),
     React.createElement('h2', null, 'Layer 5 — Azure OpenAI'),
     React.createElement('p', null, 'Model deployment and inference are managed entirely by Azure AI Foundry. GPT-4o is the default reasoning model; GPT-4-turbo serves fallback. Models are versioned and rolled back via Foundry model catalog. All model calls route through APIM.'),
     React.createElement('h2', null, 'Layer 6 — Knowledge & Data'),
-    React.createElement('p', null, 'AI Search provides hybrid search across workspace-scoped indexes. Each workspace has a dedicated index (eva-workspace-{workspace_id}-index) with:'),
+    React.createElement('p', null, 'AI Search provides hybrid search across workspace-scoped indexes. Each workspace has a dedicated index (aia-workspace-{workspace_id}-index) with:'),
     React.createElement('ul', null,
       React.createElement('li', null, React.createElement('strong', null, 'Hybrid search') + ': keyword BM25 + dense vector (HNSW, cosine similarity) + semantic reranking'),
       React.createElement('li', null, React.createElement('strong', null, 'Fields') + ': content, title, section, pages, file_name, file_uri, entities (extracted), key_phrases, tags'),
@@ -1956,10 +1956,10 @@ function TechDesComponentsSection({ lang }) {
       React.createElement('li', null, React.createElement('strong', null, 'Vectors') + ': 1536-dimensional embeddings from Azure OpenAI Embeddings API, updated daily for recency')
     ),
     React.createElement('h2', null, 'Three-Portal System'),
-    React.createElement('p', null, 'The EVA DA management system comprises three portals, all consuming the same API gateway:'),
+    React.createElement('p', null, 'The AIA DA management system comprises three portals, all consuming the same API gateway:'),
     React.createElement('ul', null,
-      React.createElement('li', null, React.createElement('strong', null, 'Portal 1 — Self-Service') + ': Customer-facing, PoC\'d in 46-accelerator. Browse workspace catalog, book EVA DA indexes, manage team RBAC, complete surveys, view cost recovery.'),
-      React.createElement('li', null, React.createElement('strong', null, 'Portal 2 — Business Management') + ': AICoE admin-facing. Client onboarding, workspace assignment interviews, central booking management, business attributes.'),
+      React.createElement('li', null, React.createElement('strong', null, 'Portal 1 — Self-Service') + ': Customer-facing, PoC\'d in 46-accelerator. Browse workspace catalog, book AIA DA indexes, manage team RBAC, complete surveys, view cost recovery.'),
+      React.createElement('li', null, React.createElement('strong', null, 'Portal 2 — Business Management') + ': Information Assistant team admin-facing. Client onboarding, workspace assignment interviews, central booking management, business attributes.'),
       React.createElement('li', null, React.createElement('strong', null, 'Portal 3 — Operations & Support') + ': Ops platform for all RAG-like solutions (FinOps, AIOps, LiveOps, DevOps). APIM monitoring, AI Search health, model performance, cost anomaly detection, SLA tracking.')
     ),
   );
@@ -1968,7 +1968,7 @@ function TechDesComponentsSection({ lang }) {
 function TechDesInterfacesSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'API & Integration Interfaces'),
-    React.createElement('p', null, 'EVA Agentic presents a REST API modeled on the functional requirements of Microsoft\'s PubSec-Info-Assistant. All endpoints are exposed through Azure APIM with Entra ID authentication and FinOps cost-attribution headers.'),
+    React.createElement('p', null, 'AIA presents a REST API modeled on the functional requirements of Microsoft\'s PubSec-Info-Assistant. All endpoints are exposed through Azure APIM with Entra ID authentication and FinOps cost-attribution headers.'),
     React.createElement('h2', null, 'REST Endpoints'),
     React.createElement('table', null,
       React.createElement('thead', null,
@@ -2014,7 +2014,7 @@ function TechDesInterfacesSection({ lang }) {
           ['Authorization', 'Bearer <JWT from Entra ID>', 'Authentication + RBAC context'],
           ['x-app-id', 'UUID (workspace ID)', 'Cost center attribution, rate limit scoping'],
           ['x-user-group', 'Entra ID group OID', 'RBAC enforcement (Admin/Contributor/Viewer)'],
-          ['x-classification', 'Protected B | Unclassified', 'Data classification ceiling, governs which indexes are queryable'],
+          ['x-classification', 'sensitive | Unclassified', 'Data classification ceiling, governs which indexes are queryable'],
           ['x-correlation-id', 'UUID', 'End-to-end request tracing for OTEL'],
           ['Content-Language', 'en | fr', 'Preferred language for response prompts and UI strings'],
         ].map(([hdr, fmt, purpose], i) =>
@@ -2108,9 +2108,9 @@ function TechDesInterfacesSection({ lang }) {
 `
     ),
     React.createElement('h2', null, 'P75 Integration Points'),
-    React.createElement('p', null, 'EVA Agentic integrates with P75 infrastructure through these APIs:'),
+    React.createElement('p', null, 'AIA integrates with P75 infrastructure through these APIs:'),
     React.createElement('ul', null,
-      React.createElement('li', null, React.createElement('strong', null, 'APIM:') + ' /api/eva-agentic/v1/* routes defined in APIM policy, rate limits, quota tracking'),
+      React.createElement('li', null, React.createElement('strong', null, 'APIM:') + ' /api/aia-agentic/v1/* routes defined in APIM policy, rate limits, quota tracking'),
       React.createElement('li', null, React.createElement('strong', null, 'Azure AI Foundry:') + ' Agent Service SDK (Python), model deployments catalog, safety evaluation endpoints'),
       React.createElement('li', null, React.createElement('strong', null, 'Azure OpenAI:') + ' Chat Completion, Embeddings APIs via Foundry (no direct calls)'),
       React.createElement('li', null, React.createElement('strong', null, 'AI Search:') + ' Search SDK with hybrid query builder, semantic reranking (configured per index)'),
@@ -2124,9 +2124,9 @@ function TechDesInterfacesSection({ lang }) {
 function TechDesDataSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Data Architecture'),
-    React.createElement('p', null, 'EVA Agentic uses a multi-system data model: AI Search for hybrid retrieval, Cosmos DB for conversation history and workspace metadata, and Blob Storage for raw documents. Data flows through a document processing pipeline that chunks, embeds, and indexes in configurable ways per document archetype.'),
+    React.createElement('p', null, 'AIA uses a multi-system data model: AI Search for hybrid retrieval, Cosmos DB for conversation history and workspace metadata, and Blob Storage for raw documents. Data flows through a document processing pipeline that chunks, embeds, and indexes in configurable ways per document archetype.'),
     React.createElement('h2', null, 'AI Search Index Design'),
-    React.createElement('p', null, 'Each workspace has a dedicated Azure AI Search index: eva-workspace-{workspace_id}-index. The index is automatically created when a workspace transitions to "booked" status.'),
+    React.createElement('p', null, 'Each workspace has a dedicated Azure AI Search index: aia-workspace-{workspace_id}-index. The index is automatically created when a workspace transitions to "booked" status.'),
     React.createElement('table', null,
       React.createElement('thead', null,
         React.createElement('tr', null,
@@ -2182,7 +2182,7 @@ function TechDesDataSection({ lang }) {
       React.createElement('tbody', null,
         [
           ['statusdb', '/workspace_id', '{ workspace_id, document_id, status, progress_pct, error_msg, job_id, created_at, updated_at }', 'Document processing status tracking (upload → chunking → embedding → indexed)'],
-          ['eva-workspaces', '/workspace_id', '{ workspace_id, name, org_id, owner_id, index_name, blob_container, status, created_at, aicm_level, model_version, config }', 'Workspace metadata, configuration, lifecycle state'],
+          ['aia-workspaces', '/workspace_id', '{ workspace_id, name, org_id, owner_id, index_name, blob_container, status, created_at, rai_level, model_version, config }', 'Workspace metadata, configuration, lifecycle state'],
           ['demo-users', '/user_id', '{ user_id, email, name, org_id, roles, last_login, preferences, demo_workspace_id }', 'User profiles and RBAC assignments (test/demo data only)'],
         ].map(([cont, pk, structure, usecase], i) =>
           React.createElement('tr', { key: i },
@@ -2209,7 +2209,7 @@ function TechDesDataSection({ lang }) {
         [
           ['created', 'Admin creates workspace', 'Allocate workspace ID, initialize metadata container', 'None (read-only)'],
           ['assigned', 'Customer onboarded', 'Create Blob container, prepare Cosmos DB row', 'None'],
-          ['booked', 'Booking confirmed (Portal 1)', 'Provision AI Search index (eva-workspace-{id}-index)', 'Upload documents'],
+          ['booked', 'Booking confirmed (Portal 1)', 'Provision AI Search index (aia-workspace-{id}-index)', 'Upload documents'],
           ['indexed', 'First documents processed', 'Vector embeddings ready, search live', 'Full chat + document management'],
           ['booking-completed', 'Booking end date reached', 'Index frozen (read-only), chat available', 'Chat only (no new uploads)'],
           ['retention-expired', 'Retention TTL exceeded (e.g., 90 days post-checkout)', 'Delete Blob container, AI Search index, Cosmos items', 'None (deleted)'],
@@ -2255,12 +2255,12 @@ function TechDesDataSection({ lang }) {
       chart: `graph LR
   User["User<br/>Portal 1/2/3"]
   Upload["Upload Endpoint<br/>/documents/upload"]
-  Blob["Workspace<br/>Blob Container<br/>Protected B"]
+  Blob["Workspace<br/>Blob Container<br/>sensitive"]
   Queue["Service Bus<br/>Document Queues<br/>pdf_submit / non_pdf_submit"]
   DI["Document<br/>Intelligence<br/>Form Recognizer"]
   Chunk["Chunking<br/>Service<br/>4 strategies"]
   Embed["Embedding<br/>Service<br/>Azure OpenAI"]
-  AIS["AI Search<br/>Index<br/>eva-workspace-{id}"]
+  AIS["AI Search<br/>Index<br/>aia-workspace-{id}"]
   StatusDB["Cosmos DB<br/>statusdb<br/>Progress tracking"]
   Search["Search<br/>Endpoint"]
   Chat["Chat<br/>Agent"]
@@ -2295,15 +2295,15 @@ function TechDesDataSection({ lang }) {
 function TechDesSecuritySection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Security Architecture'),
-    React.createElement('p', null, 'EVA Agentic is designed and operated to Protected B, ITSG-33, and AI security frameworks (NIST AI RMF, ISO/IEC 42001:2023, OWASP Top 10 for LLM Applications, MITRE ATLAS). Security is enforced at every layer, not bolted on at the end.'),
-    React.createElement('h2', null, 'ITSG-33 Control Mapping'),
+    React.createElement('p', null, 'AIA is designed and operated to sensitive, NIST 800-53, and AI security frameworks (NIST AI RMF, ISO/IEC 42001:2023, OWASP Top 10 for LLM Applications, MITRE ATLAS). Security is enforced at every layer, not bolted on at the end.'),
+    React.createElement('h2', null, 'NIST 800-53 Control Mapping'),
     React.createElement('p', null, 'All Federal security controls are mapped to implementation:'),
     React.createElement('table', null,
       React.createElement('thead', null,
         React.createElement('tr', null,
           React.createElement('th', null, 'Control Class'),
-          React.createElement('th', null, 'ITSG-33 ID'),
-          React.createElement('th', null, 'Implementation in EVA Agentic'),
+          React.createElement('th', null, 'NIST 800-53 ID'),
+          React.createElement('th', null, 'Implementation in AIA'),
         )
       ),
       React.createElement('tbody', null,
@@ -2337,7 +2337,7 @@ function TechDesSecuritySection({ lang }) {
       ),
       React.createElement('tbody', null,
         [
-          ['Admin', 'Read/Write/Delete, Share, Set Lifecycle', 'Manage (add/delete indexes), Query, Reindex, Configure settings', 'Create/edit/delete, Set AICM level, RBAC assignment'],
+          ['Admin', 'Read/Write/Delete, Share, Set Lifecycle', 'Manage (add/delete indexes), Query, Reindex, Configure settings', 'Create/edit/delete, Set RAI level, RBAC assignment'],
           ['Contributor', 'Read/Write, Upload, Manage own uploads', 'Query, Manage contributions (mark for review)', 'Read-only access to settings'],
           ['Viewer (default)', 'Read-only, List contents', 'Query only (read-only search)', 'View-only (no changes)'],
         ].map(([role, blob, index, config], i) =>
@@ -2352,7 +2352,7 @@ function TechDesSecuritySection({ lang }) {
     ),
     React.createElement('h2', null, 'Data Protection'),
     React.createElement('ul', null,
-      React.createElement('li', null, React.createElement('strong', null, 'Encryption at Rest') + ': All Blob containers, Cosmos DB, and AI Search indexes encrypted with AES-256 (Microsoft-managed keys by default, BYOK available for Protected B+)'),
+      React.createElement('li', null, React.createElement('strong', null, 'Encryption at Rest') + ': All Blob containers, Cosmos DB, and AI Search indexes encrypted with AES-256 (Microsoft-managed keys by default, BYOK available for sensitive+)'),
       React.createElement('li', null, React.createElement('strong', null, 'Encryption in Transit') + ': TLS 1.3 for all HTTPS connections, service-to-service communication via VNet private endpoints (no Internet routing)'),
       React.createElement('li', null, React.createElement('strong', null, 'PII Handling') + ': No PII stored in indexes or logs. User queries hashed before logging. Conversation history in Cosmos DB is subject to workspace-scoped RBAC.'),
       React.createElement('li', null, React.createElement('strong', null, 'Data Residency') + ': All data (compute, storage, caches) in Canada Central or Canada East. No data exfiltration to US or other regions.'),
@@ -2417,7 +2417,7 @@ function TechDesSecuritySection({ lang }) {
 function TechDesDeploymentSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Deployment Architecture'),
-    React.createElement('p', null, 'EVA Agentic is deployed as containerized microservices on Azure Container Apps (P75\'s ACA environment), orchestrated by GitHub Actions CI/CD and Infrastructure-as-Code (Bicep).'),
+    React.createElement('p', null, 'AIA is deployed as containerized microservices on Azure Container Apps (P75\'s ACA environment), orchestrated by GitHub Actions CI/CD and Infrastructure-as-Code (Bicep).'),
     React.createElement('h2', null, 'Local Development (Docker Compose)'),
     React.createElement('p', null, 'Developers can run the full stack locally for integration testing:'),
     React.createElement('pre', { style: { background: 'var(--surface-2)', padding: '12px', borderRadius: 'var(--radius-md)', overflowX: 'auto', fontSize: '13px' } },
@@ -2474,8 +2474,8 @@ python api-gateway/main.py   # Start API server (FastAPI)
 
 # Deploy to dev:
 az deployment group create \\
-  --name eva-agentic-dev \\
-  --resource-group rg-eva-agentic-dev \\
+  --name aia-agentic-dev \\
+  --resource-group rg-aia-agentic-dev \\
   --template-file bicep/main.bicep \\
   --parameters bicep/environments/dev.json
 `
@@ -2521,7 +2521,7 @@ az deployment group create \\
         [
           ['dev', 'Commit to main (auto)', 'Lint + test pass', 'Demo data (test workspaces, fake documents)'],
           ['staging', 'Manual approval in GitHub', 'Dev pass + manual review', 'Subset of production data (anonymized)'],
-          ['prod', 'Manual approval in GitHub', 'Staging pass + CISO sign-off', 'Live customer data (Protected B, SCED-only)'],
+          ['prod', 'Manual approval in GitHub', 'Staging pass + CISO sign-off', 'Live customer data (sensitive, SCED-only)'],
         ].map(([env, trigger, gate, data], i) =>
           React.createElement('tr', { key: i },
             React.createElement('td', null, React.createElement('strong', null, env)),
@@ -2572,7 +2572,7 @@ az deployment group create \\
 function TechDesNfrSection({ lang }) {
   return React.createElement(Fragment, null,
     React.createElement('h1', null, 'Non-Functional Requirements'),
-    React.createElement('p', null, 'EVA Agentic must meet enterprise-grade targets for performance, availability, scalability, accessibility, observability, and operational readiness.'),
+    React.createElement('p', null, 'AIA must meet enterprise-grade targets for performance, availability, scalability, accessibility, observability, and operational readiness.'),
     React.createElement('h2', null, 'Performance Targets'),
     React.createElement('table', null,
       React.createElement('thead', null,
@@ -2629,7 +2629,7 @@ function TechDesNfrSection({ lang }) {
     ),
     React.createElement('h2', null, 'Scalability'),
     React.createElement('ul', null,
-      React.createElement('li', null, React.createElement('strong', null, 'Workspace Isolation') + ': Each workspace has a dedicated AI Search index (eva-workspace-{id}-index) and Blob container, preventing cross-workspace interference and enabling independent scaling.'),
+      React.createElement('li', null, React.createElement('strong', null, 'Workspace Isolation') + ': Each workspace has a dedicated AI Search index (aia-workspace-{id}-index) and Blob container, preventing cross-workspace interference and enabling independent scaling.'),
       React.createElement('li', null, React.createElement('strong', null, 'Cosmos DB Partitioning') + ': Multi-tenant containers partitioned by workspace_id, enabling horizontal scaling across partitions. No cross-partition transactions.'),
       React.createElement('li', null, React.createElement('strong', null, 'Stateless API Gateway') + ': All services are horizontally scalable (no sticky sessions). Container Apps auto-scales based on CPU/memory.'),
       React.createElement('li', null, React.createElement('strong', null, 'Azure OpenAI Quota') + ': TPM (tokens per minute) and RPM (requests per minute) managed via Foundry model deployment catalog. Burst handling through Service Bus queueing.'),
@@ -2698,7 +2698,7 @@ function TechDesNfrSection({ lang }) {
       )
     ),
     React.createElement('h2', null, 'Reliability & Graceful Degradation'),
-    React.createElement('p', null, 'EVA Agentic never completely fails — it gracefully degrades when dependencies fail:'),
+    React.createElement('p', null, 'AIA never completely fails — it gracefully degrades when dependencies fail:'),
     React.createElement('ol', null,
       React.createElement('li', null, React.createElement('strong', null, 'Tier 1 (full service)') + ': Hybrid search (keyword + vector + reranking) with GPT-4o reasoning. Confidence ≥0.85.'),
       React.createElement('li', null, React.createElement('strong', null, 'Tier 2 (degraded)') + ': Vector search fails → fallback to keyword-only BM25. Confidence 0.65–0.85. User warned: "Search quality reduced; results may be incomplete."'),
@@ -2780,15 +2780,15 @@ function ConOpsOverviewSection({ lang }) {
 
       React.createElement('p', { className: 'lead' },
         isEN
-          ? 'EVA Agentic is a governed, multi-step agentic RAG platform designed to transform monolithic legacy systems into a world-class enterprise and government production-ready managed service. It replaces the legacy MSIA while maintaining coexistence with EVA DA during transition.'
-          : 'EVA Agentic est une plateforme RAG multi-étapes gouvernée conçue pour transformer les systèmes monolithiques hérités en un service géré de classe mondiale, prêt pour la production. Elle remplace l\'ASIM hérité tout en maintenant la coexistence avec EVA DA pendant la transition.'
+          ? 'AIA is a governed, multi-step agentic RAG platform designed to transform monolithic legacy systems into a world-class enterprise and government production-ready managed service. It replaces the legacy MSIA while maintaining coexistence with AIA DA during transition.'
+          : 'AIA est une plateforme RAG multi-étapes gouvernée conçue pour transformer les systèmes monolithiques hérités en un service géré de classe mondiale, prêt pour la production. Elle remplace l\'ASIM hérité tout en maintenant la coexistence avec AIA DA pendant la transition.'
       ),
 
       React.createElement('h2', null, isEN ? 'Mission & Scope' : 'Mission et champ d\'application'),
       React.createElement('p', null,
         isEN
-          ? 'EVA Agentic delivers governed AI-assisted information retrieval at scale across 50+ EVA DA indexes. The platform serves multiple business clients with varying complexity: from simple FAQ retrieval through legislative assistance (OAS Act), case law jurisprudence (EI adjudication), analytics interpretation (Power BI), to AI-evidenced decision-making (GovOps deterministic workflows).'
-          : 'EVA Agentic fournit une recherche d\'information assistée par IA gouvernée à grande échelle sur plus de 50 index EVA DA. La plateforme dessert plusieurs clients commerciaux avec une complexité variable : de la simple récupération de FAQ à l\'aide législative (Loi sur l\'AES), à la jurisprudence en droit des cas (adjudication AE), à l\'interprétation analytique (Power BI), à la prise de décision appuyée sur l\'IA (flux de travail déterministes GovOps).'
+          ? 'AIA delivers governed AI-assisted information retrieval at scale across 50+ AIA DA indexes. The platform serves multiple business clients with varying complexity: from simple FAQ retrieval through legislative assistance (OAS Act), case law jurisprudence (EI adjudication), analytics interpretation (Power BI), to AI-evidenced decision-making (GovOps deterministic workflows).'
+          : 'AIA fournit une recherche d\'information assistée par IA gouvernée à grande échelle sur plus de 50 index AIA DA. La plateforme dessert plusieurs clients commerciaux avec une complexité variable : de la simple récupération de FAQ à l\'aide législative (Loi sur l\'AES), à la jurisprudence en droit des cas (adjudication AE), à l\'interprétation analytique (Power BI), à la prise de décision appuyée sur l\'IA (flux de travail déterministes GovOps).'
       ),
 
       React.createElement('h2', null, isEN ? 'Use Case Spectrum' : 'Spectre des cas d\'utilisation'),
@@ -2855,16 +2855,16 @@ function ConOpsOverviewSection({ lang }) {
         title: isEN ? 'Not a Hard Cutover' : 'Pas une transition brutale',
         children: React.createElement('p', null,
           isEN
-            ? 'EVA Agentic runs alongside EVA DA initially, sharing the same APIM gateway, user directory, and cost-attribution headers. Migration happens use-case by use-case, validated through production observability before decommissioning legacy indexes. The platform accommodates both monolithic and agentic interaction patterns during the transition.'
-            : 'EVA Agentic s\'exécute aux côtés d\'EVA DA initialement, partageant la même passerelle APIM, le même répertoire utilisateur et les mêmes en-têtes d\'attribution des coûts. La migration se fait cas d\'utilisation par cas d\'utilisation, validée par l\'observabilité de production avant la désaffectation des index hérités. La plateforme accommode les modèles d\'interaction monolithiques et agentiques pendant la transition.'
+            ? 'AIA runs alongside AIA DA initially, sharing the same APIM gateway, user directory, and cost-attribution headers. Migration happens use-case by use-case, validated through production observability before decommissioning legacy indexes. The platform accommodates both monolithic and agentic interaction patterns during the transition.'
+            : 'AIA s\'exécute aux côtés d\'AIA DA initialement, partageant la même passerelle APIM, le même répertoire utilisateur et les mêmes en-têtes d\'attribution des coûts. La migration se fait cas d\'utilisation par cas d\'utilisation, validée par l\'observabilité de production avant la désaffectation des index hérités. La plateforme accommode les modèles d\'interaction monolithiques et agentiques pendant la transition.'
         )
       }),
 
       React.createElement('h2', null, isEN ? 'Platform Reach' : 'Portée de la plateforme'),
       React.createElement('p', null,
         isEN
-          ? 'The platform currently manages 50+ EVA DA workspace indexes across multiple business clients (departments, teams, programs). Each workspace is independently scoped, has its own vector index, document retention, and cost allocation. The three portals (self-service booking, business management, operations) govern the complete service lifecycle from client onboarding through incident response.'
-          : 'La plateforme gère actuellement plus de 50 index d\'espaces de travail EVA DA répartis entre plusieurs clients commerciaux (ministères, équipes, programmes). Chaque espace de travail est indépendamment délimité, possède son propre index vectoriel, sa propre rétention de documents et son allocation de coûts. Les trois portails (réservation en libre-service, gestion commerciale, opérations) gouvernent le cycle de vie complet du service, de l\'intégration des clients à la réponse aux incidents.'
+          ? 'The platform currently manages 50+ AIA DA workspace indexes across multiple business clients (departments, teams, programs). Each workspace is independently scoped, has its own vector index, document retention, and cost allocation. The three portals (self-service booking, business management, operations) govern the complete service lifecycle from client onboarding through incident response.'
+          : 'La plateforme gère actuellement plus de 50 index d\'espaces de travail AIA DA répartis entre plusieurs clients commerciaux (ministères, équipes, programmes). Chaque espace de travail est indépendamment délimité, possède son propre index vectoriel, sa propre rétention de documents et son allocation de coûts. Les trois portails (réservation en libre-service, gestion commerciale, opérations) gouvernent le cycle de vie complet du service, de l\'intégration des clients à la réponse aux incidents.'
       )
     )
   );
@@ -2881,20 +2881,20 @@ function ConOpsStakeholdersSection({ lang }) {
     {
       name: isEN ? 'AI Centre of Enablement (AI CoE)' : 'Centre d\'excellence en IA (CoIA)',
       responsibilities: isEN
-        ? 'Owns the platform roadmap, governs AI use policy, approves new models, manages Foundry Hub configuration, conducts safety evaluations, oversees AICM gate decisions'
-        : 'Possède la feuille de route de la plateforme, gouverne la politique d\'utilisation de l\'IA, approuve les nouveaux modèles, gère la configuration du hub Foundry, mène les évaluations de sécurité, supervise les décisions des portes AICM'
+        ? 'Owns the platform roadmap, governs AI use policy, approves new models, manages Foundry Hub configuration, conducts safety evaluations, oversees RAI gate decisions'
+        : 'Possède la feuille de route de la plateforme, gouverne la politique d\'utilisation de l\'IA, approuve les nouveaux modèles, gère la configuration du hub Foundry, mène les évaluations de sécurité, supervise les décisions des portes RAI'
     },
     {
       name: isEN ? 'Business Clients' : 'Clients commerciaux',
       responsibilities: isEN
-        ? 'Departments/teams that book EVA DA workspaces, manage team RBAC, define document archetype & chunking strategy, participate in entry/exit surveys, own their data retention & compliance'
-        : 'Les ministères/équipes qui réservent des espaces de travail EVA DA, gèrent le RBAC d\'équipe, définissent l\'archétype de document et la stratégie de chunking, participent aux sondages d\'entrée/sortie, possèdent leur rétention et conformité des données'
+        ? 'Departments/teams that book AIA DA workspaces, manage team RBAC, define document archetype & chunking strategy, participate in entry/exit surveys, own their data retention & compliance'
+        : 'Les ministères/équipes qui réservent des espaces de travail AIA DA, gèrent le RBAC d\'équipe, définissent l\'archétype de document et la stratégie de chunking, participent aux sondages d\'entrée/sortie, possèdent leur rétention et conformité des données'
     },
     {
       name: isEN ? 'End Users' : 'Utilisateurs finaux',
       responsibilities: isEN
-        ? 'Query EVA Chat or workspace-scoped RAG, provide feedback on answer quality & citation accuracy, complete satisfaction surveys, report issues or outdated content'
-        : 'Interrogent EVA Chat ou RAG dans le cadre de l\'espace de travail, fournissent des commentaires sur la qualité des réponses et la précision des citations, complètent les sondages de satisfaction, signalent les problèmes ou le contenu obsolète'
+        ? 'Query AIA Chat or workspace-scoped RAG, provide feedback on answer quality & citation accuracy, complete satisfaction surveys, report issues or outdated content'
+        : 'Interrogent AIA Chat ou RAG dans le cadre de l\'espace de travail, fournissent des commentaires sur la qualité des réponses et la précision des citations, complètent les sondages de satisfaction, signalent les problèmes ou le contenu obsolète'
     },
     {
       name: isEN ? 'Operations & Support' : 'Opérations et support',
@@ -2911,8 +2911,8 @@ function ConOpsStakeholdersSection({ lang }) {
     {
       name: isEN ? 'Security & Compliance' : 'Sécurité et conformité',
       responsibilities: isEN
-        ? 'Privacy Impact Assessment (PIA), Security & Technical Evaluation (ST&E), ITSG-33 compliance audits, data residency verification, WCAG 2.1 AA accessibility reviews, bilingual content validation'
-        : 'Évaluation des incidences sur la vie privée (EIP), Évaluation de la sécurité et technique (EVT), audits de conformité ITSG-33, vérification de la résidence des données, examens d\'accessibilité WCAG 2.1 AA, validation du contenu bilingue'
+        ? 'Privacy Impact Assessment (PIA), Security & Technical Evaluation (ST&E), NIST 800-53 compliance audits, data residency verification, WCAG 2.1 AA accessibility reviews, bilingual content validation'
+        : 'Évaluation des incidences sur la vie privée (EIP), Évaluation de la sécurité et technique (EVT), audits de conformité NIST 800-53, vérification de la résidence des données, examens d\'accessibilité WCAG 2.1 AA, validation du contenu bilingue'
     }
   ];
 
@@ -2921,8 +2921,8 @@ function ConOpsStakeholdersSection({ lang }) {
       name: 'Alice Chen',
       role: isEN ? 'Self-Service User (Portal 1)' : 'Utilisateur en libre-service (Portail 1)',
       scenario: isEN
-        ? 'Books an EVA DA workspace for her team\'s HR policy questions. Completes entry survey, uploads team guidelines, asks chat questions, provides feedback on answer accuracy.'
-        : 'Réserve un espace de travail EVA DA pour les questions de politique RH de son équipe. Complète le sondage d\'entrée, charge les directives d\'équipe, pose des questions de discussion, fournit des commentaires sur la précision des réponses.'
+        ? 'Books an AIA DA workspace for her team\'s HR policy questions. Completes entry survey, uploads team guidelines, asks chat questions, provides feedback on answer accuracy.'
+        : 'Réserve un espace de travail AIA DA pour les questions de politique RH de son équipe. Complète le sondage d\'entrée, charge les directives d\'équipe, pose des questions de discussion, fournit des commentaires sur la précision des réponses.'
     },
     {
       name: 'Bob Wilson',
@@ -2935,8 +2935,8 @@ function ConOpsStakeholdersSection({ lang }) {
       name: 'Carol Martinez',
       role: isEN ? 'AI CoE Admin (Portal 3)' : 'Admin CoIA (Portail 3)',
       scenario: isEN
-        ? 'Reviews safety evaluations, approves new LLM deployments, configures tool registry ceilings, investigates failing AICM gates, oversees prompt versioning.'
-        : 'Examine les évaluations de sécurité, approuve les nouveaux déploiements LLM, configure les plafonds du registre des outils, enquête sur les portes AICM défaillantes, supervise le versioning des invites.'
+        ? 'Reviews safety evaluations, approves new LLM deployments, configures tool registry ceilings, investigates failing RAI gates, oversees prompt versioning.'
+        : 'Examine les évaluations de sécurité, approuve les nouveaux déploiements LLM, configure les plafonds du registre des outils, enquête sur les portes RAI défaillantes, supervise le versioning des invites.'
     },
     {
       name: 'Dave Thompson',
@@ -2957,7 +2957,7 @@ function ConOpsStakeholdersSection({ lang }) {
   const raciActivities = [
     {
       activity: isEN ? 'Client Onboarding' : 'Intégration des clients',
-      aicoe: 'C',
+      example-org: 'C',
       client: 'R',
       enduser: '—',
       ops: 'I',
@@ -2966,7 +2966,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'Workspace Creation' : 'Création d\'espace de travail',
-      aicoe: 'A',
+      example-org: 'A',
       client: 'R',
       enduser: 'I',
       ops: 'R',
@@ -2975,7 +2975,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'Document Upload & Indexing' : 'Chargement et indexation des documents',
-      aicoe: 'C',
+      example-org: 'C',
       client: 'R',
       enduser: 'I',
       ops: 'A',
@@ -2984,7 +2984,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'RAG Query & Response' : 'Requête et réponse RAG',
-      aicoe: 'C',
+      example-org: 'C',
       client: '—',
       enduser: 'R',
       ops: 'A',
@@ -2993,7 +2993,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'Quality Investigation (AIOps)' : 'Enquête de qualité (AIOps)',
-      aicoe: 'R',
+      example-org: 'R',
       client: 'I',
       enduser: '—',
       ops: 'A',
@@ -3001,8 +3001,8 @@ function ConOpsStakeholdersSection({ lang }) {
       security: 'I'
     },
     {
-      activity: isEN ? 'AICM Gate Decision' : 'Décision de porte AICM',
-      aicoe: 'A',
+      activity: isEN ? 'RAI Gate Decision' : 'Décision de porte RAI',
+      example-org: 'A',
       client: 'I',
       enduser: '—',
       ops: 'I',
@@ -3011,7 +3011,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'Cost Chargeback' : 'Facturation des coûts',
-      aicoe: 'I',
+      example-org: 'I',
       client: 'R',
       enduser: '—',
       ops: 'I',
@@ -3020,7 +3020,7 @@ function ConOpsStakeholdersSection({ lang }) {
     },
     {
       activity: isEN ? 'Incident Response' : 'Réponse aux incidents',
-      aicoe: 'I',
+      example-org: 'I',
       client: 'I',
       enduser: '—',
       ops: 'A',
@@ -3039,8 +3039,8 @@ function ConOpsStakeholdersSection({ lang }) {
 
       React.createElement('p', { className: 'lead' },
         isEN
-          ? 'The EVA Agentic platform operates across six stakeholder groups, each with distinct responsibilities in governance, operations, and support. Clear role definition ensures accountability and seamless collaboration.'
-          : 'La plateforme EVA Agentic fonctionne selon six groupes d\'intervenants, chacun ayant des responsabilités distinctes en matière de gouvernance, d\'opérations et de support. La définition claire des rôles assure l\'imputabilité et la collaboration transparente.'
+          ? 'The AIA platform operates across six stakeholder groups, each with distinct responsibilities in governance, operations, and support. Clear role definition ensures accountability and seamless collaboration.'
+          : 'La plateforme AIA fonctionne selon six groupes d\'intervenants, chacun ayant des responsabilités distinctes en matière de gouvernance, d\'opérations et de support. La définition claire des rôles assure l\'imputabilité et la collaboration transparente.'
       ),
 
       React.createElement('h2', null, isEN ? 'Core Stakeholders' : 'Intervenants principaux'),
@@ -3075,7 +3075,7 @@ function ConOpsStakeholdersSection({ lang }) {
           raciActivities.map((row, idx) =>
             React.createElement('tr', { key: `raci-${idx}` },
               React.createElement('td', null, row.activity),
-              React.createElement('td', { className: 'raci-cell' }, row.aicoe),
+              React.createElement('td', { className: 'raci-cell' }, row.example-org),
               React.createElement('td', { className: 'raci-cell' }, row.client),
               React.createElement('td', { className: 'raci-cell' }, row.enduser),
               React.createElement('td', { className: 'raci-cell' }, row.ops),
@@ -3538,7 +3538,7 @@ function ConOpsLifecycleSection({ lang }) {
     {
       stage: isEN ? 'Enriched' : 'Enrichi',
       detail: isEN
-        ? 'NER (entities), key phrases, topic classification. Translation to FR (if bilingual). Classification level validated (no Protected B in public index).'
+        ? 'NER (entities), key phrases, topic classification. Translation to FR (if bilingual). Classification level validated (no sensitive in public index).'
         : 'NER (entités), phrases clés, classification des sujets. Traduction en FR (si bilingue). Niveau de classification validé (pas de Protégé B dans l\'index public).'
     },
     {
@@ -3589,8 +3589,8 @@ function ConOpsLifecycleSection({ lang }) {
     {
       phase: isEN ? 'Phase 2+: Maturity' : 'Phase 2+ : Maturité',
       activities: isEN
-        ? 'Advanced use cases (jurisprudence, Power BI, GovOps). Multi-archetype retrieval. Advanced guardrails (AICM L2+ HITL). Evaluation arena with Elo-based model comparison. Cost optimization. Capacity planning. Scale to 50+ workspaces.'
-        : 'Cas d\'utilisation avancés (jurisprudence, Power BI, GovOps). Récupération multi-archétype. Garde-fous avancés (AICM L2+ HITL). Arène d\'évaluation avec comparaison de modèles basée sur Elo. Optimisation des coûts. Planification de la capacité. Mise à l\'échelle à 50+ espaces de travail.'
+        ? 'Advanced use cases (jurisprudence, Power BI, GovOps). Multi-archetype retrieval. Advanced guardrails (RAI L2+ HITL). Evaluation arena with Elo-based model comparison. Cost optimization. Capacity planning. Scale to 50+ workspaces.'
+        : 'Cas d\'utilisation avancés (jurisprudence, Power BI, GovOps). Récupération multi-archétype. Garde-fous avancés (RAI L2+ HITL). Arène d\'évaluation avec comparaison de modèles basée sur Elo. Optimisation des coûts. Planification de la capacité. Mise à l\'échelle à 50+ espaces de travail.'
     }
   ];
 
@@ -3684,7 +3684,7 @@ function ConOpsLifecycleSection({ lang }) {
 function ConOpsGovernanceSection({ lang }) {
   const isEN = lang !== 'fr';
 
-  const aicmGateLogic = [
+  const raiGateLogic = [
     {
       level: isEN ? 'Level 1: Advisory' : 'Niveau 1 : Consultatif',
       use: isEN ? 'Information retrieval with no decision authority' : 'Récupération d\'informations sans pouvoir décisionnel',
@@ -3702,7 +3702,7 @@ function ConOpsGovernanceSection({ lang }) {
     {
       level: isEN ? 'Level 3: Autonomous Decision' : 'Niveau 3 : Décision autonome',
       use: isEN ? 'AI makes binding decisions without human review' : 'L\'IA prend des décisions exécutoires sans examen humain',
-      hitl: isEN ? 'Not permitted in EVA Agentic (reserved for future)' : 'Non autorisé dans EVA Agentic (réservé à l\'avenir)',
+      hitl: isEN ? 'Not permitted in AIA (reserved for future)' : 'Non autorisé dans AIA (réservé à l\'avenir)',
       example: isEN ? 'N/A' : 'S/O',
       observability: isEN ? 'N/A' : 'S/O'
     }
@@ -3713,7 +3713,7 @@ function ConOpsGovernanceSection({ lang }) {
       category: isEN ? 'Agentic State (10)' : 'État agentique (10)',
       principles: [
         isEN ? 'Forensic audit trail: every decision traceable to evidence & policy version' : 'Piste d\'audit médico-légale : chaque décision traçable à la preuve et à la version de la politique',
-        isEN ? 'Compliance-as-code: TBS/ESDC rules encoded as executable policy' : 'Conformité en tant que code : règles TBS/ESDC codées comme politique exécutable',
+        isEN ? 'Compliance-as-code: TBS/Organization rules encoded as executable policy' : 'Conformité en tant que code : règles TBS/Organization codées comme politique exécutable',
         isEN ? 'Agent identity: behavioral fingerprint (model + prompt + corpus + policy versions)' : 'Identité d\'agent : empreinte digitale comportementale (modèle + invite + corpus + versions de politique)',
         isEN ? 'Escalation tiers: structured runways to human review (L1 auto → L2 flag → L3 halt)' : 'Niveaux d\'escalade : pistes structurées pour examen humain (L1 auto → L2 drapeau → L3 arrêt)',
         isEN ? 'Outcome-based FinOps: cost & value aligned, AOE gates prevent waste' : 'FinOps basé sur les résultats : coûts et valeur alignés, les portes AOE préviennent le gaspillage',
@@ -3725,7 +3725,7 @@ function ConOpsGovernanceSection({ lang }) {
       ]
     },
     {
-      category: isEN ? 'EVA Additions (9)' : 'Ajouts EVA (9)',
+      category: isEN ? 'AIA Additions (9)' : 'Ajouts AIA (9)',
       principles: [
         isEN ? 'Confidence scoring & disclosure: model outputs confidence, user knows what to trust' : 'Notation de confiance et divulgation : les sorties du modèle affichent la confiance, l\'utilisateur sait ce qui est digne de confiance',
         isEN ? 'Explainability & reasoning: trace every step, user can audit the logic' : 'Explicabilité et raisonnement : tracer chaque étape, l\'utilisateur peut auditer la logique',
@@ -3742,7 +3742,7 @@ function ConOpsGovernanceSection({ lang }) {
 
   const governanceControls = [
     {
-      control: isEN ? 'AICM Gate Logic' : 'Logique de porte AICM',
+      control: isEN ? 'RAI Gate Logic' : 'Logique de porte RAI',
       mechanism: isEN ? 'Tool registry declares output classification (L1 advisory vs L2+ HITL)' : 'Le registre des outils déclare la classification de sortie (L1 consultatif vs L2+ HITL)',
       owner: isEN ? 'AI CoE + Security' : 'CoIA + Sécurité',
       enforcement: isEN ? 'Foundry runtime validates gate, blocks L2 until HITL approves' : 'L\'exécution Foundry valide la porte, bloque L2 jusqu\'à approbation HITL'
@@ -3755,7 +3755,7 @@ function ConOpsGovernanceSection({ lang }) {
     },
     {
       control: isEN ? 'Workspace Classification Alignment' : 'Alignement de la classification de l\'espace de travail',
-      mechanism: isEN ? 'Workspace declared as Protected B or lower; vector index filtered to match ceiling' : 'L\'espace de travail est déclaré comme Protégé B ou inférieur ; l\'index vectoriel filtré pour correspondre au plafond',
+      mechanism: isEN ? 'Workspace declared as sensitive or lower; vector index filtered to match ceiling' : 'L\'espace de travail est déclaré comme Protégé B ou inférieur ; l\'index vectoriel filtré pour correspondre au plafond',
       owner: isEN ? 'Business Client + Security' : 'Client commercial + Sécurité',
       enforcement: isEN ? 'APIM headers enforce classification; ingestion pipeline rejects misclassified docs' : 'Les en-têtes APIM appliquent la classification ; le pipeline d\'ingestion rejette les documents mal classés'
     },
@@ -3767,7 +3767,7 @@ function ConOpsGovernanceSection({ lang }) {
     },
     {
       control: isEN ? 'Compliance-as-Code' : 'Conformité en tant que code',
-      mechanism: isEN ? 'ITSG-33 rules encoded as Foundry runtime checks (AC, AU, CM, IA, SC, SI, SA)' : 'Les règles ITSG-33 codées comme contrôles d\'exécution Foundry (AC, AU, CM, IA, SC, SI, SA)',
+      mechanism: isEN ? 'NIST 800-53 rules encoded as Foundry runtime checks (AC, AU, CM, IA, SC, SI, SA)' : 'Les règles NIST 800-53 codées comme contrôles d\'exécution Foundry (AC, AU, CM, IA, SC, SI, SA)',
       owner: isEN ? 'Security & AI CoE' : 'Sécurité et CoIA',
       enforcement: isEN ? 'Policy violations trigger alerts, violations logged, escalation to L3 if critical' : 'Les violations de politique déclenchent des alertes, les violations sont enregistrées, escalade à L3 si critique'
     },
@@ -3807,15 +3807,15 @@ function ConOpsGovernanceSection({ lang }) {
 
       React.createElement('p', { className: 'lead' },
         isEN
-          ? 'EVA Agentic operates under a comprehensive governance framework aligned to ESDC AI Reference Architecture (AIRA), TBS Generative AI guidance, ITSG-33 security requirements, and internal EVA design principles. Governance is not a gate; it is a runtime invariant.'
-          : 'EVA Agentic fonctionne selon un cadre de gouvernance complet aligné sur l\'Architecture de référence IA d\'EDSC (AIRA), l\'orientation de l\'IA générative de TBS, les exigences de sécurité ITSG-33 et les principes de conception EVA internes. La gouvernance n\'est pas une porte ; c\'est un invariant d\'exécution.'
+          ? 'AIA operates under a comprehensive governance framework aligned to Organization AI Reference Architecture (AIRA), TBS Generative AI guidance, NIST 800-53 security requirements, and internal AIA design principles. Governance is not a gate; it is a runtime invariant.'
+          : 'AIA fonctionne selon un cadre de gouvernance complet aligné sur l\'Architecture de référence IA d\'EDSC (AIRA), l\'orientation de l\'IA générative de TBS, les exigences de sécurité NIST 800-53 et les principes de conception AIA internes. La gouvernance n\'est pas une porte ; c\'est un invariant d\'exécution.'
       ),
 
-      React.createElement('h2', null, isEN ? 'AICM Gate Logic' : 'Logique de porte AICM'),
+      React.createElement('h2', null, isEN ? 'RAI Gate Logic' : 'Logique de porte RAI'),
       React.createElement('p', null,
         isEN
-          ? 'AI system outputs are classified by the level at which human judgment is required. EVA Agentic currently supports Levels 1 & 2; Level 3 (autonomous decision) is reserved for future maturity.'
-          : 'Les sorties des systèmes d\'IA sont classées selon le niveau de jugement humain requis. EVA Agentic supporte actuellement les niveaux 1 et 2 ; le niveau 3 (décision autonome) est réservé à la maturité future.'
+          ? 'AI system outputs are classified by the level at which human judgment is required. AIA currently supports Levels 1 & 2; Level 3 (autonomous decision) is reserved for future maturity.'
+          : 'Les sorties des systèmes d\'IA sont classées selon le niveau de jugement humain requis. AIA supporte actuellement les niveaux 1 et 2 ; le niveau 3 (décision autonome) est réservé à la maturité future.'
       ),
 
       React.createElement('table', { className: 'raci-table' },
@@ -3829,8 +3829,8 @@ function ConOpsGovernanceSection({ lang }) {
           )
         ),
         React.createElement('tbody', null,
-          aicmGateLogic.map((row, idx) =>
-            React.createElement('tr', { key: `aicm-${idx}` },
+          raiGateLogic.map((row, idx) =>
+            React.createElement('tr', { key: `rai-${idx}` },
               React.createElement('td', null, row.level),
               React.createElement('td', null, row.use),
               React.createElement('td', null, row.hitl),
@@ -3889,9 +3889,9 @@ function ConOpsGovernanceSection({ lang }) {
 
       React.createElement('h2', null, isEN ? 'Alignment with Standards & Frameworks' : 'Alignement avec les normes et les cadres'),
       React.createElement('ul', null,
-        React.createElement('li', null, React.createElement('strong', null, 'ESDC AI Reference Architecture (AIRA)'), isEN ? ': EVA Agentic is a governance pattern within AIRA. Aligned Jan 2025 EARB approval.' : ' : EVA Agentic est un motif de gouvernance dans AIRA. Aligné sur l\'approbation EARB de janvier 2025.'),
-        React.createElement('li', null, React.createElement('strong', null, 'TBS Generative AI Guidance'), isEN ? ': Tool registry governance, AICM levels, audit trails, bilingual support address all TBS expectations.' : ' : La gouvernance du registre des outils, les niveaux AICM, les pistes d\'audit, le support bilingue répondent à toutes les attentes de TBS.'),
-        React.createElement('li', null, React.createElement('strong', null, 'ITSG-33'), isEN ? ': All security controls (AC, AU, CM, IA, SC, SI, SA) mapped to Azure native services and Foundry runtime.' : ' : Tous les contrôles de sécurité (AC, AU, CM, IA, SC, SI, SA) mappés aux services Azure natifs et à l\'exécution Foundry.'),
+        React.createElement('li', null, React.createElement('strong', null, 'Organization AI Reference Architecture (AIRA)'), isEN ? ': AIA is a governance pattern within AIRA. Aligned Jan 2025 EARB approval.' : ' : AIA est un motif de gouvernance dans AIRA. Aligné sur l\'approbation EARB de janvier 2025.'),
+        React.createElement('li', null, React.createElement('strong', null, 'TBS Generative AI Guidance'), isEN ? ': Tool registry governance, RAI levels, audit trails, bilingual support address all TBS expectations.' : ' : La gouvernance du registre des outils, les niveaux RAI, les pistes d\'audit, le support bilingue répondent à toutes les attentes de TBS.'),
+        React.createElement('li', null, React.createElement('strong', null, 'NIST 800-53'), isEN ? ': All security controls (AC, AU, CM, IA, SC, SI, SA) mapped to Azure native services and Foundry runtime.' : ' : Tous les contrôles de sécurité (AC, AU, CM, IA, SC, SI, SA) mappés aux services Azure natifs et à l\'exécution Foundry.'),
         React.createElement('li', null, React.createElement('strong', null, 'NIST AI RMF, ISO/IEC 42001:2023, OWASP Top 10 for LLM'), isEN ? ': Governance-as-code approach embeds these frameworks into tool definitions, guardrails, and policy enforcement.' : ' : L\'approche de gouvernance en tant que code intègre ces cadres dans les définitions d\'outils, les garde-fous et l\'application des politiques.'),
         React.createElement('li', null, React.createElement('strong', null, isEN ? 'WCAG 2.1 AA & EN 301 549' : 'WCAG 2.1 AA et EN 301 549'), isEN ? ': Accessibility is baked into Portal UX, agentic step indicators, chat transcripts, and all user-facing content.' : ' : L\'accessibilité est intégrée dans l\'interface utilisateur du portail, les indicateurs d\'étapes agentiques, les transcriptions de chat et tout le contenu visible par l\'utilisateur.')
       ),
@@ -3899,8 +3899,8 @@ function ConOpsGovernanceSection({ lang }) {
       React.createElement('h2', null, isEN ? 'Compliance-as-Code: Example' : 'Conformité en tant que code : Exemple'),
       React.createElement('p', null,
         isEN
-          ? 'ITSG-33 requirement AC-3 (Access Control) is encoded in Foundry as: "Every tool action must authenticate user via Entra ID, check RBAC group membership, and log the action with Entra ID + action hash." This is not a manual checklist; it is runtime policy.'
-          : 'L\'exigence ITSG-33 AC-3 (Contrôle d\'accès) est codée dans Foundry comme suit : « Chaque action d\'outil doit authentifier l\'utilisateur via Entra ID, vérifier l\'appartenance au groupe RBAC et enregistrer l\'action avec le hachage Entra ID + action. » Ce n\'est pas une liste de contrôle manuelle ; c\'est une politique d\'exécution.'
+          ? 'NIST 800-53 requirement AC-3 (Access Control) is encoded in Foundry as: "Every tool action must authenticate user via Entra ID, check RBAC group membership, and log the action with Entra ID + action hash." This is not a manual checklist; it is runtime policy.'
+          : 'L\'exigence NIST 800-53 AC-3 (Contrôle d\'accès) est codée dans Foundry comme suit : « Chaque action d\'outil doit authentifier l\'utilisateur via Entra ID, vérifier l\'appartenance au groupe RBAC et enregistrer l\'action avec le hachage Entra ID + action. » Ce n\'est pas une liste de contrôle manuelle ; c\'est une politique d\'exécution.'
       ),
 
       React.createElement(Callout, {
@@ -3908,8 +3908,8 @@ function ConOpsGovernanceSection({ lang }) {
         title: isEN ? 'Governance is Continuous, Not Episodic' : 'La gouvernance est continue, non épisodique',
         children: React.createElement('p', null,
           isEN
-            ? 'Governance gates (security review, PIA, ST&E) happen at program start. But platform governance is continuous: compliance-as-code runs every query, AICM gates enforce every response, audit trails capture every action, and AIOps dashboards detect every anomaly. There is no "post-launch" window where rules are relaxed.'
-            : 'Les portes de gouvernance (examen de sécurité, EIP, EVT) se produisent au lancement du programme. Mais la gouvernance de la plateforme est continue : la conformité en tant que code s\'exécute à chaque requête, les portes AICM appliquent chaque réponse, les pistes d\'audit capturent chaque action et les tableaux de bord AIOps détectent chaque anomalie. Il n\'y a pas de fenêtre « post-lancement » où les règles sont assouplies.'
+            ? 'Governance gates (security review, PIA, ST&E) happen at program start. But platform governance is continuous: compliance-as-code runs every query, RAI gates enforce every response, audit trails capture every action, and AIOps dashboards detect every anomaly. There is no "post-launch" window where rules are relaxed.'
+            : 'Les portes de gouvernance (examen de sécurité, EIP, EVT) se produisent au lancement du programme. Mais la gouvernance de la plateforme est continue : la conformité en tant que code s\'exécute à chaque requête, les portes RAI appliquent chaque réponse, les pistes d\'audit capturent chaque action et les tableaux de bord AIOps détectent chaque anomalie. Il n\'y a pas de fenêtre « post-lancement » où les règles sont assouplies.'
         )
       })
     )
@@ -3927,7 +3927,7 @@ const FinOpsModelSection = ({ lang }) => {
   const en = {
     title: 'Cost Model & Attribution',
     subtitle: 'Comprehensive cost structure and attribution waterfall',
-    costStructureTitle: 'EVA Agentic Cost Structure',
+    costStructureTitle: 'AIA Cost Structure',
     costStructureDesc: 'All costs attributed to individual clients and workspaces through comprehensive instrumentation.',
     costItems: [
       { item: 'Azure OpenAI Tokens', desc: 'Input/output tokens per model (GPT-4o, GPT-5-mini), tracked separately' },
@@ -3941,9 +3941,9 @@ const FinOpsModelSection = ({ lang }) => {
     attributionTitle: 'Cost Attribution Waterfall',
     attributionDesc: 'Every transaction flows through P75 APIM with mandatory FinOps headers.',
     headerTable: [
-      { header: 'x-app-id', desc: 'Application identifier (e.g., "eva-da", "eva-agentic")' },
+      { header: 'x-app-id', desc: 'Application identifier (e.g., "aia-da", "aia-agentic")' },
       { header: 'x-user-group', desc: 'Entra ID group membership for RBAC + cost allocation' },
-      { header: 'x-classification', desc: 'Data classification (Protected B, Unclassified) for residency routing' },
+      { header: 'x-classification', desc: 'Data classification (sensitive, Unclassified) for residency routing' },
       { header: 'x-workspace-id', desc: 'Workspace/index identifier for per-workspace cost rollup' },
     ],
     attributionFlowTitle: 'Attribution Flow (Mermaid)',
@@ -3961,7 +3961,7 @@ const FinOpsModelSection = ({ lang }) => {
   const fr = {
     title: 'Modèle de coûts et attribution',
     subtitle: 'Structure de coûts complète et cascade d\'attribution',
-    costStructureTitle: 'Structure des coûts EVA Agentic',
+    costStructureTitle: 'Structure des coûts AIA',
     costStructureDesc: 'Tous les coûts sont attribués à des clients et des espaces de travail individuels grâce à une instrumentation complète.',
     costItems: [
       { item: 'Jetons Azure OpenAI', desc: 'Jetons d\'entrée/sortie par modèle (GPT-4o, GPT-5-mini), suivis séparément' },
@@ -3975,7 +3975,7 @@ const FinOpsModelSection = ({ lang }) => {
     attributionTitle: 'Cascade d\'attribution des coûts',
     attributionDesc: 'Chaque transaction passe par APIM P75 avec des en-têtes FinOps obligatoires.',
     headerTable: [
-      { header: 'x-app-id', desc: 'Identifiant d\'application (par exemple, "eva-da", "eva-agentic")' },
+      { header: 'x-app-id', desc: 'Identifiant d\'application (par exemple, "aia-da", "aia-agentic")' },
       { header: 'x-user-group', desc: 'Appartenance au groupe Entra ID pour RBAC + allocation des coûts' },
       { header: 'x-classification', desc: 'Classification des données (Protégé B, Non classifié) pour l\'acheminement de la résidence' },
       { header: 'x-workspace-id', desc: 'Identifiant de l\'espace de travail/index pour le cumul des coûts par espace de travail' },
@@ -4096,7 +4096,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
     title: 'Instrumentation & Data Collection',
     subtitle: 'Comprehensive observability pipeline for cost tracking and audit',
     overviewTitle: 'Instrumentation Overview',
-    overviewDesc: 'EVA Agentic instruments every transaction at three levels: API gateway, agent execution, and vector search.',
+    overviewDesc: 'AIA instruments every transaction at three levels: API gateway, agent execution, and vector search.',
     instrumentationTable: [
       { point: 'APIM Cost Headers', captures: 'x-app-id, x-user-group, x-workspace-id, x-classification on every request' },
       { point: 'OTEL Agent Spans', captures: 'Tool name, input hash, latency, output hash, step sequence per agent execution' },
@@ -4106,14 +4106,14 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       { point: 'App Insights Custom Dimensions', captures: 'FinOps correlation IDs, cost center, workspace, model, token type' },
     ],
     apimHeadersTitle: 'APIM Cost Attribution Headers',
-    apimHeadersDesc: 'All EVA Agentic traffic routes through P75 APIM. FinOps headers are mandatory on every request.',
+    apimHeadersDesc: 'All AIA traffic routes through P75 APIM. FinOps headers are mandatory on every request.',
     headerDetailsTable: [
       {
         header: 'x-app-id',
         type: 'string (enum)',
-        example: '"eva-agentic", "eva-da"',
+        example: '"aia-agentic", "aia-da"',
         mandatory: 'Yes',
-        desc: 'Application identifier. Used to partition cost across EVA product line.',
+        desc: 'Application identifier. Used to partition cost across AIA product line.',
       },
       {
         header: 'x-user-group',
@@ -4132,7 +4132,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       {
         header: 'x-classification',
         type: 'enum',
-        example: '"Protected B", "Unclassified"',
+        example: '"sensitive", "Unclassified"',
         mandatory: 'Yes',
         desc: 'Data classification. Routes compute to correct VNet segment (Canada Central/East).',
       },
@@ -4161,7 +4161,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
     appInsightsTitle: 'Application Insights Custom Dimensions',
     appInsightsDimensions: [
       { dim: 'finops_correlation_id', example: 'UUID', desc: 'Links all spans in a single request chain' },
-      { dim: 'cost_center', example: '"ESDC-FIN-001"', desc: 'From exit survey or LDAP sync' },
+      { dim: 'cost_center', example: '"Organization-FIN-001"', desc: 'From exit survey or LDAP sync' },
       { dim: 'workspace_name', example: '"AssistMe-OAS"', desc: 'Human-readable workspace identifier' },
       { dim: 'model', example: '"gpt-4o"', desc: 'Model used in the request' },
       { dim: 'token_type', example: '"input", "output"', desc: 'Dimension for cost breakdowns' },
@@ -4172,7 +4172,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       'All agent steps logged with: timestamp, actor (Entra ID), action (tool invoked), input hash, output hash, latency',
       'Logs stored in Application Insights (hot) → Log Analytics (warm, 30d retention) → Archive to Blob (cold, 7y)',
       'Log anonymization: never log raw user input, raw LLM output, PII (AUD02/AUD05 compliance)',
-      'Dual authentication for log access: Entra ID + special "FinOps Auditor" AD group (ITSG-33 AC)',
+      'Dual authentication for log access: Entra ID + special "FinOps Auditor" AD group (NIST 800-53 AC)',
       'Weekly log review: automated compliance check (unused tools, policy drift, data residency violations)',
     ],
   };
@@ -4181,7 +4181,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
     title: 'Instrumentation et collecte de données',
     subtitle: 'Pipeline d\'observabilité complète pour le suivi des coûts et l\'audit',
     overviewTitle: 'Présentation de l\'instrumentation',
-    overviewDesc: 'EVA Agentic instrumente chaque transaction à trois niveaux : passerelle API, exécution d\'agent et recherche vectorielle.',
+    overviewDesc: 'AIA instrumente chaque transaction à trois niveaux : passerelle API, exécution d\'agent et recherche vectorielle.',
     instrumentationTable: [
       { point: 'En-têtes de coûts APIM', captures: 'x-app-id, x-user-group, x-workspace-id, x-classification sur chaque demande' },
       { point: 'Étapes OTEL Agent', captures: 'Nom de l\'outil, hash d\'entrée, latence, hash de sortie, séquence d\'étapes par exécution d\'agent' },
@@ -4191,14 +4191,14 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       { point: 'Dimensions personnalisées App Insights', captures: 'ID de corrélation FinOps, centre de coûts, espace de travail, modèle, type de jeton' },
     ],
     apimHeadersTitle: 'En-têtes d\'attribution des coûts APIM',
-    apimHeadersDesc: 'Tout le trafic EVA Agentic passe par APIM P75. Les en-têtes FinOps sont obligatoires sur chaque demande.',
+    apimHeadersDesc: 'Tout le trafic AIA passe par APIM P75. Les en-têtes FinOps sont obligatoires sur chaque demande.',
     headerDetailsTable: [
       {
         header: 'x-app-id',
         type: 'string (enum)',
-        example: '"eva-agentic", "eva-da"',
+        example: '"aia-agentic", "aia-da"',
         mandatory: 'Oui',
-        desc: 'Identifiant d\'application. Utilisé pour partitionner les coûts sur la gamme de produits EVA.',
+        desc: 'Identifiant d\'application. Utilisé pour partitionner les coûts sur la gamme de produits AIA.',
       },
       {
         header: 'x-user-group',
@@ -4217,7 +4217,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       {
         header: 'x-classification',
         type: 'enum',
-        example: '"Protected B", "Unclassified"',
+        example: '"sensitive", "Unclassified"',
         mandatory: 'Oui',
         desc: 'Classification des données. Achemine le calcul vers le segment VNet correct (Canada Central/Est).',
       },
@@ -4246,7 +4246,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
     appInsightsTitle: 'Dimensions personnalisées Application Insights',
     appInsightsDimensions: [
       { dim: 'finops_correlation_id', example: 'UUID', desc: 'Lie toutes les portées d\'une seule chaîne de requête' },
-      { dim: 'cost_center', example: '"ESDC-FIN-001"', desc: 'Provenant du sondage de sortie ou de la synchronisation LDAP' },
+      { dim: 'cost_center', example: '"Organization-FIN-001"', desc: 'Provenant du sondage de sortie ou de la synchronisation LDAP' },
       { dim: 'workspace_name', example: '"AssistMe-OAS"', desc: 'Identifiant d\'espace de travail lisible par l\'homme' },
       { dim: 'model', example: '"gpt-4o"', desc: 'Modèle utilisé dans la requête' },
       { dim: 'token_type', example: '"input", "output"', desc: 'Dimension pour les ventilations de coûts' },
@@ -4257,7 +4257,7 @@ const FinOpsInstrumentationSection = ({ lang }) => {
       'Toutes les étapes d\'agent enregistrées avec : horodatage, acteur (Entra ID), action (outil invoqué), hash d\'entrée, hash de sortie, latence',
       'Journaux stockés dans Application Insights (chaud) → Log Analytics (tiède, rétention 30j) → Archive vers Blob (froid, 7a)',
       'Anonymisation du journal : ne jamais enregistrer l\'entrée utilisateur brute, la sortie LLM brute, les PII (conformité AUD02/AUD05)',
-      'Authentification double pour l\'accès aux journaux : Entra ID + groupe AD spécial "FinOps Auditor" (ITSG-33 AC)',
+      'Authentification double pour l\'accès aux journaux : Entra ID + groupe AD spécial "FinOps Auditor" (NIST 800-53 AC)',
       'Examen hebdomadaire des journaux : vérification de conformité automatisée (outils inutilisés, dérive de politique, violations de résidence des données)',
     ],
   };
@@ -4431,7 +4431,7 @@ const FinOpsP77Section = ({ lang }) => {
     overviewTitle: 'P77 Toolkit Overview',
     overviewDesc: 'P77 FinOps Toolkit (v13) is a production FinOps engine with 34 PowerShell scripts, 16 evidence directories, and 7 delivery packets aligned to organizational maturity phases.',
     p53RoleTitle: 'P53 Role: Consumer, Not Rebuilder',
-    p53RoleDesc: 'EVA Agentic (P53) consumes P77 APIs and metrics. P53 does NOT rebuild FinOps infrastructure.',
+    p53RoleDesc: 'AIA (P53) consumes P77 APIs and metrics. P53 does NOT rebuild FinOps infrastructure.',
     consumerPatterns: [
       'POST /v1/products/aca/scan → waste score, optimization candidates, AOE gate status',
       'GET /v1/products/aca/metrics/contract → executive metrics (monthly trend, top services, top RGs)',
@@ -4485,7 +4485,7 @@ const FinOpsP77Section = ({ lang }) => {
     overviewTitle: 'Présentation de la boîte à outils P77',
     overviewDesc: 'La boîte à outils P77 FinOps (v13) est un moteur FinOps de production avec 34 scripts PowerShell, 16 répertoires de preuves et 7 paquets de livraison alignés aux phases de maturité organisationnelle.',
     p53RoleTitle: 'Rôle P53 : consommateur, pas reconstructeur',
-    p53RoleDesc: 'EVA Agentic (P53) consomme les API et les métriques P77. P53 ne reconstruit PAS l\'infrastructure FinOps.',
+    p53RoleDesc: 'AIA (P53) consomme les API et les métriques P77. P53 ne reconstruit PAS l\'infrastructure FinOps.',
     consumerPatterns: [
       'POST /v1/products/aca/scan → score de gaspillage, candidats à l\'optimisation, statut de la porte AOE',
       'GET /v1/products/aca/metrics/contract → métriques exécutives (tendance mensuelle, services principaux, RG principaux)',
@@ -4732,7 +4732,7 @@ const FinOpsChargebackSection = ({ lang }) => {
     title: 'Chargeback & Cost Recovery',
     subtitle: 'Per-client, per-workspace cost allocation and billing',
     overviewTitle: 'Chargeback Model',
-    overviewDesc: 'EVA Agentic cost recovery flows from consumption metering through cost center allocation to client invoicing.',
+    overviewDesc: 'AIA cost recovery flows from consumption metering through cost center allocation to client invoicing.',
     chargebackFlowTitle: 'Chargeback Flow',
     chargebackFlow: [
       '1. Booking: Client specifies cost center during workspace booking (self-service Portal 1)',
@@ -4746,17 +4746,17 @@ const FinOpsChargebackSection = ({ lang }) => {
     costCenterMappingTitle: 'Cost Center Mapping',
     costCenterMappingDesc: 'Cost centers are captured from Entra ID LDAP sync + exit survey data. Enables flexible cost allocation across organizational structures.',
     costCenterFields: [
-      { field: 'cost_center_code', example: 'ESDC-FIN-001', desc: 'Organizational cost center identifier (from exit survey)' },
+      { field: 'cost_center_code', example: 'Organization-FIN-001', desc: 'Organizational cost center identifier (from exit survey)' },
       { field: 'department', example: 'Finance', desc: 'Department name from exit survey' },
       { field: 'project_code', example: 'OAS-Modernization-2025', desc: 'Project identifier for project-based chargeback' },
-      { field: 'manager_email', example: 'jean.dupont@esdc.gc.ca', desc: 'Cost center owner for approval workflow' },
+      { field: 'manager_email', example: 'jean.dupont@example.org', desc: 'Cost center owner for approval workflow' },
       { field: 'budget_allocation', example: '$50,000/month', desc: 'Allocated monthly budget (informational, no enforcement in Phase 1)' },
     ],
     reportFieldsTitle: 'Chargeback Report Fields',
     reportFields: [
       { field: 'billing_period', example: 'Feb 2025', desc: 'Month of chargeback' },
-      { field: 'cost_center', example: 'ESDC-FIN-001', desc: 'Receiving cost center' },
-      { field: 'workspace_name', example: 'AssistMe-OAS', desc: 'EVA workspace used' },
+      { field: 'cost_center', example: 'Organization-FIN-001', desc: 'Receiving cost center' },
+      { field: 'workspace_name', example: 'AssistMe-OAS', desc: 'AIA workspace used' },
       { field: 'user_group', example: 'Finance-Team', desc: 'Entra ID group' },
       { field: 'model_costs', example: 'GPT-4o: $1,245.32 | GPT-5-mini: $342.18', desc: 'Breakdown by model' },
       { field: 'search_costs', example: 'AI Search: $234.56', desc: 'Retrieval and reranking' },
@@ -4768,7 +4768,7 @@ const FinOpsChargebackSection = ({ lang }) => {
       { field: 'billable_status', example: 'Invoiced 2025-03-05', desc: 'Invoice reference or draft status' },
     ],
     showbackVsChargebackTitle: 'Show-Back vs Charge-Back',
-    showbackVsChargebackDesc: 'EVA Agentic supports both models. Portal 3 configuration controls per-client behavior.',
+    showbackVsChargebackDesc: 'AIA supports both models. Portal 3 configuration controls per-client behavior.',
     showbackChargebackTable: [
       { model: 'Show-Back', use: 'Advisory - clients view spend without billing', impact: 'Transparency without enforcement' },
       { model: 'Charge-Back (Full)', use: 'Clients invoiced monthly per cost center', impact: 'Cost accountability, budget discipline' },
@@ -4789,7 +4789,7 @@ const FinOpsChargebackSection = ({ lang }) => {
     title: 'Récupération des coûts et facturation',
     subtitle: 'Allocation des coûts et facturation par client et par espace de travail',
     overviewTitle: 'Modèle de facturation',
-    overviewDesc: 'La récupération des coûts EVA Agentic s\'écoule de la mesure de la consommation à l\'allocation du centre de coûts à la facturation du client.',
+    overviewDesc: 'La récupération des coûts AIA s\'écoule de la mesure de la consommation à l\'allocation du centre de coûts à la facturation du client.',
     chargebackFlowTitle: 'Flux de facturation',
     chargebackFlow: [
       '1. Réservation : le client spécifie le centre de coûts lors de la réservation d\'espace de travail (portail 1 libre-service)',
@@ -4803,17 +4803,17 @@ const FinOpsChargebackSection = ({ lang }) => {
     costCenterMappingTitle: 'Mappage du centre de coûts',
     costCenterMappingDesc: 'Les centres de coûts sont capturés à partir de la synchronisation LDAP Entra ID + données du sondage de sortie. Active une allocation flexible des coûts dans les structures organisationnelles.',
     costCenterFields: [
-      { field: 'code_centre_coûts', example: 'ESDC-FIN-001', desc: 'Identifiant du centre de coûts organisationnel (provenant du sondage de sortie)' },
+      { field: 'code_centre_coûts', example: 'Organization-FIN-001', desc: 'Identifiant du centre de coûts organisationnel (provenant du sondage de sortie)' },
       { field: 'département', example: 'Finance', desc: 'Nom du département du sondage de sortie' },
       { field: 'code_projet', example: 'OAS-Modernization-2025', desc: 'Identifiant du projet pour la facturation basée sur le projet' },
-      { field: 'email_gestionnaire', example: 'jean.dupont@esdc.gc.ca', desc: 'Propriétaire du centre de coûts pour le flux d\'approbation' },
+      { field: 'email_gestionnaire', example: 'jean.dupont@example.org', desc: 'Propriétaire du centre de coûts pour le flux d\'approbation' },
       { field: 'allocation_budgétaire', example: '50 000 $/mois', desc: 'Budget mensuel alloué (informatif, aucune mise en œuvre à la phase 1)' },
     ],
     reportFieldsTitle: 'Champs du rapport de facturation',
     reportFields: [
       { field: 'période_facturation', example: 'Février 2025', desc: 'Mois de facturation' },
-      { field: 'centre_coûts', example: 'ESDC-FIN-001', desc: 'Centre de coûts bénéficiaire' },
-      { field: 'nom_espace_travail', example: 'AssistMe-OAS', desc: 'Espace de travail EVA utilisé' },
+      { field: 'centre_coûts', example: 'Organization-FIN-001', desc: 'Centre de coûts bénéficiaire' },
+      { field: 'nom_espace_travail', example: 'AssistMe-OAS', desc: 'Espace de travail AIA utilisé' },
       { field: 'groupe_utilisateurs', example: 'Finance-Team', desc: 'Groupe Entra ID' },
       { field: 'coûts_modèle', example: 'GPT-4o : 1 245,32 $ | GPT-5-mini : 342,18 $', desc: 'Ventilation par modèle' },
       { field: 'coûts_recherche', example: 'Recherche IA : 234,56 $', desc: 'Extraction et réclassement' },
@@ -4825,7 +4825,7 @@ const FinOpsChargebackSection = ({ lang }) => {
       { field: 'statut_facturable', example: 'Facturé 2025-03-05', desc: 'Référence de facture ou statut brouillon' },
     ],
     showbackVsChargebackTitle: 'Affichage vs Facturation',
-    showbackVsChargebackDesc: 'EVA Agentic supporte les deux modèles. La configuration du portail 3 contrôle le comportement par client.',
+    showbackVsChargebackDesc: 'AIA supporte les deux modèles. La configuration du portail 3 contrôle le comportement par client.',
     showbackChargebackTable: [
       { model: 'Affichage', use: 'Consultatif - les clients consultent les dépenses sans facturation', impact: 'Transparence sans mise en œuvre' },
       { model: 'Facturation (complet)', use: 'Les clients sont facturés mensuellement par centre de coûts', impact: 'Responsabilité des coûts, discipline budgétaire' },
@@ -4979,7 +4979,7 @@ const FinOpsDashboardsSection = ({ lang }) => {
     title: 'FinOps Dashboards',
     subtitle: 'FinOps Command Center — Portal 3 (Operations & Support)',
     overviewTitle: 'Dashboard Ecosystem',
-    overviewDesc: 'Portal 3 FinOps Command Center is the operational hub for all EVA Agentic cost and performance metrics. Consumes P75 APIM + P77 metrics contract.',
+    overviewDesc: 'Portal 3 FinOps Command Center is the operational hub for all AIA cost and performance metrics. Consumes P75 APIM + P77 metrics contract.',
     dashboardViewsTitle: 'Dashboard Views',
     dashboardViews: [
       { view: 'Cost by Client', metrics: 'Total cost, trend, top 10 clients, YTD vs budget' },
@@ -5031,7 +5031,7 @@ const FinOpsDashboardsSection = ({ lang }) => {
     title: 'Tableaux de bord FinOps',
     subtitle: 'Centre de commandement FinOps — Portail 3 (Opérations et support)',
     overviewTitle: 'Écosystème des tableaux de bord',
-    overviewDesc: 'Le Centre de commandement FinOps du portail 3 est le centre opérationnel de toutes les métriques de coûts et de performance EVA Agentic. Consomme APIM P75 + contrat de métriques P77.',
+    overviewDesc: 'Le Centre de commandement FinOps du portail 3 est le centre opérationnel de toutes les métriques de coûts et de performance AIA. Consomme APIM P75 + contrat de métriques P77.',
     dashboardViewsTitle: 'Vues du tableau de bord',
     dashboardViews: [
       { view: 'Coût par client', metrics: 'Coût total, tendance, top 10 clients, YTD vs budget' },
@@ -5301,7 +5301,7 @@ const FinOpsOutcomesSection = ({ lang }) => {
       'Fallback (all systems fail): Human analyst, cost $25/escalation',
     ],
     d3pdcaTitle: 'D3PDCA Lifecycle (Data-Driven Plan-Do-Check-Act)',
-    d3pdcaDesc: 'EVA Agentic cost optimization follows an agile, iterative cycle with continuous measurement.',
+    d3pdcaDesc: 'AIA cost optimization follows an agile, iterative cycle with continuous measurement.',
     d3pdcaPhases: [
       {
         phase: 'D (Data)',
@@ -5440,7 +5440,7 @@ const FinOpsOutcomesSection = ({ lang }) => {
       'Secours (tous les systèmes échouent) : analyste humain, coût 25 $/escalade',
     ],
     d3pdcaTitle: 'Cycle de vie D3PDCA (Plan-Do-Check-Act piloté par les données)',
-    d3pdcaDesc: 'L\'optimisation des coûts EVA Agentic suit un cycle agile itératif avec mesure continue.',
+    d3pdcaDesc: 'L\'optimisation des coûts AIA suit un cycle agile itératif avec mesure continue.',
     d3pdcaPhases: [
       {
         phase: 'D (Données)',
@@ -5711,7 +5711,7 @@ const ATOVisionSection = ({ lang = 'en' }) => {
     en: {
       'vision.title': 'Continuous Authorization & Self-Evidencing ATO',
       'vision.subtitle': 'Traditional ATO vs. Machine-Readable Evidence by Design',
-      'vision.pitch': 'Traditional authorization-to-operate requires third-party assessors to spend months collecting evidence. EVA Agentic produces machine-readable compliance evidence continuously as a byproduct of normal operation.',
+      'vision.pitch': 'Traditional authorization-to-operate requires third-party assessors to spend months collecting evidence. AIA produces machine-readable compliance evidence continuously as a byproduct of normal operation.',
       'vision.pillars': 'Three Architectural Pillars',
       'vision.pillar1.title': 'Evidence-by-Design',
       'vision.pillar1.desc': 'Every agent response emits: structured provenance (actor, delegation chain, sources, exclusions), audit trail (timestamp, purpose, policy decision), confidence score (retrieval + coverage + grounding), behavioral fingerprint (model version, prompt version, corpus date, policy version), freshness assessment, and citation coverage.',
@@ -5722,19 +5722,19 @@ const ATOVisionSection = ({ lang = 'en' }) => {
       'vision.comparison.title': 'Evidence Collection: Traditional vs. Self-Evidencing',
       'vision.comparison.time': 'Time to Authorization',
       'vision.comparison.trad.time': '4–6 months (assessor schedule + remediation + reassessment)',
-      'vision.comparison.eva.time': '4–6 weeks (Phase 1 blockers + existing evidence artifacts)',
+      'vision.comparison.aia.time': '4–6 weeks (Phase 1 blockers + existing evidence artifacts)',
       'vision.comparison.cost': 'Assessment Cost',
       'vision.comparison.trad.cost': '$150K–300K (consultant-days + third-party review)',
-      'vision.comparison.eva.cost': '$20K–40K (internal validation + integration work)',
+      'vision.comparison.aia.cost': '$20K–40K (internal validation + integration work)',
       'vision.comparison.freshness': 'Evidence Freshness',
       'vision.comparison.trad.fresh': 'Static (snapshot at assessment date)',
-      'vision.comparison.eva.fresh': 'Continuous (per-response, queryable, real-time dashboard)',
+      'vision.comparison.aia.fresh': 'Continuous (per-response, queryable, real-time dashboard)',
       'vision.comparison.audit': 'Full Audit Trail',
       'vision.comparison.trad.audit': 'Manual sampling (representative set, potential gaps)',
-      'vision.comparison.eva.audit': 'Complete (every decision logged, correlation IDs trace across systems)',
+      'vision.comparison.aia.audit': 'Complete (every decision logged, correlation IDs trace across systems)',
       'vision.comparison.accuracy': 'Control Accuracy',
       'vision.comparison.trad.accurate': 'Indirect (interviewed staff + document review)',
-      'vision.comparison.eva.accurate': 'Direct (logs verify behavior, not intentions)',
+      'vision.comparison.aia.accurate': 'Direct (logs verify behavior, not intentions)',
       'vision.callout.title': 'This Assessment is Generated by Codebase Scanning',
       'vision.callout.desc': 'Every green checkmark means we read the Python/Bicep file and verified the implementation. Red means it\'s missing. Yellow means partial or stub. Not based on claims or roadmaps — based on what code actually exists.',
       'vision.diagram.title': 'Evidence Flow: Response → Audit → Telemetry → Dashboard',
@@ -5742,7 +5742,7 @@ const ATOVisionSection = ({ lang = 'en' }) => {
     fr: {
       'vision.title': 'Autorisation Continue et ATO Autojustificatif',
       'vision.subtitle': 'ATO traditionnel vs. Données probantes lisibles par machine par conception',
-      'vision.pitch': 'L\'autorisation traditionnelle d\'exploitation nécessite que les tiers passent plusieurs mois à collecter des preuves. EVA Agentic produit des preuves de conformité lisibles par machine en continu comme sous-produit du fonctionnement normal.',
+      'vision.pitch': 'L\'autorisation traditionnelle d\'exploitation nécessite que les tiers passent plusieurs mois à collecter des preuves. AIA produit des preuves de conformité lisibles par machine en continu comme sous-produit du fonctionnement normal.',
       'vision.pillars': 'Trois piliers architecturaux',
       'vision.pillar1.title': 'Preuve par conception',
       'vision.pillar1.desc': 'Chaque réponse d\'agent émet : provenance structurée (acteur, chaîne de délégation, sources, exclusions), piste d\'audit (horodatage, but, décision politique), score de confiance (récupération + couverture + justification), empreinte comportementale (version du modèle, version de l\'invite, date du corpus, version politique), évaluation de la fraîcheur, couverture des citations.',
@@ -5753,19 +5753,19 @@ const ATOVisionSection = ({ lang = 'en' }) => {
       'vision.comparison.title': 'Collecte de preuves : traditionnel vs autojustificatif',
       'vision.comparison.time': 'Délai d\'autorisation',
       'vision.comparison.trad.time': '4 à 6 mois (horaire de l\'évaluateur + correction + réévaluation)',
-      'vision.comparison.eva.time': '4 à 6 semaines (bloqueurs de phase 1 + artefacts de preuve existants)',
+      'vision.comparison.aia.time': '4 à 6 semaines (bloqueurs de phase 1 + artefacts de preuve existants)',
       'vision.comparison.cost': 'Coût de l\'évaluation',
       'vision.comparison.trad.cost': '150 000 $ à 300 000 $ (jours de consultant + examen tiers)',
-      'vision.comparison.eva.cost': '20 000 $ à 40 000 $ (validation interne + travail d\'intégration)',
+      'vision.comparison.aia.cost': '20 000 $ à 40 000 $ (validation interne + travail d\'intégration)',
       'vision.comparison.freshness': 'Fraîcheur des preuves',
       'vision.comparison.trad.fresh': 'Statique (snapshot à la date d\'évaluation)',
-      'vision.comparison.eva.fresh': 'Continue (par réponse, interrogeable, tableau de bord en temps réel)',
+      'vision.comparison.aia.fresh': 'Continue (par réponse, interrogeable, tableau de bord en temps réel)',
       'vision.comparison.audit': 'Piste d\'audit complète',
       'vision.comparison.trad.audit': 'Échantillonnage manuel (ensemble représentatif, lacunes potentielles)',
-      'vision.comparison.eva.audit': 'Complète (chaque décision enregistrée, les ID de corrélation suivent les systèmes)',
+      'vision.comparison.aia.audit': 'Complète (chaque décision enregistrée, les ID de corrélation suivent les systèmes)',
       'vision.comparison.accuracy': 'Exactitude du contrôle',
       'vision.comparison.trad.accurate': 'Indirect (personnel interrogé + examen documentaire)',
-      'vision.comparison.eva.accurate': 'Direct (les journaux vérifient le comportement, pas les intentions)',
+      'vision.comparison.aia.accurate': 'Direct (les journaux vérifient le comportement, pas les intentions)',
       'vision.callout.title': 'Cette évaluation est générée par numérisation de la base de code',
       'vision.callout.desc': 'Chaque coche verte signifie que nous avons lu le fichier Python/Bicep et vérifié l\'implémentation. Le rouge signifie qu\'il manque. Le jaune signifie partiel ou bouchon. Pas basé sur des réclamations ou des feuilles de route — basé sur le code qui existe réellement.',
       'vision.diagram.title': 'Flux de preuve : réponse → audit → télémétrie → tableau de bord',
@@ -5801,34 +5801,34 @@ const ATOVisionSection = ({ lang = 'en' }) => {
         React.createElement('tr', { className: 'bg-gray-100' },
           React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Dimension'),
           React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Traditional ATO'),
-          React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'EVA Self-Evidencing')
+          React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'AIA Self-Evidencing')
         )
       ),
       React.createElement('tbody', null,
         React.createElement('tr', null,
           React.createElement('td', { className: 'border border-gray-300 p-2 font-semibold' }, t('vision.comparison.time')),
           React.createElement('td', { className: 'border border-gray-300 p-2' }, t('vision.comparison.trad.time')),
-          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.eva.time'))
+          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.aia.time'))
         ),
         React.createElement('tr', null,
           React.createElement('td', { className: 'border border-gray-300 p-2 font-semibold' }, t('vision.comparison.cost')),
           React.createElement('td', { className: 'border border-gray-300 p-2' }, t('vision.comparison.trad.cost')),
-          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.eva.cost'))
+          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.aia.cost'))
         ),
         React.createElement('tr', null,
           React.createElement('td', { className: 'border border-gray-300 p-2 font-semibold' }, t('vision.comparison.freshness')),
           React.createElement('td', { className: 'border border-gray-300 p-2' }, t('vision.comparison.trad.fresh')),
-          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.eva.fresh'))
+          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.aia.fresh'))
         ),
         React.createElement('tr', null,
           React.createElement('td', { className: 'border border-gray-300 p-2 font-semibold' }, t('vision.comparison.audit')),
           React.createElement('td', { className: 'border border-gray-300 p-2' }, t('vision.comparison.trad.audit')),
-          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.eva.audit'))
+          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.aia.audit'))
         ),
         React.createElement('tr', null,
           React.createElement('td', { className: 'border border-gray-300 p-2 font-semibold' }, t('vision.comparison.accuracy')),
           React.createElement('td', { className: 'border border-gray-300 p-2' }, t('vision.comparison.trad.accurate')),
-          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.eva.accurate'))
+          React.createElement('td', { className: 'border border-gray-300 p-2 bg-green-50' }, t('vision.comparison.aia.accurate'))
         )
       )
     ),
@@ -5854,28 +5854,28 @@ const ATOVisionSection = ({ lang = 'en' }) => {
 };
 
 // ============================================================================
-// SECTION 2: ITSG-33 CONTROL MAPPING — "THE MAIN TABLE"
+// SECTION 2: NIST 800-53 CONTROL MAPPING — "THE MAIN TABLE"
 // ============================================================================
 
 const ATOItsg33Section = ({ lang = 'en' }) => {
   const t = (key) => ({
     en: {
-      'itsg33.title': 'ITSG-33 Control Mapping & Implementation Status',
-      'itsg33.subtitle': 'Every control mapped to actual codebase evidence. Status is verified, not claimed.',
-      'itsg33.legend': 'Status Legend:',
-      'itsg33.green': 'Implemented (code verified)',
-      'itsg33.yellow': 'Partial (stub, demo-only, or incomplete)',
-      'itsg33.red': 'Missing (not in codebase)',
-      'itsg33.link': 'P75-provided (handled by infrastructure tier)',
+      'nist80053.title': 'NIST 800-53 Control Mapping & Implementation Status',
+      'nist80053.subtitle': 'Every control mapped to actual codebase evidence. Status is verified, not claimed.',
+      'nist80053.legend': 'Status Legend:',
+      'nist80053.green': 'Implemented (code verified)',
+      'nist80053.yellow': 'Partial (stub, demo-only, or incomplete)',
+      'nist80053.red': 'Missing (not in codebase)',
+      'nist80053.link': 'P75-provided (handled by infrastructure tier)',
     },
     fr: {
-      'itsg33.title': 'Mappage des contrôles ITSG-33 et statut de mise en œuvre',
-      'itsg33.subtitle': 'Chaque contrôle mappé à des preuves réelles de la base de code. Le statut est vérifié, pas revendiqué.',
-      'itsg33.legend': 'Légende du statut :',
-      'itsg33.green': 'Implémenté (code vérifié)',
-      'itsg33.yellow': 'Partiel (bouchon, démo uniquement ou incomplet)',
-      'itsg33.red': 'Manquant (pas dans la base de code)',
-      'itsg33.link': 'Fourni par P75 (traité par le niveau d\'infrastructure)',
+      'nist80053.title': 'Mappage des contrôles NIST 800-53 et statut de mise en œuvre',
+      'nist80053.subtitle': 'Chaque contrôle mappé à des preuves réelles de la base de code. Le statut est vérifié, pas revendiqué.',
+      'nist80053.legend': 'Légende du statut :',
+      'nist80053.green': 'Implémenté (code vérifié)',
+      'nist80053.yellow': 'Partiel (bouchon, démo uniquement ou incomplet)',
+      'nist80053.red': 'Manquant (pas dans la base de code)',
+      'nist80053.link': 'Fourni par P75 (traité par le niveau d\'infrastructure)',
     }
   }[lang] || {})[key] || key;
 
@@ -5948,7 +5948,7 @@ const ATOItsg33Section = ({ lang = 'en' }) => {
       artifact: 'N/A',
       status: 'red',
       collection: 'N/A',
-      gap: 'Cosmos DB lacks immutability settings (timeToLiveInSeconds, versioning). ITSG-33 requires protected audit records.',
+      gap: 'Cosmos DB lacks immutability settings (timeToLiveInSeconds, versioning). NIST 800-53 requires restrictedudit records.',
     },
     {
       family: 'CM',
@@ -6014,7 +6014,7 @@ const ATOItsg33Section = ({ lang = 'en' }) => {
       family: 'SC',
       control: 'SC-28',
       title: 'Protection at Rest',
-      mechanism: 'Cosmos DB public network: disabled (✓). But disableLocalAuth: false (⚠). Storage public network: Enabled with defaultAction: Allow (⚠ unacceptable for Protected B).',
+      mechanism: 'Cosmos DB public network: disabled (✓). But disableLocalAuth: false (⚠). Storage public network: Enabled with defaultAction: Allow (⚠ unacceptable for sensitive).',
       artifact: 'Bicep module configs',
       status: 'yellow',
       collection: 'Deployment-time verification',
@@ -6028,7 +6028,7 @@ const ATOItsg33Section = ({ lang = 'en' }) => {
       artifact: 'N/A',
       status: 'red',
       collection: 'N/A',
-      gap: 'No vulnerability scanning. ITSG-33 SI-2 requires scanning. Recommend Trivy in CI (container images) + Snyk/dependabot (dependencies).',
+      gap: 'No vulnerability scanning. NIST 800-53 SI-2 requires scanning. Recommend Trivy in CI (container images) + Snyk/dependabot (dependencies).',
     },
     {
       family: 'SI',
@@ -6065,14 +6065,14 @@ const ATOItsg33Section = ({ lang = 'en' }) => {
   return React.createElement(
     React.Fragment,
     null,
-    React.createElement('h2', null, t('itsg33.title')),
-    React.createElement('p', { className: 'text-gray-600 mb-4' }, t('itsg33.subtitle')),
+    React.createElement('h2', null, t('nist80053.title')),
+    React.createElement('p', { className: 'text-gray-600 mb-4' }, t('nist80053.subtitle')),
 
     React.createElement('div', { className: 'flex gap-4 mb-6 flex-wrap' },
-      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-green-500 mr-2' }), t('itsg33.green')),
-      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-yellow-400 mr-2' }), t('itsg33.yellow')),
-      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-red-500 mr-2' }), t('itsg33.red')),
-      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-blue-500 mr-2' }), t('itsg33.link'))
+      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-green-500 mr-2' }), t('nist80053.green')),
+      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-yellow-400 mr-2' }), t('nist80053.yellow')),
+      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-red-500 mr-2' }), t('nist80053.red')),
+      React.createElement('span', null, React.createElement('span', { className: 'inline-block w-4 h-4 bg-blue-500 mr-2' }), t('nist80053.link'))
     ),
 
     React.createElement('div', { className: 'overflow-x-auto' },
@@ -6082,7 +6082,7 @@ const ATOItsg33Section = ({ lang = 'en' }) => {
             React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Family'),
             React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Control'),
             React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Title'),
-            React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'EVA Mechanism'),
+            React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'AIA Mechanism'),
             React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Evidence Artifact'),
             React.createElement('th', { className: 'border border-gray-300 p-2 text-center' }, 'Status'),
             React.createElement('th', { className: 'border border-gray-300 p-2 text-left' }, 'Gap / Note')
@@ -6128,7 +6128,7 @@ const ATOEvidenceSection = ({ lang = 'en' }) => {
       'evidence.table.collection': 'Collection Method',
       'evidence.table.cadence': 'Cadence',
       'evidence.table.storage': 'Storage',
-      'evidence.callout': 'The combination of these artifacts provides a complete audit trail for ITSG-33 compliance. Traditional assessments would spend weeks manually collecting evidence; EVA produces it automatically.',
+      'evidence.callout': 'The combination of these artifacts provides a complete audit trail for NIST 800-53 compliance. Traditional assessments would spend weeks manually collecting evidence; AIA produces it automatically.',
     },
     fr: {
       'evidence.title': 'Artefacts de preuve et conformité lisible par machine',
@@ -6138,7 +6138,7 @@ const ATOEvidenceSection = ({ lang = 'en' }) => {
       'evidence.table.collection': 'Méthode de collecte',
       'evidence.table.cadence': 'Cadence',
       'evidence.table.storage': 'Stockage',
-      'evidence.callout': 'L\'ensemble de ces artefacts fournit une piste d\'audit complète pour la conformité ITSG-33. Les évaluations traditionnelles passent des semaines à collecter manuellement des preuves ; EVA les produit automatiquement.',
+      'evidence.callout': 'L\'ensemble de ces artefacts fournit une piste d\'audit complète pour la conformité NIST 800-53. Les évaluations traditionnelles passent des semaines à collecter manuellement des preuves ; AIA les produit automatiquement.',
     }
   }[lang] || {})[key] || key;
 
@@ -6337,13 +6337,13 @@ const ATOGapsSection = ({ lang = 'en' }) => {
   const gaps = [
     { rank: '1', severity: 'CRITICAL', gap: 'Entra ID SSO not implemented', detail: 'auth/entra_provider.py is NotImplementedError. No authentication works.', phase: 1 },
     { rank: '2', severity: 'CRITICAL', gap: 'JWT / Token validation missing', detail: 'No JWT/JWKS validation. No token refresh or session timeout.', phase: 1 },
-    { rank: '3', severity: 'CRITICAL', gap: 'Storage network not hardened', detail: 'publicNetworkAccess=Enabled, defaultAction=Allow. Violates Protected B. Must change to Disabled + private endpoints.', phase: 1 },
+    { rank: '3', severity: 'CRITICAL', gap: 'Storage network not hardened', detail: 'publicNetworkAccess=Enabled, defaultAction=Allow. Violates sensitive. Must change to Disabled + private endpoints.', phase: 1 },
     { rank: '4', severity: 'HIGH', gap: 'Cosmos DB local auth still enabled', detail: 'disableLocalAuth=false. Should be True.', phase: 1 },
     { rank: '5', severity: 'HIGH', gap: 'Diagnostic settings not configured', detail: 'No Log Analytics diagnostic settings in Bicep. Logs don\'t flow to Azure Monitor.', phase: 1 },
     { rank: '6', severity: 'HIGH', gap: 'Content Safety API stub', detail: 'guardrails/content_safety.py always returns passed=True. Azure API not called.', phase: 1 },
     { rank: '7', severity: 'MEDIUM', gap: 'No log retention policies', detail: 'Log Analytics retention not configured. Cosmos audit records lack TTL settings.', phase: 2 },
     { rank: '8', severity: 'MEDIUM', gap: 'PII not sanitized in audit logs', detail: 'Feedback captures PII-hashed answers. Audit logs do not. Should hash all PII fields.', phase: 2 },
-    { rank: '9', severity: 'MEDIUM', gap: 'No container vulnerability scanning', detail: 'No Trivy, Snyk, or dependabot in CI. ITSG-33 SI-2 requires scanning.', phase: 2 },
+    { rank: '9', severity: 'MEDIUM', gap: 'No container vulnerability scanning', detail: 'No Trivy, Snyk, or dependabot in CI. NIST 800-53 SI-2 requires scanning.', phase: 2 },
     { rank: '10', severity: 'MEDIUM', gap: 'No environment promotion gates', detail: 'CI builds dev, but no gates for staging→prod. Requires approval workflow.', phase: 2 },
     { rank: '11', severity: 'MEDIUM', gap: 'OTEL exporter not configured', detail: 'Telemetry collected but not exported to Log Analytics. In-memory store only.', phase: 2 },
     { rank: '12', severity: 'MEDIUM', gap: 'No cryptographic key management', detail: 'No CMK (customer-managed keys). Azure defaults only. No key rotation policy.', phase: 2 },
@@ -6358,7 +6358,7 @@ const ATOGapsSection = ({ lang = 'en' }) => {
     React.createElement('h2', null, t('gaps.title')),
     React.createElement('p', { className: 'text-gray-600 mb-6' }, t('gaps.subtitle')),
 
-    React.createElement('h3', { className: 'mt-6 mb-4' }, 'ITSG-33 Family Status'),
+    React.createElement('h3', { className: 'mt-6 mb-4' }, 'NIST 800-53 Family Status'),
     React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-8' },
       families.map((fam, idx) =>
         React.createElement('div', { key: idx, className: `border rounded p-4 ${fam.status === 'green' ? 'border-green-500 bg-green-50' : fam.status === 'yellow' ? 'border-yellow-500 bg-yellow-50' : 'border-red-500 bg-red-50'}` },
@@ -6453,7 +6453,7 @@ const ATORoadmapSection = ({ lang = 'en' }) => {
       'roadmap.timeline.phase3': 'Phase 3: Ongoing',
       'roadmap.timeline.phase3.detail': 'Monthly sprints post-ATO. No deadline.',
       'roadmap.argument': 'Why This Works for ATO',
-      'roadmap.argument.text': 'Even with only Phase 1 complete, EVA produces more continuous, machine-readable evidence than a traditional third-party assessment. The assessor doesn\'t spend months asking questions—they query the evidence store directly. Phase 2 fills tactical gaps. Phase 3 is continuous improvement.',
+      'roadmap.argument.text': 'Even with only Phase 1 complete, AIA produces more continuous, machine-readable evidence than a traditional third-party assessment. The assessor doesn\'t spend months asking questions—they query the evidence store directly. Phase 2 fills tactical gaps. Phase 3 is continuous improvement.',
     },
     fr: {
       'roadmap.title': 'Feuille de route vers l\'autorisation du CIO',
@@ -6495,7 +6495,7 @@ const ATORoadmapSection = ({ lang = 'en' }) => {
       'roadmap.timeline.phase3': 'Phase 3 : en cours',
       'roadmap.timeline.phase3.detail': 'Sprints mensuels post-ATO. Pas de délai.',
       'roadmap.argument': 'Pourquoi cela fonctionne pour l\'ATO',
-      'roadmap.argument.text': 'Même avec seulement la phase 1 terminée, EVA produit plus de preuves continues et lisibles par machine qu\'une évaluation traditionnelle par tiers. L\'évaluateur ne passe pas des mois à poser des questions — il interroge directement le magasin de preuves. La phase 2 comble les lacunes tactiques. La phase 3 est une amélioration continue.',
+      'roadmap.argument.text': 'Même avec seulement la phase 1 terminée, AIA produit plus de preuves continues et lisibles par machine qu\'une évaluation traditionnelle par tiers. L\'évaluateur ne passe pas des mois à poser des questions — il interroge directement le magasin de preuves. La phase 2 comble les lacunes tactiques. La phase 3 est une amélioration continue.',
     }
   }[lang] || {})[key] || key;
 
@@ -6589,7 +6589,7 @@ const ATOPage = ({ section = 'ato', lang = 'en' }) => {
   const pages = {
     'ato': ATOVisionSection,
     'ato-vision': ATOVisionSection,
-    'ato-itsg33': ATOItsg33Section,
+    'ato-nist80053': ATOItsg33Section,
     'ato-evidence': ATOEvidenceSection,
     'ato-gaps': ATOGapsSection,
     'ato-roadmap': ATORoadmapSection,

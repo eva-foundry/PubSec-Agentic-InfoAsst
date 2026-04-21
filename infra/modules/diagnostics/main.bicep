@@ -1,5 +1,5 @@
 // ============================================================================
-// P53 EVA Agentic — Diagnostics & Log Analytics
+// P53 AIA — Diagnostics & Log Analytics
 // Centralized logging, audit retention, and monitoring infrastructure.
 // ============================================================================
 
@@ -22,12 +22,12 @@ var uniqueSuffix = uniqueString(resourceGroup().id)
 var auditStorageName = take(toLower('evaaudit${environmentName}${uniqueSuffix}'), 24)
 
 // ---------------------------------------------------------------------------
-// Log Analytics Workspace — 365-day retention for ITSG-33 AU-11 compliance
+// Log Analytics Workspace — 365-day retention for NIST 800-53 AU-11 compliance
 // ---------------------------------------------------------------------------
 
 @description('Log Analytics workspace for P53 audit and telemetry')
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
-  name: 'eva-agentic-logs-${environmentName}'
+  name: 'aia-agentic-logs-${environmentName}'
   location: location
   tags: tags
   properties: {
@@ -46,7 +46,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
 
 @description('Application Insights for OTEL trace collection')
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: 'eva-agentic-ai-${environmentName}'
+  name: 'aia-agentic-ai-${environmentName}'
   location: location
   tags: tags
   kind: 'web'
@@ -76,7 +76,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' existi
 
 @description('Diagnostic settings for storage account audit logging')
 resource storageBlobDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'eva-storage-blob-diag'
+  name: 'aia-storage-blob-diag'
   scope: storageAccount
   properties: {
     workspaceId: logAnalytics.id
@@ -96,7 +96,7 @@ resource storageBlobDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
 
 @description('Diagnostic settings for Cosmos DB audit logging')
 resource cosmosDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'eva-cosmos-diag'
+  name: 'aia-cosmos-diag'
   scope: cosmosAccount
   properties: {
     workspaceId: logAnalytics.id
@@ -112,7 +112,7 @@ resource cosmosDiag 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' =
 }
 
 // ---------------------------------------------------------------------------
-// Immutable Audit Storage — WORM policy for ITSG-33 AU-9
+// Immutable Audit Storage — WORM policy for NIST 800-53 AU-9
 // ---------------------------------------------------------------------------
 
 resource auditStorage 'Microsoft.Storage/storageAccounts@2023-05-01' = {

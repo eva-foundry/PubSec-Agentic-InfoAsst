@@ -7,13 +7,13 @@ export const useDemoUsers = () => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.auth.demoUsers(),
-    queryFn: () => client.get<UserContext[]>("/v1/eva/auth/demo/users"),
+    queryFn: () => client.get<UserContext[]>("/v1/aia/auth/demo/users"),
   });
 };
 
 export const useDemoLogin = () => {
   const client = useApiClient();
   return useMutation({
-    mutationFn: (email: string) => client.post<UserContext>("/v1/eva/auth/demo/login", { email }),
+    mutationFn: (email: string) => client.post<UserContext>("/v1/aia/auth/demo/login", { email }),
   });
 };

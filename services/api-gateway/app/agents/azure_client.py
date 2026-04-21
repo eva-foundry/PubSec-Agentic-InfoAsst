@@ -52,6 +52,9 @@ class AzureOpenAIModelClient:
         self.deployment = deployment
         self.api_version = api_version
         self._client = httpx.AsyncClient(timeout=60.0)
+        # Populated by stream_completion with the final usage chunk returned by
+        # Azure OpenAI when stream_options.include_usage is set.
+        self.last_usage: dict | None = None
 
     def _auth_headers(self) -> dict[str, str]:
         """Return auth headers — API key or Bearer token."""
@@ -111,6 +114,7 @@ class AzureOpenAIModelClient:
             f"/chat/completions?api-version={self.api_version}"
         )
 
+        self.last_usage = None
         try:
             async with self._client.stream(
                 "POST",
@@ -119,6 +123,7 @@ class AzureOpenAIModelClient:
                 json={
                     "messages": all_messages,
                     "stream": True,
+                    "stream_options": {"include_usage": True},
                 },
             ) as response:
                 response.raise_for_status()
@@ -129,6 +134,9 @@ class AzureOpenAIModelClient:
                             break
                         try:
                             data = json.loads(data_str)
+                            usage = data.get("usage")
+                            if usage:
+                                self.last_usage = usage
                             choices = data.get("choices", [])
                             if not choices:
                                 continue

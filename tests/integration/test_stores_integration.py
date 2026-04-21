@@ -196,7 +196,7 @@ class TestTeamManagement:
 
         members = await aio(team_store.list_by_booking(sample_booking.id))
         assert len(members) == 1
-        assert members[0].email == "integ-test@demo.gc.ca"
+        assert members[0].email == "integ-test@example.org"
 
     @pytest.mark.asyncio
     async def test_get_member(
@@ -266,7 +266,7 @@ class TestTeamManagement:
                 id=f"test-integ-tm-{i}",
                 workspace_id=sample_booking.workspace_id,
                 user_id=f"user-multi-{i}",
-                email=f"user{i}@demo.gc.ca",
+                email=f"user{i}@example.org",
                 name=f"User {i}",
                 role=["reader", "contributor", "admin"][i],
                 added_at=now_iso,

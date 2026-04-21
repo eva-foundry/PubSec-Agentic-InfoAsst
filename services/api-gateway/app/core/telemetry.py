@@ -17,7 +17,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExport
 
 from ..config import settings
 
-logger = logging.getLogger("eva.core.telemetry")
+logger = logging.getLogger("aia.core.telemetry")
 
 
 def init_telemetry() -> None:
@@ -26,7 +26,7 @@ def init_telemetry() -> None:
     Call once at application startup (main.py).
     """
     resource = Resource.create({
-        "service.name": "eva-agentic-api-gateway",
+        "service.name": "aia-agentic-api-gateway",
         "service.version": "0.1.0",
         "deployment.environment": "production"
         if settings.auth_mode == "production"
@@ -64,6 +64,6 @@ def init_telemetry() -> None:
 
 
 @lru_cache
-def get_tracer(name: str = "eva.orchestrator") -> trace.Tracer:
+def get_tracer(name: str = "aia.orchestrator") -> trace.Tracer:
     """Get a named tracer instance."""
     return trace.get_tracer(name)

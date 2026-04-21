@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from ..config import settings
 from .audit import AuditLogger
 
-logger = logging.getLogger("eva.guardrails.content_safety")
+logger = logging.getLogger("aia.guardrails.content_safety")
 _audit = AuditLogger()
 
 # Hoist azure SDK classes to module level so tests can patch

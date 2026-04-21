@@ -1,5 +1,5 @@
 // ============================================================================
-// P53 EVA Agentic — Container Apps
+// P53 AIA — Container Apps
 // Hosts the api-gateway (plus future doc-pipeline + enrichment services).
 // Pulls images from GHCR (public) for the first-pass deployment; swap to
 // ACR-with-private-endpoint as a Phase-H follow-up.
@@ -14,7 +14,7 @@ param location string
 @description('Resource tags')
 param tags object
 
-@description('API Gateway container image (e.g. ghcr.io/eva-foundry/eva-api-gateway:<sha>)')
+@description('API Gateway container image (e.g. ghcr.io/eva-foundry/aia-api-gateway:<sha>)')
 param apiGatewayImage string
 
 @description('User-assigned managed identity resource ID for the api-gateway (Cosmos + KV access)')
@@ -56,7 +56,7 @@ resource law 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing = {
 // Container App Environment — one per environmentName, wired to Log Analytics
 // ---------------------------------------------------------------------------
 
-var envName = 'eva-agentic-${environmentName}-env'
+var envName = 'aia-agentic-${environmentName}-env'
 
 resource managedEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   name: envName
@@ -79,7 +79,7 @@ resource managedEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
 // ---------------------------------------------------------------------------
 
 resource apiGateway 'Microsoft.App/containerApps@2024-03-01' = {
-  name: 'eva-api-gateway-${environmentName}'
+  name: 'aia-api-gateway-${environmentName}'
   location: location
   tags: tags
   identity: {

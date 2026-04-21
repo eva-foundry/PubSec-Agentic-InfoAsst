@@ -1,7 +1,7 @@
 """Tests for PII sanitization module (Phase 1.6).
 
-Validates Canadian PII pattern detection and redaction for audit logging.
-Ensures ITSG-33 AU-2/AU-3 compliance (no PII in logs) and CLAUDE.md AUD02/AUD05.
+Validates public-sector PII pattern detection and redaction for audit logging.
+Ensures NIST 800-53 AU-2/AU-3 compliance (no PII in logs) and CLAUDE.md AUD02/AUD05.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ class TestEmailRedaction:
 
     def test_email_basic(self) -> None:
         """Test basic email redaction."""
-        text = "Contact marco@esdc.gc.ca for details"
+        text = "Contact marco@example.org for details"
         result = sanitize_for_audit(text)
         assert result == "Contact [EMAIL-REDACTED] for details"
 
@@ -100,7 +100,7 @@ class TestPhoneRedaction:
 
 
 class TestPostalCodeRedaction:
-    """Canadian postal code pattern redaction."""
+    """public-sector postal code pattern redaction."""
 
     def test_postal_with_space(self) -> None:
         """Test postal code with space: K1A 0B1."""
@@ -166,7 +166,7 @@ class TestMultiplePIITypes:
 
     def test_sin_and_email(self) -> None:
         """Test SIN and email together."""
-        text = "Employee SIN 123-456-789 email john.doe@esdc.gc.ca"
+        text = "Employee SIN 123-456-789 email john.doe@example.org"
         result = sanitize_for_audit(text)
         assert result == "Employee SIN [SIN-REDACTED] email [EMAIL-REDACTED]"
 
@@ -229,7 +229,7 @@ class TestFrenchContent:
 
     def test_french_email_redacted(self) -> None:
         """Test email redaction in French text."""
-        text = "Veuillez contacter marie.martin@esdc.gc.ca pour plus de détails"
+        text = "Veuillez contacter marie.martin@example.org pour plus de détails"
         result = sanitize_for_audit(text)
         assert result == "Veuillez contacter [EMAIL-REDACTED] pour plus de détails"
 
@@ -279,7 +279,7 @@ class TestHashForAudit:
 
     def test_hash_correlation(self) -> None:
         """Test that hashes enable correlation without PII."""
-        email = "user@esdc.gc.ca"
+        email = "user@example.org"
         hash1 = hash_for_audit(email)
         hash2 = hash_for_audit(email)
         # Same email should produce same hash for correlation

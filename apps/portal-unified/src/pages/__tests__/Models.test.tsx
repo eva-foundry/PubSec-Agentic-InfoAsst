@@ -12,12 +12,12 @@ const primeAdmin = () => {
     JSON.stringify({
       user: {
         user_id: "demo-carol",
-        email: "carol@demo.gc.ca",
+        email: "carol@example.org",
         name: "Carol Admin",
         role: "admin",
         portal_access: ["self-service", "admin"],
         workspace_grants: ["all"],
-        data_classification_level: "protected_b",
+        data_classification_level: "sensitive",
         language: "en",
       },
     }),
@@ -33,7 +33,7 @@ describe("Models toggle", () => {
   it("passes is_active=true in the query string when enabling a model", async () => {
     const calls: Array<{ id: string; isActive: string | null }> = [];
     server.use(
-      http.post("*/v1/eva/admin/models/:id/toggle", ({ params, request }) => {
+      http.post("*/v1/aia/admin/models/:id/toggle", ({ params, request }) => {
         const id = params.id as string;
         const isActive = new URL(request.url).searchParams.get("is_active");
         calls.push({ id, isActive });

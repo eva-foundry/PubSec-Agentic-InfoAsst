@@ -27,7 +27,7 @@ class EntrySurveyCreate(BaseModel):
     expected_data_volume_gb: float = Field(ge=0)
     data_classification: str = Field(
         default="unclassified",
-        description="'unclassified', 'protected_a', 'protected_b'",
+        description="'unclassified', 'restricted', 'sensitive'",
     )
     business_justification: str
 

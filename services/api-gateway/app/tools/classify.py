@@ -63,7 +63,7 @@ _ENGLISH_PATTERNS = [
 ]
 
 # Data classification heuristics
-_PROTECTED_B_PATTERNS = [
+_SENSITIVE_PATTERNS = [
     re.compile(r"\b(protected\s*b|protégé\s*b)\b", re.IGNORECASE),
     re.compile(
         r"\b(SIN|NAS|social insurance number|numéro d['']assurance sociale)\b", re.IGNORECASE
@@ -75,7 +75,7 @@ _PROTECTED_B_PATTERNS = [
     re.compile(r"\b(personal|personnel)\s+(information|renseignement)\b", re.IGNORECASE),
 ]
 
-_PROTECTED_A_PATTERNS = [
+_RESTRICTED_PATTERNS = [
     re.compile(r"\b(protected\s*a|protégé\s*a)\b", re.IGNORECASE),
     re.compile(r"\b(confidential|confidentiel)\b", re.IGNORECASE),
     re.compile(r"\b(internal use|usage interne)\b", re.IGNORECASE),
@@ -142,10 +142,10 @@ def _detect_language(text: str) -> str:
 
 def _detect_classification(text: str) -> str:
     """Detect data classification level."""
-    if _count_matches(text, _PROTECTED_B_PATTERNS) > 0:
-        return "protected_b"
-    if _count_matches(text, _PROTECTED_A_PATTERNS) > 0:
-        return "protected_a"
+    if _count_matches(text, _SENSITIVE_PATTERNS) > 0:
+        return "sensitive"
+    if _count_matches(text, _RESTRICTED_PATTERNS) > 0:
+        return "restricted"
     return "unclassified"
 
 
@@ -158,7 +158,7 @@ class ClassifyTool(Tool):
             "Classify document type, data classification, and language "
             "using keyword heuristics"
         ),
-        classification_ceiling="protected_b",
+        classification_ceiling="sensitive",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,

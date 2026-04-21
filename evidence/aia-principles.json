@@ -1,0 +1,122 @@
+[
+  {
+    "check_id": 26,
+    "control_id": "AIA-01",
+    "control_name": "Confidence Scoring",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Confidence scoring module exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.08370299474336207,
+    "notes": ""
+  },
+  {
+    "check_id": 27,
+    "control_id": "AIA-02",
+    "control_name": "Explainability",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Explainability builder exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.12003399024251848,
+    "notes": ""
+  },
+  {
+    "check_id": 28,
+    "control_id": "AIA-03",
+    "control_name": "Source Freshness",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Freshness guardrail exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.10478599870111793,
+    "notes": ""
+  },
+  {
+    "check_id": 29,
+    "control_id": "AIA-04",
+    "control_name": "Graceful Degradation",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Circuit breaker / degradation manager exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.10586901044007391,
+    "notes": ""
+  },
+  {
+    "check_id": 30,
+    "control_id": "AIA-05",
+    "control_name": "Behavioral Fingerprint",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "BehavioralFingerprint in provenance models",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.28377601120155305,
+    "notes": ""
+  },
+  {
+    "check_id": 31,
+    "control_id": "AIA-06",
+    "control_name": "Feedback Loop",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Feedback capture module exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.39681000635027885,
+    "notes": ""
+  },
+  {
+    "check_id": 32,
+    "control_id": "AIA-07",
+    "control_name": "Conflict Resolution",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "Conflict resolver exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.5806330009363592,
+    "notes": ""
+  },
+  {
+    "check_id": 33,
+    "control_id": "AIA-08",
+    "control_name": "Bilingual Parity",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "i18n JSON files exist for EN and FR",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.0017499987734481692,
+    "notes": "Verified via react-i18next configuration in portal apps"
+  },
+  {
+    "check_id": 34,
+    "control_id": "AIA-09",
+    "control_name": "Provenance Chain",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "ProvenanceTracker wired into orchestrator",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.49063800543081015,
+    "notes": ""
+  },
+  {
+    "check_id": 35,
+    "control_id": "AIA-10",
+    "control_name": "PII Protection",
+    "category": "aia",
+    "method": "file_check",
+    "pass_criteria": "PII sanitizer exists",
+    "passed": true,
+    "evidence": {},
+    "duration_ms": 0.33018899557646364,
+    "notes": ""
+  }
+]

@@ -55,7 +55,7 @@ export default function RedTeam() {
 
     let started: EvalRunStarted;
     try {
-      started = await client.post<EvalRunStarted>("/v1/eva/ops/eval/challenges", {
+      started = await client.post<EvalRunStarted>("/v1/aia/ops/eval/challenges", {
         test_set_id: testSet,
         categories: selected,
         workspace_id: "ws-oas-act",

@@ -7,7 +7,7 @@ export const useBookings = () => {
   const client = useApiClient();
   return useQuery({
     queryKey: qk.bookings.list(),
-    queryFn: () => client.get<Booking[]>("/v1/eva/bookings"),
+    queryFn: () => client.get<Booking[]>("/v1/aia/bookings"),
   });
 };
 
@@ -16,7 +16,7 @@ export const useTeamMembers = (bookingId: string | null) => {
   return useQuery({
     queryKey: qk.teams.members(bookingId ?? "__none__"),
     queryFn: () =>
-      client.get<TeamMember[]>(`/v1/eva/teams/${bookingId}/members`),
+      client.get<TeamMember[]>(`/v1/aia/teams/${bookingId}/members`),
     enabled: !!bookingId,
   });
 };
@@ -33,7 +33,7 @@ export const useAddTeamMember = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ bookingId, email, name, role }: AddMemberInput) =>
-      client.post<TeamMember>(`/v1/eva/teams/${bookingId}/members`, {
+      client.post<TeamMember>(`/v1/aia/teams/${bookingId}/members`, {
         email, name, role,
       }),
     onSuccess: (_data, vars) =>
@@ -53,7 +53,7 @@ export const useUpdateMemberRole = () => {
   return useMutation({
     mutationFn: ({ bookingId, userId, role }: UpdateRoleInput) =>
       client.patch<TeamMember>(
-        `/v1/eva/teams/${bookingId}/members/${userId}`,
+        `/v1/aia/teams/${bookingId}/members/${userId}`,
         { role },
       ),
     onSuccess: (_data, vars) =>
@@ -71,7 +71,7 @@ export const useRemoveTeamMember = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ bookingId, userId }: RemoveMemberInput) =>
-      client.del<void>(`/v1/eva/teams/${bookingId}/members/${userId}`),
+      client.del<void>(`/v1/aia/teams/${bookingId}/members/${userId}`),
     onSuccess: (_data, vars) =>
       qc.invalidateQueries({ queryKey: qk.teams.members(vars.bookingId) }),
   });

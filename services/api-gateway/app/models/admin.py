@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class Client(BaseModel):
-    """A business client onboarded to the EVA DA platform."""
+    """A business client onboarded to the AIA DA platform."""
 
     id: str
     org_name: str
@@ -14,7 +14,7 @@ class Client(BaseModel):
     billing_contact: str
     data_classification_level: str = Field(
         default="unclassified",
-        description="'unclassified', 'protected_a', 'protected_b'",
+        description="'unclassified', 'restricted', 'sensitive'",
     )
     onboarded_at: str = Field(description="ISO timestamp")
     status: str = Field(
@@ -25,7 +25,7 @@ class Client(BaseModel):
 
 
 class Interview(BaseModel):
-    """An onboarding interview capturing client use-case details and AICM assessment."""
+    """An onboarding interview capturing client use-case details and RAI assessment."""
 
     id: str
     client_id: str
@@ -34,9 +34,9 @@ class Interview(BaseModel):
     data_sources: list[str] = Field(default_factory=list)
     expected_volume: str = ""
     compliance_requirements: str = ""
-    aicm_assessment: str = Field(
+    rai_assessment: str = Field(
         default="level_1",
-        description="AICM level: 'level_1' (advisory), 'level_2' (decision-informing)",
+        description="RAI level: 'level_1' (advisory), 'level_2' (decision-informing)",
     )
     archetype_recommendation: str = Field(
         default="default",
@@ -54,7 +54,7 @@ class ModelConfig(BaseModel):
     deployment_name: str = ""
     capabilities: list[str] = Field(default_factory=list)
     classification_ceiling: str = Field(
-        default="protected_b",
+        default="sensitive",
         description="Max data classification this model may process",
     )
     parameter_overrides: dict = Field(default_factory=dict)

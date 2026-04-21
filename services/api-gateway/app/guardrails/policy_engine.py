@@ -1,10 +1,10 @@
-"""Compliance-as-code: executable TBS/ESDC policy rules evaluated per request.
+"""Compliance-as-code: executable TBS/Organization policy rules evaluated per request.
 
 Every request passes through the policy engine before a response is returned.
 Rules are loaded from a JSON config file and evaluated against the request
 context. Verdicts are logged to the audit trail.
 
-ITSG-33: CM-6 (Configuration Settings), CM-7 (Least Functionality)
+NIST 800-53: CM-6 (Configuration Settings), CM-7 (Least Functionality)
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from typing import Any
 
 from .audit import AuditLogger
 
-logger = logging.getLogger("eva.guardrails.policy_engine")
+logger = logging.getLogger("aia.guardrails.policy_engine")
 _audit = AuditLogger()
 
 # Default rules file path
@@ -143,7 +143,7 @@ class PolicyEngine:
             op_name = condition.get("operator", "eq")
             expected = condition.get("value")
 
-            # Resolve nested field paths (e.g., "workspace.aicm_level")
+            # Resolve nested field paths (e.g., "workspace.rai_level")
             actual = self._resolve_field(context, field_path)
             evidence[field_path] = {"actual": actual, "expected": expected, "operator": op_name}
 

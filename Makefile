@@ -11,7 +11,7 @@ install:
 dev:
 	docker compose up -d azurite jaeger
 	.venv/bin/uvicorn services.api-gateway.app.main:app --reload --port 8000 &
-	npm run dev --workspace=@eva/portal-unified
+	npm run dev --workspace=@aia/portal-unified
 
 build:
 	npm run build --workspaces --if-present

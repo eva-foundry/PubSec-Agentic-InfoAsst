@@ -15,8 +15,8 @@ from .registry import Tool, ToolMetadata
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SYSTEM_PROMPT = (
-    "You are EVA, a bilingual (English/French) AI assistant for the "
-    "Government of Canada. Respond in the same language as the user's query. "
+    "You are AIA, a bilingual (English/French) AI assistant for the "
+    "enterprise. Respond in the same language as the user's query. "
     "You do NOT have access to any document corpus for this request — "
     "answer from general knowledge only and clearly state that your response "
     "is not grounded in any official source."
@@ -29,7 +29,7 @@ class DirectChatTool(Tool):
     metadata = ToolMetadata(
         name="direct_chat",
         description="Ungrounded GPT completion — general knowledge, no document search",
-        classification_ceiling="protected_b",
+        classification_ceiling="sensitive",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,

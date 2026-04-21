@@ -25,16 +25,16 @@ def client() -> TestClient:
 
 
 def _ops_headers() -> dict[str, str]:
-    return {"x-demo-user-email": "dave@demo.gc.ca"}
+    return {"x-demo-user-email": "dave@example.org"}
 
 
 def _non_ops_headers() -> dict[str, str]:
-    return {"x-demo-user-email": "alice@demo.gc.ca"}
+    return {"x-demo-user-email": "alice@example.org"}
 
 
 class TestAuditEndpoint:
     def test_returns_seed_entries_newest_first(self, client: TestClient) -> None:
-        resp = client.get("/v1/eva/ops/audit", headers=_ops_headers())
+        resp = client.get("/v1/aia/ops/audit", headers=_ops_headers())
         assert resp.status_code == 200
         body = resp.json()
         assert isinstance(body, list)
@@ -43,12 +43,12 @@ class TestAuditEndpoint:
         assert timestamps == sorted(timestamps, reverse=True)
 
     def test_non_ops_gets_403(self, client: TestClient) -> None:
-        resp = client.get("/v1/eva/ops/audit", headers=_non_ops_headers())
+        resp = client.get("/v1/aia/ops/audit", headers=_non_ops_headers())
         assert resp.status_code == 403
 
     def test_filter_by_decision(self, client: TestClient) -> None:
         resp = client.get(
-            "/v1/eva/ops/audit",
+            "/v1/aia/ops/audit",
             headers=_ops_headers(),
             params={"decision": "deny"},
         )
@@ -59,7 +59,7 @@ class TestAuditEndpoint:
 
     def test_filter_by_action(self, client: TestClient) -> None:
         resp = client.get(
-            "/v1/eva/ops/audit",
+            "/v1/aia/ops/audit",
             headers=_ops_headers(),
             params={"action": "deployment.rollback"},
         )
@@ -69,7 +69,7 @@ class TestAuditEndpoint:
 
     def test_limit_is_respected_and_bounded(self, client: TestClient) -> None:
         resp = client.get(
-            "/v1/eva/ops/audit",
+            "/v1/aia/ops/audit",
             headers=_ops_headers(),
             params={"limit": 2},
         )
@@ -79,17 +79,17 @@ class TestAuditEndpoint:
 
 class TestAuditRecording:
     def test_deployment_rollback_writes_an_audit_entry(self, client: TestClient) -> None:
-        before = len(client.get("/v1/eva/ops/audit", headers=_ops_headers()).json())
+        before = len(client.get("/v1/aia/ops/audit", headers=_ops_headers()).json())
 
         rollback = client.post(
-            "/v1/eva/admin/deployments/v0.1.2/rollback",
+            "/v1/aia/admin/deployments/v0.1.2/rollback",
             headers=_ops_headers(),
             json={"rationale": "audit integration test"},
         )
         assert rollback.status_code == 200
 
         after = client.get(
-            "/v1/eva/ops/audit",
+            "/v1/aia/ops/audit",
             headers=_ops_headers(),
             params={"action": "deployment.rollback"},
         ).json()
@@ -102,5 +102,5 @@ class TestAuditRecording:
         assert entry["policy"] == "deploy-change-advisory"
 
         # Total grew by at least 1.
-        total_after = len(client.get("/v1/eva/ops/audit", headers=_ops_headers()).json())
+        total_after = len(client.get("/v1/aia/ops/audit", headers=_ops_headers()).json())
         assert total_after >= before + 1

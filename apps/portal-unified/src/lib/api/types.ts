@@ -4,7 +4,7 @@
 // ---------- auth ----------
 
 export type Role = "reader" | "contributor" | "admin";
-export type Classification = "unclassified" | "protected_a" | "protected_b";
+export type Classification = "unclassified" | "restricted" | "sensitive";
 export type Lang = "en" | "fr";
 export type PortalKey = "self-service" | "admin" | "ops";
 
@@ -283,7 +283,7 @@ export interface Document {
 
 // ---------- admin ----------
 
-export type AICMLevel = "level_1" | "level_2";
+export type RAILevel = "level_1" | "level_2";
 
 export interface Client {
   id: string;
@@ -304,7 +304,7 @@ export interface Interview {
   data_sources: string[];
   expected_volume: string;
   compliance_requirements: string;
-  aicm_assessment: AICMLevel;
+  rai_assessment: RAILevel;
   archetype_recommendation: "legislation" | "case_law" | "default" | string;
   created_at: string;
 }
@@ -401,6 +401,7 @@ export interface FinOpsSummary {
   cost_by_workspace: Record<string, FinOpsBreakdownEntry>;
   cost_by_model: Record<string, FinOpsBreakdownEntry>;
   cost_by_client: Record<string, FinOpsBreakdownEntry>;
+  cost_by_cost_centre?: Record<string, FinOpsBreakdownEntry>;
   forecast_cad: number;
   waste_score: number;
   chargeback_coverage: number;

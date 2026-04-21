@@ -1,6 +1,6 @@
 // ============================================================================
-// P53 EVA Agentic — APIM Product Registration
-// Registers the eva-agentic product on P75's existing APIM instance.
+// P53 AIA — APIM Product Registration
+// Registers the aia-agentic product on P75's existing APIM instance.
 // This module is scoped to P75's resource group.
 // ============================================================================
 
@@ -22,16 +22,16 @@ resource existingApim 'Microsoft.ApiManagement/service@2023-09-01-preview' exist
 }
 
 // ---------------------------------------------------------------------------
-// Product: eva-agentic
+// Product: aia-agentic
 // ---------------------------------------------------------------------------
 
-@description('APIM product registration for EVA Agentic')
+@description('APIM product registration for AIA')
 resource product 'Microsoft.ApiManagement/service/products@2023-09-01-preview' = {
   parent: existingApim
-  name: 'eva-agentic'
+  name: 'aia-agentic'
   properties: {
-    displayName: 'EVA Agentic'
-    description: 'P53 EVA Agentic product — workspace-scoped AI agent APIs'
+    displayName: 'AIA'
+    description: 'P53 AIA product — workspace-scoped AI agent APIs'
     subscriptionRequired: true
     approvalRequired: false
     state: 'published'
@@ -39,16 +39,16 @@ resource product 'Microsoft.ApiManagement/service/products@2023-09-01-preview' =
 }
 
 // ---------------------------------------------------------------------------
-// API: eva-agentic-api
+// API: aia-agentic-api
 // ---------------------------------------------------------------------------
 
-@description('EVA Agentic API definition')
+@description('AIA API definition')
 resource api 'Microsoft.ApiManagement/service/apis@2023-09-01-preview' = {
   parent: existingApim
-  name: 'eva-agentic-api'
+  name: 'aia-agentic-api'
   properties: {
-    displayName: 'EVA Agentic API'
-    path: 'v1/eva'
+    displayName: 'AIA API'
+    path: 'v1/aia'
     protocols: [
       'https'
     ]
@@ -61,7 +61,7 @@ resource api 'Microsoft.ApiManagement/service/apis@2023-09-01-preview' = {
 // Link API to Product
 // ---------------------------------------------------------------------------
 
-@description('Associates the EVA Agentic API with the product')
+@description('Associates the AIA API with the product')
 resource productApi 'Microsoft.ApiManagement/service/products/apis@2023-09-01-preview' = {
   parent: product
   name: api.name
@@ -82,7 +82,7 @@ resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-09-01-pre
   <inbound>
     <base />
     <set-header name="x-app-id" exists-action="skip">
-      <value>eva-agentic</value>
+      <value>aia-agentic</value>
     </set-header>
     <check-header name="x-workspace-id" failed-check-httpcode="400" failed-check-error-message="x-workspace-id header required" ignore-case="true">
       <value />

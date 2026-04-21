@@ -2,9 +2,9 @@
 
 Tests verify:
 - Policy rule evaluation against various contexts
-- Protected B boundary enforcement
+- sensitive boundary enforcement
 - RAG grounding requirements
-- AICM level escalation logic
+- RAI level escalation logic
 - Tool registration and residency enforcement
 - Audit trail completeness
 - Data class functionality
@@ -58,10 +58,10 @@ def custom_rules_engine():
     rules = [
         {
             "id": "TEST-001",
-            "name": "Test Protected B",
-            "description": "Test rule for Protected B",
+            "name": "Test sensitive",
+            "description": "Test rule for sensitive",
             "conditions": [
-                {"field": "classification", "operator": "eq", "value": "protected_b"},
+                {"field": "classification", "operator": "eq", "value": "sensitive"},
                 {"field": "region", "operator": "in", "value": ["canadacentral", "canadaeast"]},
             ],
             "pass_action": "allow",
@@ -72,7 +72,7 @@ def custom_rules_engine():
             "name": "Test Nested Field",
             "description": "Test nested field resolution",
             "conditions": [
-                {"field": "workspace.aicm_level", "operator": "ge", "value": 2},
+                {"field": "workspace.rai_level", "operator": "ge", "value": 2},
             ],
             "pass_action": "allow",
             "fail_action": "escalate_to_human",
@@ -179,50 +179,50 @@ class TestPolicyEvaluationResult:
 
 
 # ============================================================================
-# Protected B Boundary Tests
+# sensitive Boundary Tests
 # ============================================================================
 
 
-class TestProtectedBBoundary:
-    """Test TBS-GEN-AI-01 Protected B boundary enforcement."""
+class TestSensitiveBoundary:
+    """Test TBS-GEN-AI-01 sensitive boundary enforcement."""
 
-    def test_protected_b_passes_with_canadacentral(self, policy_engine):
-        """Protected B with Canada Central region passes."""
+    def test_sensitive_passes_with_canadacentral(self, policy_engine):
+        """sensitive with Canada Central region passes."""
         context = {
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "region": "canadacentral",
         }
         result = policy_engine.evaluate(context)
-        # Should pass because Protected B in Canada region
+        # Should pass because sensitive in Canada region
         assert any(v.rule_id == "TBS-GEN-AI-01" and v.passed for v in result.verdicts)
 
-    def test_protected_b_passes_with_canadaeast(self, policy_engine):
-        """Protected B with Canada East region passes."""
+    def test_sensitive_passes_with_canadaeast(self, policy_engine):
+        """sensitive with Canada East region passes."""
         context = {
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "region": "canadaeast",
         }
         result = policy_engine.evaluate(context)
-        # Should pass because Protected B in Canada region
+        # Should pass because sensitive in Canada region
         assert any(v.rule_id == "TBS-GEN-AI-01" and v.passed for v in result.verdicts)
 
-    def test_protected_b_blocks_with_useast(self, policy_engine):
-        """Protected B with US East region blocks."""
+    def test_sensitive_blocks_with_useast(self, policy_engine):
+        """sensitive with US East region blocks."""
         context = {
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "region": "useast",
         }
         result = policy_engine.evaluate(context)
-        # Should fail because Protected B outside Canada
+        # Should fail because sensitive outside Canada
         verdict = next((v for v in result.verdicts if v.rule_id == "TBS-GEN-AI-01"), None)
         assert verdict is not None
         assert not verdict.passed
         assert verdict.action == "block"
 
-    def test_protected_b_blocks_with_westeurope(self, policy_engine):
-        """Protected B with non-Canadian region blocks."""
+    def test_sensitive_blocks_with_westeurope(self, policy_engine):
+        """sensitive with non-public-sector region blocks."""
         context = {
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "region": "westeurope",
         }
         result = policy_engine.evaluate(context)
@@ -275,47 +275,47 @@ class TestRagGrounding:
 
 
 # ============================================================================
-# AICM Level Tests
+# RAI Level Tests
 # ============================================================================
 
 
-class TestAICMLevel:
-    """Test ESDC-AICM-L2 AICM level requirements."""
+class TestRAILevel:
+    """Test Organization-RAI-L2 RAI level requirements."""
 
-    def test_aicm_level_1_passes(self, policy_engine):
-        """AICM Level 1 (advisory) passes."""
+    def test_rai_level_1_passes(self, policy_engine):
+        """RAI Level 1 (advisory) passes."""
         context = {
             "workspace": {
-                "aicm_level": 1,
+                "rai_level": 1,
             },
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-AICM-L2"), None)
+        verdict = next((v for v in result.verdicts if v.rule_id == "Organization-RAI-L2"), None)
         assert verdict is not None
         assert verdict.passed
 
-    def test_aicm_level_2_escalates_to_human(self, policy_engine):
-        """AICM Level 2+ escalates to human review."""
+    def test_rai_level_2_escalates_to_human(self, policy_engine):
+        """RAI Level 2+ escalates to human review."""
         context = {
             "workspace": {
-                "aicm_level": 2,
+                "rai_level": 2,
             },
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-AICM-L2"), None)
+        verdict = next((v for v in result.verdicts if v.rule_id == "Organization-RAI-L2"), None)
         assert verdict is not None
         assert not verdict.passed
         assert verdict.action == "escalate_to_human"
 
-    def test_aicm_level_3_escalates_to_human(self, policy_engine):
-        """AICM Level 3+ also requires human review."""
+    def test_rai_level_3_escalates_to_human(self, policy_engine):
+        """RAI Level 3+ also requires human review."""
         context = {
             "workspace": {
-                "aicm_level": 3,
+                "rai_level": 3,
             },
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-AICM-L2"), None)
+        verdict = next((v for v in result.verdicts if v.rule_id == "Organization-RAI-L2"), None)
         assert verdict is not None
         assert not verdict.passed
         assert verdict.action == "escalate_to_human"
@@ -327,7 +327,7 @@ class TestAICMLevel:
 
 
 class TestToolRegistration:
-    """Test ESDC-TOOL-REG-01 tool classification requirements."""
+    """Test Organization-TOOL-REG-01 tool classification requirements."""
 
     def test_tool_with_classification_declared_passes(self, policy_engine):
         """Tool with classification ceiling declared passes."""
@@ -335,7 +335,9 @@ class TestToolRegistration:
             "tool_classification_declared": True,
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-TOOL-REG-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-TOOL-REG-01"), None
+        )
         assert verdict is not None
         assert verdict.passed
 
@@ -345,7 +347,9 @@ class TestToolRegistration:
             "tool_classification_declared": False,
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-TOOL-REG-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-TOOL-REG-01"), None
+        )
         assert verdict is not None
         assert not verdict.passed
         assert verdict.action == "block"
@@ -357,7 +361,7 @@ class TestToolRegistration:
 
 
 class TestDataResidency:
-    """Test ESDC-RESIDENCY-01 data residency enforcement."""
+    """Test Organization-RESIDENCY-01 data residency enforcement."""
 
     def test_residency_canadacentral_passes(self, policy_engine):
         """Canada Central residency passes."""
@@ -365,7 +369,9 @@ class TestDataResidency:
             "tool_data_residency": "canadacentral",
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-RESIDENCY-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-RESIDENCY-01"), None
+        )
         assert verdict is not None
         assert verdict.passed
 
@@ -375,7 +381,9 @@ class TestDataResidency:
             "tool_data_residency": "canadaeast",
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-RESIDENCY-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-RESIDENCY-01"), None
+        )
         assert verdict is not None
         assert verdict.passed
 
@@ -385,17 +393,21 @@ class TestDataResidency:
             "tool_data_residency": "canada",
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-RESIDENCY-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-RESIDENCY-01"), None
+        )
         assert verdict is not None
         assert verdict.passed
 
     def test_residency_useast_blocks(self, policy_engine):
-        """Non-Canadian residency blocks."""
+        """Non-public-sector residency blocks."""
         context = {
             "tool_data_residency": "useast",
         }
         result = policy_engine.evaluate(context)
-        verdict = next((v for v in result.verdicts if v.rule_id == "ESDC-RESIDENCY-01"), None)
+        verdict = next(
+            (v for v in result.verdicts if v.rule_id == "Organization-RESIDENCY-01"), None
+        )
         assert verdict is not None
         assert not verdict.passed
         assert verdict.action == "block"
@@ -407,36 +419,36 @@ class TestDataResidency:
 
 
 class TestNestedFieldResolution:
-    """Test nested field path resolution (e.g., workspace.aicm_level)."""
+    """Test nested field path resolution (e.g., workspace.rai_level)."""
 
     def test_resolve_nested_field_success(self, custom_rules_engine):
         """Nested field paths are resolved correctly."""
         context = {
             "workspace": {
-                "aicm_level": 2,
+                "rai_level": 2,
             },
         }
         result = custom_rules_engine.evaluate(context)
         verdict = next((v for v in result.verdicts if v.rule_id == "TEST-002"), None)
         assert verdict is not None
-        # Condition `workspace.aicm_level >= 2` is satisfied (2 >= 2),
+        # Condition `workspace.rai_level >= 2` is satisfied (2 >= 2),
         # so the rule passes and its pass_action (allow) applies.
         assert verdict.passed is True
-        assert "workspace.aicm_level" in verdict.evidence
+        assert "workspace.rai_level" in verdict.evidence
 
     def test_resolve_deeply_nested_field(self, policy_engine):
         """Deeply nested paths are resolved."""
         context = {
             "workspace": {
                 "config": {
-                    "aicm_level": 1,
+                    "rai_level": 1,
                 },
             },
         }
         # This won't match the built-in rules, but we test the resolution mechanism
         engine = policy_engine
         # Verify the resolver handles nested access
-        result = engine._resolve_field(context, "workspace.config.aicm_level")
+        result = engine._resolve_field(context, "workspace.config.rai_level")
         assert result == 1
 
     def test_resolve_missing_nested_field_returns_none(self, policy_engine):
@@ -448,7 +460,7 @@ class TestNestedFieldResolution:
     def test_resolve_nondict_access_returns_none(self, policy_engine):
         """Accessing nested fields on non-dict returns None."""
         context = {"workspace": "not a dict"}
-        result = policy_engine._resolve_field(context, "workspace.aicm_level")
+        result = policy_engine._resolve_field(context, "workspace.rai_level")
         assert result is None
 
 
@@ -464,9 +476,9 @@ class TestAuditLogging:
         """Every rule evaluation is logged."""
         import logging
 
-        caplog.set_level(logging.INFO, "eva.guardrails.audit")
+        caplog.set_level(logging.INFO, "aia.guardrails.audit")
 
-        context = {"data_classification": "protected_b", "region": "canadacentral"}
+        context = {"data_classification": "sensitive", "region": "canadacentral"}
         result = policy_engine.evaluate(context, correlation_id="corr-123")
 
         # Audit logger should have logged at least one entry
@@ -605,12 +617,12 @@ class TestCompliantContext:
     def test_all_rules_pass_with_compliant_context(self, policy_engine):
         """A fully compliant context passes all policies."""
         context = {
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "region": "canadacentral",
             "chat_mode": "grounded",
             "grounding_ratio": 0.75,
             "workspace": {
-                "aicm_level": 1,
+                "rai_level": 1,
             },
             "tool_bilingual_declared": True,
             "confidence_score": 0.85,

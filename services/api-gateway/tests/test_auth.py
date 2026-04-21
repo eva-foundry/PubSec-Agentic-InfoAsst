@@ -8,34 +8,34 @@ client = TestClient(app)
 
 
 def test_list_demo_users_returns_five():
-    response = client.get("/v1/eva/auth/demo/users")
+    response = client.get("/v1/aia/auth/demo/users")
     assert response.status_code == 200
     users = response.json()
     assert len(users) == 5
     emails = {u["email"] for u in users}
-    assert "alice@demo.gc.ca" in emails
-    assert "dave@demo.gc.ca" in emails
+    assert "alice@example.org" in emails
+    assert "dave@example.org" in emails
 
 
 def test_demo_login_valid_email():
     response = client.post(
-        "/v1/eva/auth/demo/login",
-        json={"email": "alice@demo.gc.ca"},
+        "/v1/aia/auth/demo/login",
+        json={"email": "alice@example.org"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == "alice@demo.gc.ca"
+    assert data["email"] == "alice@example.org"
     assert data["name"] == "Alice Chen"
     assert data["role"] == "contributor"
     assert data["portal_access"] == ["self-service"]
     assert data["workspace_grants"] == ["ws-oas-act", "ws-ei-juris"]
-    assert data["data_classification_level"] == "protected_b"
+    assert data["data_classification_level"] == "sensitive"
 
 
 def test_demo_login_invalid_email():
     response = client.post(
-        "/v1/eva/auth/demo/login",
-        json={"email": "nobody@demo.gc.ca"},
+        "/v1/aia/auth/demo/login",
+        json={"email": "nobody@example.org"},
     )
     assert response.status_code == 404
 
@@ -49,11 +49,11 @@ def test_get_current_user_with_demo_header():
 
     response = client.get(
         "/test/me",
-        headers={"x-demo-user-email": "bob@demo.gc.ca"},
+        headers={"x-demo-user-email": "bob@example.org"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["email"] == "bob@demo.gc.ca"
+    assert data["email"] == "bob@example.org"
     assert data["role"] == "reader"
 
 

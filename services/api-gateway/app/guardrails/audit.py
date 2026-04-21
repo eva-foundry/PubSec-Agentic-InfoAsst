@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import UTC, datetime
 
-logger = logging.getLogger("eva.guardrails.audit")
+logger = logging.getLogger("aia.guardrails.audit")
 
 
 class AuditLogger:

@@ -12,11 +12,11 @@ operator workflow.
 ## 0. Prerequisites (one-time)
 
 Required Azure subscription access (MarcoSub sandbox):
-- Contributor on the `rg-eva-agentic-staging` resource group.
+- Contributor on the `rg-aia-agentic-staging` resource group.
 - Ability to create a service principal + grant Contributor scoped to that RG.
 
 GitHub repo access:
-- Admin on `eva-foundry/53-EVA-Refactor` (to set secrets + GH Environments).
+- Admin on `eva-foundry/53-AIA-Refactor` (to set secrets + GH Environments).
 
 Local CLI: `az`, `gh`, `jq`.
 
@@ -25,9 +25,9 @@ Local CLI: `az`, `gh`, `jq`.
 ## 1. Create the resource group(s)
 
 ```bash
-az group create --name rg-eva-agentic-staging --location canadacentral
+az group create --name rg-aia-agentic-staging --location canadacentral
 # Optional (production tier):
-az group create --name rg-eva-agentic-prod --location canadacentral
+az group create --name rg-aia-agentic-prod --location canadacentral
 ```
 
 ---
@@ -36,9 +36,9 @@ az group create --name rg-eva-agentic-prod --location canadacentral
 
 ```bash
 SP_JSON=$(az ad sp create-for-rbac \
-  --name eva-agentic-deployer-staging \
+  --name aia-agentic-deployer-staging \
   --role Contributor \
-  --scopes /subscriptions/$(az account show --query id -o tsv)/resourceGroups/rg-eva-agentic-staging \
+  --scopes /subscriptions/$(az account show --query id -o tsv)/resourceGroups/rg-aia-agentic-staging \
   --sdk-auth)
 echo "$SP_JSON"
 ```
@@ -57,8 +57,8 @@ Repeat for production if you want the prod path live too
 ## 3. Create the two GitHub Environments
 
 ```bash
-gh api repos/eva-foundry/53-EVA-Refactor/environments/staging -X PUT
-gh api repos/eva-foundry/53-EVA-Refactor/environments/production -X PUT
+gh api repos/eva-foundry/53-AIA-Refactor/environments/staging -X PUT
+gh api repos/eva-foundry/53-AIA-Refactor/environments/production -X PUT
 ```
 
 In the GitHub UI, add **protection rules** to the `production` environment:
@@ -74,14 +74,14 @@ before kicking off CI:
 
 ```bash
 az deployment group what-if \
-  --resource-group rg-eva-agentic-staging \
+  --resource-group rg-aia-agentic-staging \
   --template-file infra/main.bicep \
   --parameters infra/environments/staging.bicepparam
 ```
 
 Expect: storage, Cosmos, diagnostics, key vault, identities, static web app,
 container app environment + api-gateway container app. APIM is registered
-on the existing P75 `msub-eva-vnext-apim` instance.
+on the existing P75 `msub-aia-vnext-apim` instance.
 
 ---
 
@@ -91,8 +91,8 @@ After the first successful Bicep deploy, grab the SWA API token and store it:
 
 ```bash
 SWA_TOKEN=$(az staticwebapp secrets list \
-  --name eva-portal-staging \
-  --resource-group rg-eva-agentic-staging \
+  --name aia-portal-staging \
+  --resource-group rg-aia-agentic-staging \
   --query properties.apiKey -o tsv)
 gh secret set AZURE_STATIC_WEB_APPS_API_TOKEN_STAGING --body "$SWA_TOKEN"
 ```
@@ -107,7 +107,7 @@ gh run watch
 ```
 
 The workflow does, in order:
-1. `build-image` — docker build + push `ghcr.io/<owner>/eva-api-gateway:<sha>` to GHCR.
+1. `build-image` — docker build + push `ghcr.io/<owner>/aia-api-gateway:<sha>` to GHCR.
 2. `deploy-staging/Deploy infrastructure` — `az deployment group create` with the built image.
 3. **Capture deployment outputs** — `apiGatewayFqdn`, `swaOrigin`, `apiGatewayName`, `swaName`.
 4. **Roll Container App** — `az containerapp update --image ...` to pick up the new build.
@@ -127,11 +127,11 @@ persona to confirm portal-scoping works:
 
 | Persona | Email | Expected portals |
 |---|---|---|
-| Alice | `alice@demo.gc.ca` | self-service |
-| Bob | `bob@demo.gc.ca` | self-service |
-| Carol | `carol@demo.gc.ca` | self-service, admin |
-| Dave | `dave@demo.gc.ca` | self-service, admin, **ops** |
-| Eve | `eve@demo.gc.ca` | self-service |
+| Alice | `alice@example.org` | self-service |
+| Bob | `bob@example.org` | self-service |
+| Carol | `carol@example.org` | self-service, admin |
+| Dave | `dave@example.org` | self-service, admin, **ops** |
+| Eve | `eve@example.org` | self-service |
 
 Hit every wired route once as Dave: Chat, Catalog, MyWorkspace, Compliance,
 Cost, AIOps, Drift, LiveOps, DevOps, Models, RedTeam. Confirm real data
@@ -147,8 +147,8 @@ Append the following to `docs/azure-e2e-log.md` (create if it doesn't exist):
 ```markdown
 ## Run <YYYY-MM-DD>
 - Commit: <sha>
-- Image: ghcr.io/eva-foundry/eva-api-gateway:<sha>
-- Workflow: https://github.com/eva-foundry/53-EVA-Refactor/actions/runs/<id>
+- Image: ghcr.io/eva-foundry/aia-api-gateway:<sha>
+- Workflow: https://github.com/eva-foundry/53-AIA-Refactor/actions/runs/<id>
 - API: https://<apiGatewayFqdn>
 - SWA: https://<swaOrigin>
 - Smoke: 4/4 pass

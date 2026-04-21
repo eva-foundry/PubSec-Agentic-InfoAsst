@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-DAVE = {"x-demo-user-email": "dave@demo.gc.ca"}  # admin, ops portal
-ALICE = {"x-demo-user-email": "alice@demo.gc.ca"}  # contributor, no ops portal
+DAVE = {"x-demo-user-email": "dave@example.org"}  # admin, ops portal
+ALICE = {"x-demo-user-email": "alice@example.org"}  # contributor, no ops portal
 
 
 @pytest.fixture
@@ -20,11 +20,11 @@ def client():
 
 class TestDriftMetrics:
     def test_requires_ops_portal(self, client: TestClient):
-        resp = client.get("/v1/eva/ops/metrics/drift", headers=ALICE)
+        resp = client.get("/v1/aia/ops/metrics/drift", headers=ALICE)
         assert resp.status_code == 403
 
     def test_default_window_is_30d(self, client: TestClient):
-        resp = client.get("/v1/eva/ops/metrics/drift", headers=DAVE)
+        resp = client.get("/v1/aia/ops/metrics/drift", headers=DAVE)
         assert resp.status_code == 200
         body = resp.json()
         assert body["window"] == "30d"
@@ -35,7 +35,7 @@ class TestDriftMetrics:
     def test_explicit_windows(self, client: TestClient):
         for window, expected in [("7d", 7), ("30d", 30), ("90d", 90)]:
             resp = client.get(
-                f"/v1/eva/ops/metrics/drift?window={window}", headers=DAVE
+                f"/v1/aia/ops/metrics/drift?window={window}", headers=DAVE
             )
             assert resp.status_code == 200
             body = resp.json()
@@ -44,17 +44,17 @@ class TestDriftMetrics:
 
     def test_invalid_window_returns_422(self, client: TestClient):
         resp = client.get(
-            "/v1/eva/ops/metrics/drift?window=bogus", headers=DAVE
+            "/v1/aia/ops/metrics/drift?window=bogus", headers=DAVE
         )
         assert resp.status_code == 422
 
     def test_series_is_deterministic_per_workspace(self, client: TestClient):
         a = client.get(
-            "/v1/eva/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
+            "/v1/aia/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
             headers=DAVE,
         )
         b = client.get(
-            "/v1/eva/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
+            "/v1/aia/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
             headers=DAVE,
         )
         assert a.status_code == 200
@@ -62,18 +62,18 @@ class TestDriftMetrics:
 
     def test_series_differs_across_workspaces(self, client: TestClient):
         a = client.get(
-            "/v1/eva/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
+            "/v1/aia/ops/metrics/drift?workspace_id=ws-oas-act&window=7d",
             headers=DAVE,
         ).json()
         b = client.get(
-            "/v1/eva/ops/metrics/drift?workspace_id=ws-ei-juris&window=7d",
+            "/v1/aia/ops/metrics/drift?workspace_id=ws-ei-juris&window=7d",
             headers=DAVE,
         ).json()
         assert a["model"] != b["model"]
 
     def test_dates_are_contiguous_and_end_today(self, client: TestClient):
         resp = client.get(
-            "/v1/eva/ops/metrics/drift?window=7d", headers=DAVE
+            "/v1/aia/ops/metrics/drift?window=7d", headers=DAVE
         )
         days = [p["day"] for p in resp.json()["model"]]
         # Last entry is today; prior entries walk one day back each.
@@ -85,7 +85,7 @@ class TestDriftMetrics:
 
     def test_point_shape(self, client: TestClient):
         body = client.get(
-            "/v1/eva/ops/metrics/drift?window=7d", headers=DAVE
+            "/v1/aia/ops/metrics/drift?window=7d", headers=DAVE
         ).json()
         assert set(body["model"][0]) == {"day", "psi", "confidence_delta"}
         assert set(body["prompt"][0]) == {"day", "lexical_shift", "token_mix_delta"}
@@ -98,7 +98,7 @@ class TestDriftMetrics:
     def test_alert_shape_when_present(self, client: TestClient):
         """Any alert returned must carry the contract fields."""
         body = client.get(
-            "/v1/eva/ops/metrics/drift?workspace_id=probe-alerts&window=90d",
+            "/v1/aia/ops/metrics/drift?workspace_id=probe-alerts&window=90d",
             headers=DAVE,
         ).json()
         for alert in body["alerts"]:

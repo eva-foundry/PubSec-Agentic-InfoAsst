@@ -16,7 +16,7 @@ class CitationTool(Tool):
     metadata = ToolMetadata(
         name="cite",
         description="Resolve search results to citations with SAS-signed URLs",
-        classification_ceiling="protected_b",
+        classification_ceiling="sensitive",
         data_residency="canada_central",
         bilingual=True,
         hitl_required=False,

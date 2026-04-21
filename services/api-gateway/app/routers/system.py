@@ -15,7 +15,7 @@ async def system_info(
 ) -> dict:
     """Return current model versions, prompt versions, and system metadata."""
     return {
-        "system": "EVA Agentic",
+        "system": "AIA",
         "version": "0.1.0",
         "models": {
             "primary": {"name": "gpt-5.1", "version": "2026-04", "provider": "Azure OpenAI"},
@@ -42,7 +42,7 @@ async def get_provenance(
     return {
         "correlation_id": correlation_id,
         "created_at": "2026-04-14T11:30:00Z",
-        "agent_id": "eva-rag-agent",
+        "agent_id": "aia-rag-agent",
         "delegation_chain": [
             "user-request",
             "orchestrator",
@@ -58,7 +58,7 @@ async def get_provenance(
             "Superseded by newer document",
             "Classification ceiling exceeded",
         ],
-        "policies_applied": ["grounding-required", "protected-b-boundary", "bilingual-check"],
+        "policies_applied": ["grounding-required", "sensitive-boundary", "bilingual-check"],
         "confidence": 0.87,
         "confidence_factors": {
             "retrieval_relevance": 0.90,

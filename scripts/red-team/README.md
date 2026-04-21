@@ -4,7 +4,7 @@ Automated adversarial testing covering OWASP Top 10 for LLM Applications and MIT
 
 ## Overview
 
-The red-teaming pipeline validates that the EVA Agentic platform defends against common LLM attack vectors:
+The red-teaming pipeline validates that the AIA platform defends against common LLM attack vectors:
 
 - **LLM01**: Prompt Injection (direct, delimiter, role confusion, indirect)
 - **LLM02**: Insecure Output Handling (XSS, HTML injection)
@@ -25,7 +25,7 @@ python scripts/red-team/run_red_team.py \
 
 # Against staging
 python scripts/red-team/run_red_team.py \
-  --base-url https://eva-agentic-staging.azurewebsites.net \
+  --base-url https://aia-agentic-staging.azurewebsites.net \
   --auth-token $(az account get-access-token --query accessToken -o tsv) \
   --output evidence/red-team/
 ```
@@ -38,7 +38,7 @@ Each run generates a JSON report at `evidence/red-team/red-team-{timestamp}.json
 {
   "run_id": "rt-1681234567",
   "timestamp": "2025-04-15T06:00:00+00:00",
-  "base_url": "https://eva-agentic-staging.azurewebsites.net",
+  "base_url": "https://aia-agentic-staging.azurewebsites.net",
   "total_scenarios": 14,
   "passed": 14,
   "failed": 0,
@@ -72,7 +72,7 @@ Results are uploaded to GitHub artifacts for audit trail and ATO evidence.
 
 ## Compliance
 
-Maps to ITSG-33:
+Maps to NIST 800-53:
 - **SA-11**: Developer Security Testing — red-teaming validates proactive controls
 - **CA-8**: Penetration Testing — systematic attack scenarios against API surface
 

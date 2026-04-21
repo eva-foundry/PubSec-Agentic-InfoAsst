@@ -49,13 +49,13 @@ _BUSINESS_PROMPTS: dict[str, str] = {
         "any documents that reference outdated processes or superseded policies."
     ),
     "ws-faq": (
-        "You are a general FAQ assistant for EVA Domain Assistant. Answer common "
+        "You are a general FAQ assistant for AIA Domain Assistant. Answer common "
         "questions about workspace features, supported file types, booking "
         "processes, and team management. Keep answers clear and concise. Direct "
         "users to appropriate help resources when needed."
     ),
     "ws-sandbox": (
-        "You are a training assistant in the EVA sandbox environment. Help users "
+        "You are a training assistant in the AIA sandbox environment. Help users "
         "learn how to use the platform by answering questions about features, best "
         "practices, and workflows. This is a safe space for experimentation — "
         "encourage exploration."
@@ -63,17 +63,17 @@ _BUSINESS_PROMPTS: dict[str, str] = {
 }
 
 _INFRASTRUCTURE: dict[str, str] = {
-    "search_service": "msub-eva-dev-search",
-    "search_endpoint": "https://msub-eva-dev-search.search.windows.net",
+    "search_service": "msub-aia-dev-search",
+    "search_endpoint": "https://msub-aia-dev-search.search.windows.net",
     "storage_account": "msubevasharedaihbyya73s",
     "cosmos_account": "msub-sandbox-cosmos-free",
-    "openai_service": "msub-eva-dev-openai",
+    "openai_service": "msub-aia-dev-openai",
     "openai_deployment": "chat-default",
     "embedding_deployment": "embeddings-default",
     "container_environment": "msub-sandbox-env",
     "key_vault": "msubsandkv202603031449",
     "container_registry": "msubsandacr202603031449",
-    "resource_group": "EVA-Sandbox-dev",
+    "resource_group": "AIA-Sandbox-dev",
     "location": "canadacentral",
 }
 
@@ -124,7 +124,7 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "id": "ws-oas-act",
             "name": "OAS Act Legislation",
             "name_fr": "Legislation sur la Loi sur la SV",
-            "description": "Protected B workspace for Old Age Security Act legislative analysis.",
+            "description": "sensitive workspace for Old Age Security Act legislative analysis.",
             "description_fr": (
                 "Espace de travail Protege B pour l'analyse legislative de la Loi "
                 "sur la securite de la vieillesse."
@@ -132,7 +132,7 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "type": "legislation",
             "status": "active",
             "owner_id": "demo-carol",
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "document_capacity": 10,
             "document_count": 4,
             "monthly_cost": 4800.00,
@@ -156,7 +156,7 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "id": "ws-ei-juris",
             "name": "EI Jurisprudence",
             "name_fr": "Jurisprudence de l'AE",
-            "description": "Protected B workspace for Employment Insurance tribunal decisions.",
+            "description": "sensitive workspace for Employment Insurance tribunal decisions.",
             "description_fr": (
                 "Espace de travail Protege B pour les decisions du tribunal de "
                 "l'assurance-emploi."
@@ -164,7 +164,7 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "type": "case_law",
             "status": "active",
             "owner_id": "demo-carol",
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "document_capacity": 15,
             "document_count": 6,
             "monthly_cost": 3200.00,
@@ -188,12 +188,12 @@ async def _seed_workspaces(cosmos: CosmosClientManager) -> None:
             "id": "ws-bdm-km",
             "name": "BDM Knowledge Management",
             "name_fr": "Gestion des connaissances BPM",
-            "description": "Protected A workspace for BDM document search and Q&A.",
+            "description": "restricted workspace for BDM document search and Q&A.",
             "description_fr": "Espace de travail Protege A pour la recherche de documents BPM.",
             "type": "knowledge_mgmt",
             "status": "active",
             "owner_id": "demo-carol",
-            "data_classification": "protected_a",
+            "data_classification": "restricted",
             "document_capacity": 20,
             "document_count": 12,
             "monthly_cost": 2000.00,
@@ -304,7 +304,7 @@ async def _seed_teams(cosmos: CosmosClientManager) -> None:
             "booking_id": "bk-alice-oas",
             "workspace_id": "ws-oas-act",
             "user_id": "demo-alice",
-            "email": "alice@demo.gc.ca",
+            "email": "alice@example.org",
             "name": "Alice Chen",
             "role": "admin",
             "added_at": "2026-02-01T00:00:00Z",
@@ -315,7 +315,7 @@ async def _seed_teams(cosmos: CosmosClientManager) -> None:
             "booking_id": "bk-alice-oas",
             "workspace_id": "ws-oas-act",
             "user_id": "demo-bob",
-            "email": "bob@demo.gc.ca",
+            "email": "bob@example.org",
             "name": "Bob Wilson",
             "role": "reader",
             "added_at": "2026-02-01T00:00:00Z",
@@ -326,7 +326,7 @@ async def _seed_teams(cosmos: CosmosClientManager) -> None:
             "booking_id": "bk-alice-oas",
             "workspace_id": "ws-oas-act",
             "user_id": "demo-eve",
-            "email": "eve@demo.gc.ca",
+            "email": "eve@example.org",
             "name": "Eve Tremblay",
             "role": "contributor",
             "added_at": "2026-02-05T00:00:00Z",
@@ -337,7 +337,7 @@ async def _seed_teams(cosmos: CosmosClientManager) -> None:
             "booking_id": "bk-eve-ei",
             "workspace_id": "ws-ei-juris",
             "user_id": "demo-eve",
-            "email": "eve@demo.gc.ca",
+            "email": "eve@example.org",
             "name": "Eve Tremblay",
             "role": "admin",
             "added_at": "2026-03-15T00:00:00Z",
@@ -348,7 +348,7 @@ async def _seed_teams(cosmos: CosmosClientManager) -> None:
             "booking_id": "bk-eve-ei",
             "workspace_id": "ws-ei-juris",
             "user_id": "demo-alice",
-            "email": "alice@demo.gc.ca",
+            "email": "alice@example.org",
             "name": "Alice Chen",
             "role": "reader",
             "added_at": "2026-03-16T00:00:00Z",
@@ -368,7 +368,7 @@ async def _seed_surveys(cosmos: CosmosClientManager) -> None:
             "use_case": "Legislative analysis of Old Age Security Act provisions",
             "expected_users": 8,
             "expected_data_volume_gb": 2.5,
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "business_justification": "OAS adjudicators need AI-assisted search.",
             "completed_at": "2026-01-25T14:30:00Z",
         },
@@ -388,7 +388,7 @@ async def _seed_surveys(cosmos: CosmosClientManager) -> None:
             "use_case": "EI tribunal decision research and case law analysis",
             "expected_users": 5,
             "expected_data_volume_gb": 4.0,
-            "data_classification": "protected_b",
+            "data_classification": "sensitive",
             "business_justification": "Appeals officers require citation-aware search.",
             "completed_at": "2026-03-12T09:15:00Z",
         },
@@ -419,8 +419,8 @@ async def _seed_clients(cosmos: CosmosClientManager) -> None:
             "id": "client-bdm",
             "org_name": "Benefits Delivery Modernization",
             "entra_group_id": "grp-bdm-001",
-            "billing_contact": "bdm-finance@esdc.gc.ca",
-            "data_classification_level": "protected_b",
+            "billing_contact": "bdm-finance@example.org",
+            "data_classification_level": "sensitive",
             "onboarded_at": "2026-01-15T00:00:00Z",
             "status": "active",
             "workspace_ids": ["ws-oas-act", "ws-ei-juris", "ws-bdm-km"],
@@ -429,7 +429,7 @@ async def _seed_clients(cosmos: CosmosClientManager) -> None:
             "id": "client-sco",
             "org_name": "Service Canada Operations",
             "entra_group_id": "grp-sco-001",
-            "billing_contact": "sco-admin@servicecanada.gc.ca",
+            "billing_contact": "sco-admin@example.org",
             "data_classification_level": "unclassified",
             "onboarded_at": "2026-03-01T00:00:00Z",
             "status": "active",
@@ -449,11 +449,11 @@ async def _seed_model_registry(cosmos: CosmosClientManager) -> None:
             "provider": "azure-openai",
             "deployment_name": "chat-default",
             "capabilities": ["chat", "function-calling", "streaming"],
-            "classification_ceiling": "protected_b",
+            "classification_ceiling": "sensitive",
             "parameter_overrides": {"max_completion_tokens": 4096},
             "is_active": True,
             "access_grants": ["all"],
-            "endpoint": "https://msub-eva-dev-openai.openai.azure.com/",
+            "endpoint": "https://msub-aia-dev-openai.openai.azure.com/",
             "location": "canadaeast",
             "sku": "GlobalStandard",
             "capacity": 60,
@@ -468,11 +468,11 @@ async def _seed_model_registry(cosmos: CosmosClientManager) -> None:
             "provider": "azure-openai",
             "deployment_name": "reasoning-premium",
             "capabilities": ["chat", "reasoning", "analysis", "function-calling", "streaming"],
-            "classification_ceiling": "protected_b",
+            "classification_ceiling": "sensitive",
             "parameter_overrides": {"max_completion_tokens": 8192},
             "is_active": True,
             "access_grants": ["ws-oas-act", "ws-ei-juris"],
-            "endpoint": "https://msub-eva-dev-openai.openai.azure.com/",
+            "endpoint": "https://msub-aia-dev-openai.openai.azure.com/",
             "location": "canadaeast",
             "sku": "GlobalStandard",
             "capacity": 40,
@@ -487,11 +487,11 @@ async def _seed_model_registry(cosmos: CosmosClientManager) -> None:
             "provider": "azure-openai",
             "deployment_name": "embeddings-default",
             "capabilities": ["embeddings"],
-            "classification_ceiling": "protected_b",
+            "classification_ceiling": "sensitive",
             "parameter_overrides": {},
             "is_active": True,
             "access_grants": ["all"],
-            "endpoint": "https://msub-eva-dev-openai.openai.azure.com/",
+            "endpoint": "https://msub-aia-dev-openai.openai.azure.com/",
             "location": "canadaeast",
             "sku": "Standard",
             "capacity": 80,
@@ -515,7 +515,7 @@ async def _seed_prompts(cosmos: CosmosClientManager) -> None:
             "version": 1,
             "is_active": True,
             "content": (
-                "You are EVA, a government AI assistant for ESDC. You help users find "
+                "You are AIA, a government AI assistant for Organization. You help users find "
                 "information in their workspace documents.\n\nRules:\n"
                 "- Answer ONLY from the provided source documents\n"
                 "- Cite every claim using [File0], [File1], etc.\n"
@@ -534,7 +534,7 @@ async def _seed_prompts(cosmos: CosmosClientManager) -> None:
             "version": 1,
             "is_active": True,
             "content": (
-                "You are EVA, a government AI assistant for ESDC. You provide general "
+                "You are AIA, a government AI assistant for Organization. You provide general "
                 "knowledge assistance without access to specific documents.\n\nRules:\n"
                 "- Clearly state that your responses are not grounded\n"
                 "- Provide helpful, accurate information\n"
@@ -570,7 +570,7 @@ async def _seed_telemetry(cosmos: CosmosClientManager) -> None:
     workspace_weights = [0.3, 0.5, 0.2]
     deployments = ["chat-default", "reasoning-premium"]
     deployment_weights = [0.7, 0.3]
-    clients = ["eva-agentic", "eva-portal", "eva-batch"]
+    clients = ["aia-agentic", "aia-portal", "aia-batch"]
     client_weights = [0.6, 0.3, 0.1]
     model_map = {"chat-default": "gpt-5-mini", "reasoning-premium": "gpt-5.1"}
     pricing = {
@@ -647,7 +647,7 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "user_id": "demo-alice",
             "role": "assistant",
             "content_preview": (
-                "Based on the Old Age Security Act, eligibility requires Canadian "
+                "Based on the Old Age Security Act, eligibility requires public-sector "
                 "residency of at least 10 years after age 18..."
             ),
             "content_hash": sha("oas-eligibility-answer-full"),
@@ -807,7 +807,7 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "user_id": "demo-alice",
             "role": "assistant",
             "content_preview": (
-                "Generally, Canadian government benefits are administered "
+                "Generally, enterprise benefits are administered "
                 "through Service Canada..."
             ),
             "content_hash": sha("general-benefits-ungrounded-answer"),

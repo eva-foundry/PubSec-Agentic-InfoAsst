@@ -23,7 +23,7 @@ class SurveyStore:
                 use_case="Legislative analysis of Old Age Security Act provisions for adjudicators",
                 expected_users=8,
                 expected_data_volume_gb=2.5,
-                data_classification="protected_b",
+                data_classification="sensitive",
                 business_justification=(
                     "OAS adjudicators need AI-assisted search across the Act and "
                     "regulations to resolve complex eligibility questions faster."
@@ -33,7 +33,7 @@ class SurveyStore:
             EntrySurvey(
                 id="es-alice-faq",
                 booking_id="bk-alice-faq",
-                use_case="General FAQ for onboarding new team members to EVA platform",
+                use_case="General FAQ for onboarding new team members to AIA platform",
                 expected_users=15,
                 expected_data_volume_gb=0.5,
                 data_classification="unclassified",
@@ -49,7 +49,7 @@ class SurveyStore:
                 use_case="EI tribunal decision research and case law analysis",
                 expected_users=5,
                 expected_data_volume_gb=4.0,
-                data_classification="protected_b",
+                data_classification="sensitive",
                 business_justification=(
                     "Appeals officers require citation-aware search across EI tribunal "
                     "decisions to identify precedents and maintain consistency."

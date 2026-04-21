@@ -18,8 +18,8 @@ from app.stores import (
 client = TestClient(app)
 
 # Demo user headers
-CAROL = {"x-demo-user-email": "carol@demo.gc.ca"}  # admin
-ALICE = {"x-demo-user-email": "alice@demo.gc.ca"}  # contributor (non-admin)
+CAROL = {"x-demo-user-email": "carol@example.org"}  # admin
+ALICE = {"x-demo-user-email": "alice@example.org"}  # contributor (non-admin)
 
 
 @pytest.fixture(autouse=True)
@@ -39,12 +39,12 @@ def _reset_stores():
 
 class TestAdminAuth:
     def test_non_admin_gets_403(self):
-        resp = client.get("/v1/eva/admin/clients", headers=ALICE)
+        resp = client.get("/v1/aia/admin/clients", headers=ALICE)
         assert resp.status_code == 403
         assert "Admin role required" in resp.json()["detail"]
 
     def test_admin_gets_200(self):
-        resp = client.get("/v1/eva/admin/clients", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients", headers=CAROL)
         assert resp.status_code == 200
 
 
@@ -53,7 +53,7 @@ class TestAdminAuth:
 
 class TestClients:
     def test_list_returns_seeded_clients(self):
-        resp = client.get("/v1/eva/admin/clients", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients", headers=CAROL)
         assert resp.status_code == 200
         clients = resp.json()
         assert len(clients) == 2
@@ -62,7 +62,7 @@ class TestClients:
         assert "client-sco" in ids
 
     def test_list_clients_includes_computed_metrics(self):
-        resp = client.get("/v1/eva/admin/clients", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients", headers=CAROL)
         assert resp.status_code == 200
         clients = resp.json()
 
@@ -77,11 +77,11 @@ class TestClients:
 
     def test_onboard_client_creates_client(self):
         resp = client.post(
-            "/v1/eva/admin/clients",
+            "/v1/aia/admin/clients",
             json={
                 "org_name": "Test Organization",
-                "billing_contact": "test@esdc.gc.ca",
-                "data_classification_level": "protected_a",
+                "billing_contact": "test@example.org",
+                "data_classification_level": "restricted",
             },
             headers=CAROL,
         )
@@ -92,21 +92,21 @@ class TestClients:
         assert data["id"].startswith("cl-")
 
         # Verify persisted
-        resp2 = client.get("/v1/eva/admin/clients", headers=CAROL)
+        resp2 = client.get("/v1/aia/admin/clients", headers=CAROL)
         assert len(resp2.json()) == 3
 
     def test_get_client_by_id(self):
-        resp = client.get("/v1/eva/admin/clients/client-bdm", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients/client-bdm", headers=CAROL)
         assert resp.status_code == 200
         assert resp.json()["org_name"] == "Benefits Delivery Modernization"
 
     def test_get_client_404(self):
-        resp = client.get("/v1/eva/admin/clients/cl-nonexistent", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients/cl-nonexistent", headers=CAROL)
         assert resp.status_code == 404
 
     def test_update_client(self):
         resp = client.patch(
-            "/v1/eva/admin/clients/client-bdm",
+            "/v1/aia/admin/clients/client-bdm",
             json={"status": "suspended"},
             headers=CAROL,
         )
@@ -114,7 +114,7 @@ class TestClients:
         assert resp.json()["status"] == "suspended"
 
         # Verify persisted
-        resp2 = client.get("/v1/eva/admin/clients/client-bdm", headers=CAROL)
+        resp2 = client.get("/v1/aia/admin/clients/client-bdm", headers=CAROL)
         assert resp2.json()["status"] == "suspended"
 
 
@@ -124,7 +124,7 @@ class TestClients:
 class TestInterviews:
     def test_interview_creates_with_archetype_legislation(self):
         resp = client.post(
-            "/v1/eva/admin/interviews",
+            "/v1/aia/admin/interviews",
             json={
                 "client_id": "client-bdm",
                 "use_case_description": (
@@ -132,7 +132,7 @@ class TestInterviews:
                 ),
                 "data_sources": ["legislation-db", "gazette"],
                 "expected_volume": "500 documents",
-                "compliance_requirements": "Protected B",
+                "compliance_requirements": "sensitive",
             },
             headers=CAROL,
         )
@@ -144,7 +144,7 @@ class TestInterviews:
 
     def test_interview_creates_with_archetype_case_law(self):
         resp = client.post(
-            "/v1/eva/admin/interviews",
+            "/v1/aia/admin/interviews",
             json={
                 "client_id": "client-bdm",
                 "use_case_description": (
@@ -159,7 +159,7 @@ class TestInterviews:
 
     def test_interview_creates_with_archetype_default(self):
         resp = client.post(
-            "/v1/eva/admin/interviews",
+            "/v1/aia/admin/interviews",
             json={
                 "client_id": "client-bdm",
                 "use_case_description": "General document search and summarization",
@@ -172,7 +172,7 @@ class TestInterviews:
 
     def test_interview_404_unknown_client(self):
         resp = client.post(
-            "/v1/eva/admin/interviews",
+            "/v1/aia/admin/interviews",
             json={
                 "client_id": "cl-nonexistent",
                 "use_case_description": "Test",
@@ -184,14 +184,14 @@ class TestInterviews:
     def test_list_interviews_by_client(self):
         # Create an interview first
         client.post(
-            "/v1/eva/admin/interviews",
+            "/v1/aia/admin/interviews",
             json={
                 "client_id": "client-bdm",
                 "use_case_description": "Test use case",
             },
             headers=CAROL,
         )
-        resp = client.get("/v1/eva/admin/clients/client-bdm/interviews", headers=CAROL)
+        resp = client.get("/v1/aia/admin/clients/client-bdm/interviews", headers=CAROL)
         assert resp.status_code == 200
         assert len(resp.json()) == 1
 
@@ -202,7 +202,7 @@ class TestInterviews:
 class TestWorkspaceProvisioning:
     def test_provision_dry_run_returns_plan(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/provision",
+            "/v1/aia/admin/workspaces/provision",
             json={"workspace_id": "ws-oas-act", "dry_run": True},
             headers=CAROL,
         )
@@ -214,10 +214,10 @@ class TestWorkspaceProvisioning:
         assert len(plan["resources"]) == 5
         assert plan["estimated_monthly_cost"] == "$45 CAD"
         assert plan["deployment_time_estimate"] == "~3 minutes"
-        assert plan["infrastructure"]["resource_group"] == "EVA-Sandbox-dev"
+        assert plan["infrastructure"]["resource_group"] == "AIA-Sandbox-dev"
         # Verify real resource names in resources
         resource_services = {r["service"] for r in plan["resources"]}
-        assert "msub-eva-dev-search" in resource_services
+        assert "msub-aia-dev-search" in resource_services
         assert "msub-sandbox-cosmos-free" in resource_services
 
     def test_provision_confirm_changes_status(self):
@@ -225,7 +225,7 @@ class TestWorkspaceProvisioning:
         workspace_store.update("ws-oas-act", {"status": "draft"})
 
         resp = client.post(
-            "/v1/eva/admin/workspaces/provision",
+            "/v1/aia/admin/workspaces/provision",
             json={"workspace_id": "ws-oas-act", "dry_run": False},
             headers=CAROL,
         )
@@ -236,7 +236,7 @@ class TestWorkspaceProvisioning:
 
     def test_provision_404_unknown_workspace(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/provision",
+            "/v1/aia/admin/workspaces/provision",
             json={"workspace_id": "ws-nonexistent"},
             headers=CAROL,
         )
@@ -244,7 +244,7 @@ class TestWorkspaceProvisioning:
 
     def test_decommission_dry_run_returns_plan(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/ws-oas-act/decommission?dry_run=true",
+            "/v1/aia/admin/workspaces/ws-oas-act/decommission?dry_run=true",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -257,7 +257,7 @@ class TestWorkspaceProvisioning:
 
     def test_decommission_confirm_archives(self):
         resp = client.post(
-            "/v1/eva/admin/workspaces/ws-oas-act/decommission?dry_run=false",
+            "/v1/aia/admin/workspaces/ws-oas-act/decommission?dry_run=false",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -266,13 +266,13 @@ class TestWorkspaceProvisioning:
         assert data["workspace"]["status"] == "archived"
 
     def test_workspace_resources(self):
-        resp = client.get("/v1/eva/admin/workspaces/ws-oas-act/resources", headers=CAROL)
+        resp = client.get("/v1/aia/admin/workspaces/ws-oas-act/resources", headers=CAROL)
         assert resp.status_code == 200
         data = resp.json()
         assert data["workspace_id"] == "ws-oas-act"
         assert "ai_search_index" in data["resources"]
-        assert data["resources"]["ai_search_index"]["service"] == "msub-eva-dev-search"
-        assert data["infrastructure"]["resource_group"] == "EVA-Sandbox-dev"
+        assert data["resources"]["ai_search_index"]["service"] == "msub-aia-dev-search"
+        assert data["infrastructure"]["resource_group"] == "AIA-Sandbox-dev"
 
 
 # ==================== MODEL REGISTRY TESTS ====================
@@ -280,7 +280,7 @@ class TestWorkspaceProvisioning:
 
 class TestModelRegistry:
     def test_list_seeded_models(self):
-        resp = client.get("/v1/eva/admin/models", headers=CAROL)
+        resp = client.get("/v1/aia/admin/models", headers=CAROL)
         assert resp.status_code == 200
         models = resp.json()
         # The registry now seeds 11 models (3 deployed + BYOK + catalog + Foundry + PTU).
@@ -294,36 +294,36 @@ class TestModelRegistry:
         assert "text-embedding-3-small" in names
 
     def test_get_model(self):
-        resp = client.get("/v1/eva/admin/models/chat-default", headers=CAROL)
+        resp = client.get("/v1/aia/admin/models/chat-default", headers=CAROL)
         assert resp.status_code == 200
         data = resp.json()
         assert data["model_name"] == "gpt-5-mini"
         assert data["deployment_name"] == "chat-default"
-        assert data["endpoint"] == "https://msub-eva-dev-openai.openai.azure.com/"
+        assert data["endpoint"] == "https://msub-aia-dev-openai.openai.azure.com/"
         assert data["location"] == "canadaeast"
         assert data["sku"] == "GlobalStandard"
         assert data["capacity"] == 60
 
     def test_toggle_model_disables(self):
         resp = client.post(
-            "/v1/eva/admin/models/chat-default/toggle?is_active=false",
+            "/v1/aia/admin/models/chat-default/toggle?is_active=false",
             headers=CAROL,
         )
         assert resp.status_code == 200
         assert resp.json()["is_active"] is False
 
         # Verify persisted
-        resp2 = client.get("/v1/eva/admin/models/chat-default", headers=CAROL)
+        resp2 = client.get("/v1/aia/admin/models/chat-default", headers=CAROL)
         assert resp2.json()["is_active"] is False
 
     def test_toggle_model_enables(self):
         # Disable then re-enable
         client.post(
-            "/v1/eva/admin/models/chat-default/toggle?is_active=false",
+            "/v1/aia/admin/models/chat-default/toggle?is_active=false",
             headers=CAROL,
         )
         resp = client.post(
-            "/v1/eva/admin/models/chat-default/toggle?is_active=true",
+            "/v1/aia/admin/models/chat-default/toggle?is_active=true",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -331,7 +331,7 @@ class TestModelRegistry:
 
     def test_update_model(self):
         resp = client.patch(
-            "/v1/eva/admin/models/chat-default",
+            "/v1/aia/admin/models/chat-default",
             json={"parameter_overrides": {"temperature": 0.5}},
             headers=CAROL,
         )
@@ -339,7 +339,7 @@ class TestModelRegistry:
         assert resp.json()["parameter_overrides"]["temperature"] == 0.5
 
     def test_model_404(self):
-        resp = client.get("/v1/eva/admin/models/model-nonexistent", headers=CAROL)
+        resp = client.get("/v1/aia/admin/models/model-nonexistent", headers=CAROL)
         assert resp.status_code == 404
 
 
@@ -348,7 +348,7 @@ class TestModelRegistry:
 
 class TestPrompts:
     def test_list_seeded_prompts(self):
-        resp = client.get("/v1/eva/admin/prompts", headers=CAROL)
+        resp = client.get("/v1/aia/admin/prompts", headers=CAROL)
         assert resp.status_code == 200
         prompts = resp.json()
         assert len(prompts) == 3
@@ -356,7 +356,7 @@ class TestPrompts:
         assert names == {"rag-system", "ungrounded-system", "query-rewrite"}
 
     def test_get_prompt_versions(self):
-        resp = client.get("/v1/eva/admin/prompts/rag-system/versions", headers=CAROL)
+        resp = client.get("/v1/aia/admin/prompts/rag-system/versions", headers=CAROL)
         assert resp.status_code == 200
         versions = resp.json()
         assert len(versions) == 1
@@ -365,7 +365,7 @@ class TestPrompts:
 
     def test_create_prompt_version(self):
         resp = client.post(
-            "/v1/eva/admin/prompts/rag-system/versions",
+            "/v1/aia/admin/prompts/rag-system/versions",
             json={
                 "content": "Updated RAG prompt with better citation format.",
                 "rationale": "Improved citation accuracy",
@@ -379,7 +379,7 @@ class TestPrompts:
         assert data["author"] == "demo-carol"
 
         # Check that version 1 is now inactive
-        resp2 = client.get("/v1/eva/admin/prompts/rag-system/versions", headers=CAROL)
+        resp2 = client.get("/v1/aia/admin/prompts/rag-system/versions", headers=CAROL)
         versions = resp2.json()
         assert len(versions) == 2
         v1 = next(v for v in versions if v["version"] == 1)
@@ -390,13 +390,13 @@ class TestPrompts:
     def test_prompt_rollback_activates_older_version(self):
         # Create v2 first
         client.post(
-            "/v1/eva/admin/prompts/rag-system/versions",
+            "/v1/aia/admin/prompts/rag-system/versions",
             json={"content": "Version 2 content", "rationale": "v2"},
             headers=CAROL,
         )
         # Rollback to v1
         resp = client.post(
-            "/v1/eva/admin/prompts/rag-system/rollback?target_version=1",
+            "/v1/aia/admin/prompts/rag-system/rollback?target_version=1",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -405,21 +405,21 @@ class TestPrompts:
         assert data["is_active"] is True
 
         # Verify v2 is now inactive
-        resp2 = client.get("/v1/eva/admin/prompts/rag-system/versions", headers=CAROL)
+        resp2 = client.get("/v1/aia/admin/prompts/rag-system/versions", headers=CAROL)
         versions = resp2.json()
         v2 = next(v for v in versions if v["version"] == 2)
         assert v2["is_active"] is False
 
     def test_prompt_rollback_404(self):
         resp = client.post(
-            "/v1/eva/admin/prompts/rag-system/rollback?target_version=99",
+            "/v1/aia/admin/prompts/rag-system/rollback?target_version=99",
             headers=CAROL,
         )
         assert resp.status_code == 404
 
     def test_create_new_prompt_name(self):
         resp = client.post(
-            "/v1/eva/admin/prompts/custom-prompt/versions",
+            "/v1/aia/admin/prompts/custom-prompt/versions",
             json={"content": "Custom prompt content", "rationale": "New prompt"},
             headers=CAROL,
         )
@@ -452,7 +452,7 @@ class TestBookingManagement:
     def test_list_all_bookings(self):
         # Seeded bookings exist + create one more
         self._create_booking()
-        resp = client.get("/v1/eva/admin/bookings", headers=CAROL)
+        resp = client.get("/v1/aia/admin/bookings", headers=CAROL)
         assert resp.status_code == 200
         bookings = resp.json()
         # 3 seeded + 1 created = 4
@@ -463,7 +463,7 @@ class TestBookingManagement:
     def test_approve_booking_changes_status(self):
         bk_id = self._create_booking()
         resp = client.patch(
-            f"/v1/eva/admin/bookings/{bk_id}?action=approve",
+            f"/v1/aia/admin/bookings/{bk_id}?action=approve",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -475,7 +475,7 @@ class TestBookingManagement:
     def test_reject_booking(self):
         bk_id = self._create_booking()
         resp = client.patch(
-            f"/v1/eva/admin/bookings/{bk_id}?action=reject",
+            f"/v1/aia/admin/bookings/{bk_id}?action=reject",
             headers=CAROL,
         )
         assert resp.status_code == 200
@@ -483,7 +483,7 @@ class TestBookingManagement:
 
     def test_approve_booking_404(self):
         resp = client.patch(
-            "/v1/eva/admin/bookings/bk-nonexistent?action=approve",
+            "/v1/aia/admin/bookings/bk-nonexistent?action=approve",
             headers=CAROL,
         )
         assert resp.status_code == 404
@@ -491,7 +491,7 @@ class TestBookingManagement:
     def test_invalid_action_400(self):
         bk_id = self._create_booking()
         resp = client.patch(
-            f"/v1/eva/admin/bookings/{bk_id}?action=invalid",
+            f"/v1/aia/admin/bookings/{bk_id}?action=invalid",
             headers=CAROL,
         )
         assert resp.status_code == 400
@@ -503,7 +503,7 @@ class TestBookingManagement:
 class TestValves:
     def test_update_valves(self):
         resp = client.patch(
-            "/v1/eva/admin/workspaces/ws-oas-act/valves",
+            "/v1/aia/admin/workspaces/ws-oas-act/valves",
             json={"valves": {"temperature": 0.2, "top_k": 10}},
             headers=CAROL,
         )
@@ -514,7 +514,7 @@ class TestValves:
 
     def test_update_valves_404(self):
         resp = client.patch(
-            "/v1/eva/admin/workspaces/ws-nonexistent/valves",
+            "/v1/aia/admin/workspaces/ws-nonexistent/valves",
             json={"valves": {"temperature": 0.2}},
             headers=CAROL,
         )

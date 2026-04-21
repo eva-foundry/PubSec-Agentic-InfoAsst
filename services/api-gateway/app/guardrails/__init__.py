@@ -1,4 +1,4 @@
-"""EVA Guardrails Engine.
+"""AIA Guardrails Engine.
 
 Covers confidence, grounding, escalation, freshness, degradation,
 content safety, and conflict resolution.

@@ -1,6 +1,6 @@
 // ============================================================================
-// P53 EVA Agentic — Key Vault + Customer-Managed Keys
-// ITSG-33: SC-12 (Key Management), SC-28 (Protection at Rest)
+// P53 AIA — Key Vault + Customer-Managed Keys
+// NIST 800-53: SC-12 (Key Management), SC-28 (Protection at Rest)
 // ============================================================================
 
 @description('Environment name')
@@ -16,7 +16,7 @@ param tags object
 param keyAccessPrincipalIds array = []
 
 var uniqueSuffix = uniqueString(resourceGroup().id)
-var keyVaultName = take('eva-kv-${environmentName}-${uniqueSuffix}', 24)
+var keyVaultName = take('aia-kv-${environmentName}-${uniqueSuffix}', 24)
 
 // ---------------------------------------------------------------------------
 // Key Vault — RBAC-authorized, purge-protected, no public access
@@ -47,7 +47,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
 
 resource storageEncryptionKey 'Microsoft.KeyVault/vaults/keys@2023-07-01' = {
   parent: keyVault
-  name: 'eva-storage-cmk'
+  name: 'aia-storage-cmk'
   properties: {
     kty: 'RSA'
     keySize: 2048
@@ -76,7 +76,7 @@ resource storageEncryptionKey 'Microsoft.KeyVault/vaults/keys@2023-07-01' = {
 
 resource cosmosEncryptionKey 'Microsoft.KeyVault/vaults/keys@2023-07-01' = {
   parent: keyVault
-  name: 'eva-cosmos-cmk'
+  name: 'aia-cosmos-cmk'
   properties: {
     kty: 'RSA'
     keySize: 2048

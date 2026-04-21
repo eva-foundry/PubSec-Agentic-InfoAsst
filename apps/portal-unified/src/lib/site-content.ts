@@ -1,7 +1,7 @@
 // Static content — marketing copy, compliance frameworks, red-team category
 // definitions. These are editorial assets, not API data.
 //
-// ARCHETYPES used to live here; they are now served by /v1/eva/archetypes so
+// ARCHETYPES used to live here; they are now served by /v1/aia/archetypes so
 // ops can publish/retire archetypes without a UI release. See useArchetypes().
 
 export const PRICING = [

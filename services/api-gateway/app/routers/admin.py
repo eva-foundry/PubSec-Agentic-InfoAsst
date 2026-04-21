@@ -87,7 +87,7 @@ class InterviewSubmission(BaseModel):
     data_sources: list[str] = Field(default_factory=list)
     expected_volume: str = ""
     compliance_requirements: str = ""
-    aicm_assessment: str = "level_1"
+    rai_assessment: str = "level_1"
 
 
 class TenantInitRequest(BaseModel):
@@ -262,7 +262,7 @@ async def submit_interview(
         data_sources=payload.data_sources,
         expected_volume=payload.expected_volume,
         compliance_requirements=payload.compliance_requirements,
-        aicm_assessment=payload.aicm_assessment,
+        rai_assessment=payload.rai_assessment,
         archetype_recommendation=archetype,
         created_at=_now(),
     )
@@ -285,7 +285,7 @@ async def list_client_interviews(
 # ---------------------------------------------------------------------------
 
 
-_VALID_CLASSIFICATIONS = {"unclassified", "protected_a", "protected_b"}
+_VALID_CLASSIFICATIONS = {"unclassified", "restricted", "sensitive"}
 _VALID_MODES = {"Advisory", "Decision-informing"}
 
 
@@ -336,7 +336,7 @@ async def init_tenant(
         data_sources=[payload.initial_corpus_hint] if payload.initial_corpus_hint else [],
         expected_volume="",
         compliance_requirements=payload.classification_notes,
-        aicm_assessment=(
+        rai_assessment=(
             "level_2" if payload.default_mode == "Decision-informing" else "level_1"
         ),
         archetype_recommendation=payload.preferred_archetype,
@@ -409,19 +409,19 @@ async def provision_workspace(
             resources=[
                 {
                     "type": "AI Search Index",
-                    "name": f"eva-workspace-{ws.id}-index",
-                    "service": "msub-eva-dev-search",
+                    "name": f"aia-workspace-{ws.id}-index",
+                    "service": "msub-aia-dev-search",
                     "action": "create",
                 },
                 {
                     "type": "Blob Container",
-                    "name": f"eva-ws-{ws.id}-upload",
+                    "name": f"aia-ws-{ws.id}-upload",
                     "service": "msubevasharedaihbyya73s",
                     "action": "create",
                 },
                 {
                     "type": "Blob Container",
-                    "name": f"eva-ws-{ws.id}-content",
+                    "name": f"aia-ws-{ws.id}-content",
                     "service": "msubevasharedaihbyya73s",
                     "action": "create",
                 },
@@ -441,10 +441,10 @@ async def provision_workspace(
             estimated_monthly_cost="$45 CAD",
             deployment_time_estimate="~3 minutes",
             infrastructure={
-                "resource_group": "EVA-Sandbox-dev",
+                "resource_group": "AIA-Sandbox-dev",
                 "region": "canadacentral",
-                "openai_service": "msub-eva-dev-openai (canadaeast)",
-                "search_service": "msub-eva-dev-search (canadacentral, Basic SKU)",
+                "openai_service": "msub-aia-dev-openai (canadaeast)",
+                "search_service": "msub-aia-dev-search (canadacentral, Basic SKU)",
             },
         )
         return {"workspace_id": ws.id, "status": "preview", "plan": plan.model_dump()}
@@ -517,15 +517,15 @@ async def get_workspace_resources(
         "infrastructure": ws.infrastructure,
         "resources": {
             "ai_search_index": {
-                "name": f"eva-workspace-{ws_id}-index",
-                "service": "msub-eva-dev-search",
+                "name": f"aia-workspace-{ws_id}-index",
+                "service": "msub-aia-dev-search",
                 "status": "healthy",
                 "document_count": ws.document_count,
                 "size_mb": ws.document_count * 1.5,
             },
             "blob_containers": {
-                "upload": f"eva-ws-{ws_id}-upload",
-                "content": f"eva-ws-{ws_id}-content",
+                "upload": f"aia-ws-{ws_id}-upload",
+                "content": f"aia-ws-{ws_id}-content",
                 "service": "msubevasharedaihbyya73s",
                 "status": "healthy",
                 "blob_count": ws.document_count,
@@ -816,6 +816,46 @@ async def rollback_workspace_prompt(
 # ---------------------------------------------------------------------------
 # Valve configuration
 # ---------------------------------------------------------------------------
+
+
+class WorkspaceUpdate(BaseModel):
+    """Admin-editable workspace fields (cost-centre assignment, etc.)."""
+
+    cost_centre: str | None = Field(default=None, max_length=120)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+
+
+@router.patch("/admin/workspaces/{ws_id}")
+async def update_admin_workspace(
+    ws_id: str,
+    payload: WorkspaceUpdate,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Update admin-editable workspace fields (cost-centre, name).
+
+    Cost-centre is the pivot for FinOps rollups — every chat/upload against
+    the workspace gets its `cost_centre` stamped on the telemetry record so
+    the Cost page can group spend by program/project.
+    """
+    _require_admin(user)
+    ws = await aio(workspace_store.get(ws_id))
+    if ws is None:
+        raise HTTPException(status_code=404, detail=f"Workspace '{ws_id}' not found")
+    updates = payload.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=422, detail="No fields provided")
+    updated = await aio(workspace_store.update(ws_id, updates))
+    audit_store.record(
+        actor=user.user_id,
+        action="workspace.update",
+        target=ws_id,
+        subject=",".join(sorted(updates.keys())),
+        decision="allow",
+        policy="admin-workspace-edit",
+        rationale=f"Admin update: {updates}",
+        correlation_id=None,
+    )
+    return (updated or ws).model_dump()
 
 
 @router.patch("/admin/workspaces/{ws_id}/valves")

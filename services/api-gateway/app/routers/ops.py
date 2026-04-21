@@ -53,19 +53,19 @@ async def service_health(
 
     services = [
         {
-            "name": "msub-eva-dev-openai",
+            "name": "msub-aia-dev-openai",
             "type": "Azure OpenAI",
             "location": "canadaeast",
             "status": "healthy",
         },
         {
-            "name": "msub-eva-dev-search",
+            "name": "msub-aia-dev-search",
             "type": "AI Search",
             "location": "canadacentral",
             "status": "healthy",
         },
         {
-            "name": "msub-eva-dev-docint",
+            "name": "msub-aia-dev-docint",
             "type": "Document Intelligence",
             "location": "canadacentral",
             "status": "healthy",
@@ -83,7 +83,7 @@ async def service_health(
             "status": "healthy",
         },
         {
-            "name": "msub-eva-vnext-bus-75",
+            "name": "msub-aia-vnext-bus-75",
             "type": "Service Bus",
             "location": "canadacentral",
             "status": "healthy",
@@ -132,9 +132,18 @@ async def finops_metrics(
         "query_count": summary["query_count"],
         "avg_latency_ms": summary["avg_latency_ms"],
         "avg_tokens": summary["avg_tokens"],
+        # Preserve the legacy short aliases so older consumers don't break.
         "by_workspace": summary["cost_by_workspace"],
         "by_model": summary["cost_by_model"],
         "by_client": summary["cost_by_client"],
+        # Frontend FinOpsSummary contract uses cost_by_* — pass through.
+        "cost_by_workspace": summary["cost_by_workspace"],
+        "cost_by_model": summary["cost_by_model"],
+        "cost_by_client": summary["cost_by_client"],
+        "cost_by_cost_centre": summary.get("cost_by_cost_centre", {}),
+        "forecast_cad": summary.get("forecast_cad", 0.0),
+        "waste_score": summary.get("waste_score", 0.0),
+        "chargeback_coverage": summary.get("chargeback_coverage", 0.0),
         "anomalies": [],
     }
 

@@ -1,6 +1,6 @@
 // ============================================================================
-// P53 EVA Agentic — Cosmos DB (Serverless)
-// Three databases: eva-workspaces, eva-platform, statusdb
+// P53 AIA — Cosmos DB (Serverless)
+// Three databases: aia-workspaces, aia-platform, statusdb
 // ============================================================================
 
 @description('Environment name')
@@ -13,7 +13,7 @@ param location string
 param tags object
 
 var uniqueSuffix = uniqueString(resourceGroup().id)
-var cosmosAccountName = 'eva-agentic-${environmentName}-${uniqueSuffix}'
+var cosmosAccountName = 'aia-agentic-${environmentName}-${uniqueSuffix}'
 
 // ---------------------------------------------------------------------------
 // Cosmos DB Account — Serverless, Session consistency
@@ -55,15 +55,15 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
 }
 
 // ============================================================================
-// Database: eva-workspaces
+// Database: aia-workspaces
 // ============================================================================
 
 resource dbWorkspaces 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
   parent: cosmosAccount
-  name: 'eva-workspaces'
+  name: 'aia-workspaces'
   properties: {
     resource: {
-      id: 'eva-workspaces'
+      id: 'aia-workspaces'
     }
   }
 }
@@ -157,15 +157,15 @@ resource containerWorkspaceSnapshots 'Microsoft.DocumentDB/databaseAccounts/sqlD
 }
 
 // ============================================================================
-// Database: eva-platform
+// Database: aia-platform
 // ============================================================================
 
 resource dbPlatform 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-05-15' = {
   parent: cosmosAccount
-  name: 'eva-platform'
+  name: 'aia-platform'
   properties: {
     resource: {
-      id: 'eva-platform'
+      id: 'aia-platform'
     }
   }
 }

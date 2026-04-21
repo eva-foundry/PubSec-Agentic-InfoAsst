@@ -20,6 +20,6 @@ class UserContext(BaseModel):
     )
     data_classification_level: str = Field(
         default="unclassified",
-        description="Highest classification: 'unclassified', 'protected_a', 'protected_b'",
+        description="Highest classification: 'unclassified', 'restricted', 'sensitive'",
     )
     language: str = Field(default="en", description="Preferred language: 'en' or 'fr'")

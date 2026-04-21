@@ -9,12 +9,12 @@ const primeAuth = async (page: Page) => {
       JSON.stringify({
         user: {
           user_id: 'demo-dave',
-          email: 'dave@demo.gc.ca',
+          email: 'dave@example.org',
           name: 'Dave Thompson',
           role: 'admin',
           portal_access: ['self-service', 'admin', 'ops'],
           workspace_grants: ['all'],
-          data_classification_level: 'protected_b',
+          data_classification_level: 'sensitive',
           language: 'en',
         },
       }),
@@ -75,7 +75,7 @@ test.describe('AIA — smoke (post-refactor)', () => {
     await primeAuth(page);
     await page.goto('/chat');
     await expect(page.getByText('Dave Thompson')).toBeVisible();
-    await expect(page.getByText('dave@demo.gc.ca')).toBeVisible();
+    await expect(page.getByText('dave@example.org')).toBeVisible();
     await expect(page.getByText('Jordan Mehta')).toHaveCount(0);
   });
 
