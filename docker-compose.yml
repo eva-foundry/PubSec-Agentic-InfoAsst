@@ -1,0 +1,42 @@
+services:
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - EVA_DEBUG=true
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      - azurite
+      - jaeger
+
+  portal-self-service:
+    build:
+      context: ./apps/portal-self-service
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite-data:/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+volumes:
+  azurite-data:

@@ -1,0 +1,85 @@
+[
+  {
+    "id": "ORG-GEN-AI-01",
+    "name": "sensitive boundary enforcement",
+    "description": "All AI processing must occur in public-sector Azure regions for sensitive data",
+    "conditions": [
+      { "field": "data_classification", "operator": "eq", "value": "sensitive" },
+      { "field": "region", "operator": "in", "value": ["eastus", "westus"] }
+    ],
+    "pass_action": "allow",
+    "fail_action": "block"
+  },
+  {
+    "id": "ORG-GEN-AI-02",
+    "name": "RAG-first: grounded responses required for workspace chat",
+    "description": "Workspace chat mode must produce grounded responses with minimum citation ratio",
+    "conditions": [
+      { "field": "chat_mode", "operator": "eq", "value": "grounded" },
+      { "field": "grounding_ratio", "operator": "ge", "value": 0.5 }
+    ],
+    "pass_action": "allow",
+    "fail_action": "escalate"
+  },
+  {
+    "id": "Organization-RAI-L2",
+    "name": "RAI Level 2+ requires human-in-the-loop",
+    "description": "Decision-informing outputs (RAI Level 2+) cannot auto-resolve",
+    "conditions": [
+      { "field": "workspace.rai_level", "operator": "lt", "value": 2 }
+    ],
+    "pass_action": "allow",
+    "fail_action": "escalate_to_human"
+  },
+  {
+    "id": "Organization-BILINGUAL-01",
+    "name": "Bilingual capability required",
+    "description": "All workspace tools must declare bilingual support or route through translation",
+    "conditions": [
+      { "field": "tool_bilingual_declared", "operator": "is_true", "value": null }
+    ],
+    "pass_action": "allow",
+    "fail_action": "warn"
+  },
+  {
+    "id": "Organization-CONFIDENCE-01",
+    "name": "Low confidence requires disclosure",
+    "description": "Responses with confidence below 0.4 must include explicit uncertainty disclosure",
+    "conditions": [
+      { "field": "confidence_score", "operator": "ge", "value": 0.4 }
+    ],
+    "pass_action": "allow",
+    "fail_action": "escalate"
+  },
+  {
+    "id": "Organization-TOOL-REG-01",
+    "name": "Tool must be registered with classification ceiling",
+    "description": "Every tool invoked must have a declared classification ceiling in the tool registry",
+    "conditions": [
+      { "field": "tool_classification_declared", "operator": "is_true", "value": null }
+    ],
+    "pass_action": "allow",
+    "fail_action": "block"
+  },
+  {
+    "id": "Organization-RESIDENCY-01",
+    "name": "Data residency enforcement",
+    "description": "Tool data residency must be primary region or secondary region",
+    "conditions": [
+      { "field": "tool_data_residency", "operator": "in", "value": ["eastus", "westus", "us"] }
+    ],
+    "pass_action": "allow",
+    "fail_action": "block"
+  },
+  {
+    "id": "Organization-AUDIT-01",
+    "name": "Audit trail completeness",
+    "description": "Every agent step must have correlation_id and trace_id",
+    "conditions": [
+      { "field": "has_correlation_id", "operator": "is_true", "value": null },
+      { "field": "has_trace_id", "operator": "is_true", "value": null }
+    ],
+    "pass_action": "allow",
+    "fail_action": "warn"
+  }
+]

@@ -1,0 +1,24 @@
+# Gitleaks config. We extend the default ruleset rather than replacing it.
+# Allowlist entries below are ONLY for values that look secret-shaped but
+# are not secrets (Azure resource names, localStorage keys, test fixtures).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "False positives flagged by default rules"
+
+regexes = [
+  # Azure Key Vault *names* are resource identifiers (public metadata),
+  # not the secrets they store. Our naming scheme is msubsand<kv|acr>YYYYMMDDHHMM.
+  '''msubsand(kv|acr)[0-9]{12}''',
+]
+
+paths = [
+  # Stable localStorage/session keys for the command palette — non-sensitive UI state.
+  '''apps/portal-unified/src/lib/cmdk/persistence\.ts''',
+  # Test-only RSA key material used to sign JWTs in the Entra auth tests.
+  # The key is not deployed, not issued by any real authority, and never
+  # trusted by production code.
+  '''services/api-gateway/tests/test_entra_auth\.py''',
+]

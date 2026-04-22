@@ -1,0 +1,462 @@
+"""Chat & RAG endpoints — wired to the ReAct agent orchestrator."""
+
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+import uuid
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from ..agents.azure_client import AzureOpenAIModelClient
+from ..agents.embedding_client import AzureEmbeddingClient, MockEmbeddingClient
+from ..agents.orchestrator import AgentOrchestrator
+from ..auth import UserContext, get_current_user
+from ..config import get_settings
+from ..feedback import FeedbackCapture, FeedbackStore
+from ..models.chat import ChatOverrides, ChatRequest
+from ..stores import (
+    chat_store,
+    degradation_manager,
+    model_registry_store,
+    prompt_store,
+    telemetry_store,
+    vector_store,
+    workspace_store,
+)
+from ..stores.chat_store import ChatHistoryRecord
+from ..stores.compat import aio
+from ..stores.telemetry_store import APIMTelemetryRecord, estimate_cost
+from ..tools.cite import CitationTool
+from ..tools.registry import ToolRegistry
+from ..tools.search import SearchTool
+from ..tools.translate import TranslationTool
+
+router = APIRouter()
+
+# Conditionally create real Azure OpenAI client (falls back to MockModelClient if unset)
+_settings = get_settings()
+_model_client = None
+if _settings.azure_openai_endpoint:
+    _model_client = AzureOpenAIModelClient(
+        endpoint=_settings.azure_openai_endpoint,
+        api_key=_settings.azure_openai_api_key or None,  # None triggers Entra ID auth
+        deployment=_settings.azure_openai_deployment,
+        api_version=_settings.azure_openai_api_version,
+    )
+
+# Create embedding client for search
+_embedding_client = None
+if _settings.azure_openai_endpoint:
+    _embedding_client = AzureEmbeddingClient(
+        endpoint=_settings.azure_openai_endpoint,
+        api_key=_settings.azure_openai_api_key or None,
+        deployment=_settings.azure_openai_embedding_deployment,
+    )
+else:
+    _embedding_client = MockEmbeddingClient()
+
+
+def _build_registry() -> ToolRegistry:
+    """Build and populate the tool registry with all available tools."""
+    registry = ToolRegistry()
+    registry.register(SearchTool(vector_store=vector_store, embedding_client=_embedding_client))
+    registry.register(CitationTool())
+    registry.register(TranslationTool())
+    return registry
+
+
+# Module-level singletons — created once, reused across requests.
+_registry = _build_registry()
+feedback_store = FeedbackStore()
+feedback_capture = FeedbackCapture(store=feedback_store)
+
+
+class FeedbackPayload(BaseModel):
+    conversation_id: str
+    message_id: str
+    signal: str = Field(description="'accept' | 'reject'")
+    correction_text: str | None = None
+    reason: str | None = None
+    original_answer: str = ""
+    cited_sources: list[str] = Field(default_factory=list)
+    confidence_score: float = 0.0
+    model_version: str = "unknown"
+    prompt_version: str = "unknown"
+    workspace_id: str | None = None
+
+
+async def _orchestrator_stream(
+    user: UserContext,
+    req: ChatRequest,
+    request: Request,
+) -> AsyncIterator[str]:
+    """Run the agent orchestrator, yield NDJSON lines, and record to chat_store."""
+    trace_id = f"trace-{uuid.uuid4()}"
+    conversation_id = req.conversation_id or str(uuid.uuid4())
+    stream_start = datetime.now(UTC)
+    orchestrator = AgentOrchestrator(
+        tool_registry=_registry,
+        model_client=_model_client,
+        trace_id=trace_id,
+        prompt_store=prompt_store,
+        degradation_manager=degradation_manager,
+        workspace_store=workspace_store,
+        model_registry_store=model_registry_store,
+    )
+
+    overrides = req.overrides.model_dump() if req.overrides else None
+    now = datetime.now(UTC).isoformat()
+
+    # Record the user message
+    user_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+    await aio(
+        chat_store.add(
+            ChatHistoryRecord(
+                conversation_id=conversation_id,
+                message_id=user_msg_id,
+                workspace_id=req.workspace_id,
+                user_id=user.user_id,
+                role="user",
+                content_preview=req.message[:200],
+                content_hash=hashlib.sha256(req.message.encode()).hexdigest(),
+                citations=[],
+                provenance=None,
+                agent_steps=[],
+                confidence_score=0.0,
+                model="gpt-5.1-2026-04",
+                mode=req.mode,
+                created_at=now,
+            )
+        )
+    )
+
+    # Collect streamed data for recording the assistant response
+    full_content = ""
+    agent_steps: list[dict] = []
+    citations: list[dict] = []
+    provenance: dict | None = None
+    confidence_score = 0.0
+
+    async for line in orchestrator.run(
+        user_message=req.message,
+        conversation_history=[],
+        workspace_id=req.workspace_id,
+        mode=req.mode,
+        overrides=overrides,
+    ):
+        yield line
+
+        # Parse the NDJSON line to capture data for the history record
+        try:
+            event = json.loads(line.strip())
+        except (json.JSONDecodeError, ValueError):
+            continue
+
+        if "content" in event:
+            full_content += event["content"]
+        elif "agent_step" in event:
+            step = event["agent_step"]
+            if step.get("status") == "complete":
+                agent_steps.append(step)
+        elif "provenance_complete" in event:
+            prov = event["provenance_complete"]
+            provenance = prov
+            # Extract confidence directly (float 0-1)
+            conf_val = prov.get("confidence", 0)
+            if isinstance(conf_val, (int, float)):
+                confidence_score = float(conf_val)
+            # Build citation summaries from provenance metadata
+            cited_count = prov.get("sources_cited", 0)
+            if cited_count > 0:
+                # Reconstruct minimal citation info from agent steps
+                for step in agent_steps:
+                    if step.get("tool") == "cite":
+                        meta = step.get("metadata", {})
+                        citations = [
+                            {"index": i + 1, "resolved": True}
+                            for i in range(meta.get("citations_resolved", cited_count))
+                        ]
+                        break
+
+    # Record the assistant message
+    assistant_msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+    assistant_now = datetime.now(UTC).isoformat()
+    await aio(
+        chat_store.add(
+            ChatHistoryRecord(
+                conversation_id=conversation_id,
+                message_id=assistant_msg_id,
+                workspace_id=req.workspace_id,
+                user_id=user.user_id,
+                role="assistant",
+                content_preview=full_content[:200],
+                content_hash=hashlib.sha256(full_content.encode()).hexdigest(),
+                citations=citations,
+                provenance=provenance,
+                agent_steps=agent_steps,
+                confidence_score=round(confidence_score, 4),
+                model="gpt-5.1-2026-04",
+                mode=req.mode,
+                created_at=assistant_now,
+            )
+        )
+    )
+
+    # ---- Cost-attribution telemetry with real token counts ----
+    # The APIM-simulation middleware skips /v1/aia/chat so this path owns the
+    # record. When streaming against Azure OpenAI, usage comes from the final
+    # SSE chunk (stream_options.include_usage). MockModelClient synthesizes a
+    # deterministic usage so FinOps works in local/dev/test too.
+    usage = getattr(_model_client, "last_usage", None) if _model_client else None
+    if usage is None:
+        # Fall back to the mock orchestrator's synthesis path.
+        usage = getattr(
+            getattr(orchestrator, "model_client", None), "last_usage", None
+        )
+    if usage is None:
+        usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    deployment = "chat-default"
+    elapsed_ms = int((datetime.now(UTC) - stream_start).total_seconds() * 1000)
+    # Resolve cost-centre from the target workspace so FinOps rollups can
+    # attribute the query's spend without the client having to pass it.
+    cost_centre = ""
+    if req.workspace_id:
+        ws = await aio(workspace_store.get(req.workspace_id))
+        if ws is not None:
+            cost_centre = ws.cost_centre or ""
+    await aio(
+        telemetry_store.add(
+            APIMTelemetryRecord(
+                correlation_id=request.headers.get("x-correlation-id", ""),
+                workspace_id=req.workspace_id or "",
+                session_id=request.cookies.get("eva_session_id", ""),
+                client_id=request.headers.get("x-app-id", "aia-agentic"),
+                deployment=deployment,
+                model_name="gpt-5-mini",
+                operation="/v1/aia/chat",
+                prompt_tokens=int(usage.get("prompt_tokens", 0)),
+                completion_tokens=int(usage.get("completion_tokens", 0)),
+                total_tokens=int(
+                    usage.get(
+                        "total_tokens",
+                        int(usage.get("prompt_tokens", 0))
+                        + int(usage.get("completion_tokens", 0)),
+                    )
+                ),
+                latency_ms=elapsed_ms,
+                cost_cad=estimate_cost(
+                    deployment,
+                    int(usage.get("prompt_tokens", 0)),
+                    int(usage.get("completion_tokens", 0)),
+                ),
+                status_code=200,
+                user_group=request.headers.get("x-user-group", ""),
+                classification=request.headers.get("x-classification", ""),
+                cost_centre=cost_centre,
+            )
+        )
+    )
+
+
+@router.post("/chat")
+async def chat(
+    req: ChatRequest,
+    request: Request,
+    user: UserContext = Depends(get_current_user),
+) -> StreamingResponse:
+    """Stream a RAG-grounded chat response as NDJSON."""
+    return StreamingResponse(
+        _orchestrator_stream(user, req, request),
+        media_type="application/x-ndjson",
+    )
+
+
+@router.get("/conversations")
+async def list_conversations(
+    workspace_id: str | None = None,
+    user_id: str | None = None,
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """Return conversation summaries (seeded + live)."""
+    summaries = await aio(
+        chat_store.list_conversations(
+            workspace_id=workspace_id,
+            user_id=user_id,
+        )
+    )
+    return [s.model_dump() for s in summaries]
+
+
+@router.get("/conversations/{conversation_id}")
+async def get_conversation(
+    conversation_id: str,
+    user: UserContext = Depends(get_current_user),
+) -> list[dict]:
+    """Return all messages for a specific conversation."""
+    messages = await aio(chat_store.get_conversation(conversation_id))
+    return [m.model_dump() for m in messages]
+
+
+@router.get("/session/cost")
+async def get_session_cost(request: Request) -> dict:
+    """Return accumulated cost for the current browser session."""
+    session_id = request.cookies.get("eva_session_id")
+    if not session_id:
+        return {"session_id": None, "cost_cad": 0.0, "queries": 0}
+    return await aio(telemetry_store.session_cost(session_id))
+
+
+class ChatCompareRequest(BaseModel):
+    """Request body for compare mode — runs grounded + ungrounded in parallel."""
+
+    message: str
+    workspace_id: str | None = None
+    conversation_id: str | None = None
+    overrides: ChatOverrides | None = None
+
+
+async def _collect_full_response(
+    user: UserContext,
+    message: str,
+    workspace_id: str | None,
+    mode: str,
+    overrides: dict | None = None,
+) -> dict:
+    """Run orchestrator and collect the full response (non-streaming)."""
+    trace_id = f"trace-{uuid.uuid4()}"
+    orchestrator = AgentOrchestrator(
+        tool_registry=_registry,
+        model_client=_model_client,
+        trace_id=trace_id,
+        prompt_store=prompt_store,
+        degradation_manager=degradation_manager,
+        workspace_store=workspace_store,
+        model_registry_store=model_registry_store,
+    )
+
+    full_content = ""
+    agent_steps: list[dict] = []
+    provenance: dict | None = None
+    degradation: dict | None = None
+
+    async for line in orchestrator.run(
+        user_message=message,
+        conversation_history=[],
+        workspace_id=workspace_id,
+        mode=mode,
+        overrides=overrides,
+    ):
+        try:
+            event = json.loads(line.strip())
+        except (json.JSONDecodeError, ValueError):
+            continue
+
+        if "content" in event:
+            full_content += event["content"]
+        elif "agent_step" in event:
+            step = event["agent_step"]
+            if step.get("status") == "complete":
+                agent_steps.append(step)
+        elif "provenance_complete" in event:
+            provenance = event["provenance_complete"]
+        elif "degradation" in event:
+            degradation = event["degradation"]
+
+    return {
+        "mode": mode,
+        "content": full_content,
+        "agent_steps": agent_steps,
+        "provenance": provenance,
+        "degradation": degradation,
+    }
+
+
+@router.post("/chat/compare")
+async def compare_chat(
+    req: ChatCompareRequest,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Run both grounded and ungrounded modes, return results side-by-side."""
+    overrides = req.overrides.model_dump() if req.overrides else None
+
+    grounded_task = _collect_full_response(
+        user,
+        req.message,
+        req.workspace_id,
+        "grounded",
+        overrides,
+    )
+    ungrounded_task = _collect_full_response(
+        user,
+        req.message,
+        req.workspace_id,
+        "ungrounded",
+        overrides,
+    )
+
+    grounded_result, ungrounded_result = await asyncio.gather(
+        grounded_task,
+        ungrounded_task,
+    )
+    return {"grounded": grounded_result, "ungrounded": ungrounded_result}
+
+
+@router.get("/documents/{doc_id}/content")
+async def get_document_content(
+    doc_id: str,
+    workspace_id: str | None = None,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Return full text of a document by concatenating all chunks from vector store."""
+    file_chunks = await aio(vector_store.get_chunks_by_file(doc_id, workspace_id))
+    if not file_chunks:
+        raise HTTPException(status_code=404, detail=f"Document '{doc_id}' not found")
+
+    full_text = "\n\n".join(c.content for c in file_chunks)
+    first = file_chunks[0]
+    return {
+        "file": first.file_name,
+        "workspace_id": first.workspace_id,
+        "chunk_count": len(file_chunks),
+        "content": full_text,
+        "sections": list({c.section for c in file_chunks if c.section}),
+        "pages": sorted({p for c in file_chunks for p in c.pages}),
+        "last_verified": first.last_verified or None,
+    }
+
+
+@router.post("/chat/feedback", status_code=201)
+async def submit_feedback(
+    payload: FeedbackPayload,
+    user: UserContext = Depends(get_current_user),
+) -> dict:
+    """Record user feedback (thumbs up/down, correction) for a message."""
+    record = feedback_capture.capture_feedback(
+        conversation_id=payload.conversation_id,
+        message_id=payload.message_id,
+        workspace_id=payload.workspace_id,
+        user_id=user.user_id,
+        signal=payload.signal,
+        correction_text=payload.correction_text,
+        reason=payload.reason,
+        original_answer=payload.original_answer,
+        cited_sources=payload.cited_sources,
+        confidence_score=payload.confidence_score,
+        model_version=payload.model_version,
+        prompt_version=payload.prompt_version,
+    )
+    return {
+        "id": record.id,
+        "conversation_id": record.conversation_id,
+        "message_id": record.message_id,
+        "signal": record.signal,
+        "submitted_by": user.user_id,
+        "status": "recorded",
+    }

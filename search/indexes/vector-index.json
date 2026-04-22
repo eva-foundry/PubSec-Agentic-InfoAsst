@@ -1,0 +1,12 @@
+{
+  "name": "eva-vector-index",
+  "fields": [
+    { "name": "id", "type": "Edm.String", "key": true, "filterable": true },
+    { "name": "content", "type": "Edm.String", "searchable": true },
+    { "name": "title", "type": "Edm.String", "searchable": true, "filterable": true },
+    { "name": "workspace_id", "type": "Edm.String", "filterable": true },
+    { "name": "chunk_id", "type": "Edm.String", "filterable": true },
+    { "name": "content_vector", "type": "Collection(Edm.Single)", "searchable": true, "dimensions": 1536 },
+    { "name": "metadata", "type": "Edm.String", "filterable": false }
+  ]
+}
