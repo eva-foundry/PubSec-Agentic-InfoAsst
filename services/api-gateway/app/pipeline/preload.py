@@ -20,8 +20,8 @@ SAMPLE_DOCS_DIR = os.path.join(
 
 # workspace_id -> list of sample filenames to pre-load
 WORKSPACE_DOCS: dict[str, list[str]] = {
-    "ws-oas-act": ["oas-act-excerpt.txt", "oas-regulations-excerpt.txt"],
-    "ws-ei-juris": ["ei-tribunal-decision-sample.txt", "ei-act-excerpt.txt"],
+    "ws-oas-act": ["nhl-cba-excerpt.txt", "nhl-bylaws-excerpt.txt"],
+    "ws-ei-juris": ["dops-ruling-sample.txt", "nhl-rulebook-excerpt.txt"],
     "ws-faq": ["faq-general.txt"],
 }
 

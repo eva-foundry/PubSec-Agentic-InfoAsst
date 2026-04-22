@@ -33,14 +33,14 @@ _BUSINESS_PROMPTS: dict[str, str] = {
         "for evidence requirements."
     ),
     "ws-ei-juris": (
-        "You are assisting Employment Insurance officers finding tribunal decisions "
-        "relevant to specific claim scenarios. Prioritize the highest court level "
-        "when multiple decisions address the same issue. Map each case to the "
-        "relevant Employment Insurance Act provision (e.g., s. 7 qualifying period, "
-        "s. 14 benefit rate). When multiple decisions conflict, surface the most "
-        "recent from the highest authority. Use proper citation format: [YYYY] SST "
-        "docket number for Social Security Tribunal decisions. Identify the ratio "
-        "decidendi (key legal reasoning) in each case."
+        "You are assisting league officials finding player-safety rulings "
+        "relevant to specific on-ice incidents. Prioritize the highest authority "
+        "level when multiple rulings address the same issue. Map each ruling to "
+        "the relevant NHL Rule Book provision (e.g., Rule 42 charging, Rule 48 "
+        "illegal check to the head). When multiple rulings conflict, surface the "
+        "most recent from the highest authority. Use proper citation format: "
+        "[YYYY] DoPS docket number for Department of Player Safety rulings. "
+        "Identify the ratio decidendi (key reasoning) in each ruling."
     ),
     "ws-bdm-km": (
         "You are assisting the Benefits Delivery Modernization team with knowledge "
@@ -651,7 +651,7 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
                 "residency of at least 10 years after age 18..."
             ),
             "content_hash": sha("oas-eligibility-answer-full"),
-            "citations": [{"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3"}],
+            "citations": [{"file": "nhl-cba-excerpt.txt", "page": 1, "section": "Section 3"}],
             "provenance": {"correlation_id": "corr-s1-1", "model": "gpt-5.1-2026-04"},
             "agent_steps": [
                 {"id": 1, "tool": "query_rewrite", "status": "complete", "duration_ms": 95},
@@ -679,10 +679,10 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "user_id": "demo-eve",
             "role": "user",
             "content_preview": (
-                "Has the SST considered voluntary departure cases where the "
-                "claimant had just cause?"
+                "Has the DoPS considered illegal-check cases where the "
+                "player had a mitigating play-on circumstance?"
             ),
-            "content_hash": sha("voluntary-departure-just-cause-question"),
+            "content_hash": sha("illegal-check-mitigating-question"),
             "citations": [],
             "provenance": None,
             "agent_steps": [],
@@ -699,12 +699,12 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
             "user_id": "demo-eve",
             "role": "assistant",
             "content_preview": (
-                "The Social Security Tribunal has addressed voluntary departure "
-                "with just cause in several decisions..."
+                "The Department of Player Safety has addressed illegal-check "
+                "rulings with mitigating circumstances in several decisions..."
             ),
-            "content_hash": sha("voluntary-departure-answer-full"),
+            "content_hash": sha("illegal-check-answer-full"),
             "citations": [
-                {"file": "ei-tribunal-decision-sample.txt", "page": 1, "section": "Analysis"}
+                {"file": "dops-ruling-sample.txt", "page": 1, "section": "Analysis"}
             ],
             "provenance": {"correlation_id": "corr-s2-1", "model": "gpt-5.1-2026-04"},
             "agent_steps": [
@@ -755,7 +755,7 @@ async def _seed_chat_history(cosmos: CosmosClientManager) -> None:
                 "I was unable to find sufficient information in the available sources..."
             ),
             "content_hash": sha("non-resident-answer-low-confidence"),
-            "citations": [{"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3(1)(b)"}],
+            "citations": [{"file": "nhl-cba-excerpt.txt", "page": 1, "section": "Section 3(1)(b)"}],
             "provenance": {
                 "correlation_id": "corr-s3-1",
                 "model": "gpt-5.1-2026-04",

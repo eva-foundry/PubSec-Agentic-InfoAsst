@@ -20,14 +20,14 @@ _BUSINESS_PROMPTS: dict[str, str] = {
         "for evidence requirements."
     ),
     "ws-ei-juris": (
-        "You are assisting Employment Insurance officers finding tribunal decisions "
-        "relevant to specific claim scenarios. Prioritize the highest court level "
-        "when multiple decisions address the same issue. Map each case to the "
-        "relevant Employment Insurance Act provision (e.g., s. 7 qualifying period, "
-        "s. 14 benefit rate). When multiple decisions conflict, surface the most "
-        "recent from the highest authority. Use proper citation format: [YYYY] SST "
-        "docket number for Social Security Tribunal decisions. Identify the ratio "
-        "decidendi (key legal reasoning) in each case."
+        "You are assisting league officials finding player-safety rulings "
+        "relevant to specific on-ice incidents. Prioritize the highest authority "
+        "level when multiple rulings address the same issue. Map each ruling to "
+        "the relevant NHL Rule Book provision (e.g., Rule 42 charging, Rule 48 "
+        "illegal check to the head). When multiple rulings conflict, surface the "
+        "most recent from the highest authority. Use proper citation format: "
+        "[YYYY] DoPS docket number for Department of Player Safety rulings. "
+        "Identify the ratio decidendi (key reasoning) in each ruling."
     ),
     "ws-bdm-km": (
         "You are assisting the Benefits Delivery Modernization team with knowledge "

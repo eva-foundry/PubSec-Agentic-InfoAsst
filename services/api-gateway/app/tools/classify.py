@@ -31,14 +31,18 @@ _LEGISLATION_PATTERNS = [
 ]
 
 _CASE_LAW_PATTERNS = [
-    re.compile(r"\b(Tribunal|Court|Cour|Judge|Juge)\b", re.IGNORECASE),
-    re.compile(r"\b\d{4}\s+(FC|CF|FCA|CAF|SCC|CSC|ONCA|BCCA)\s+\d+\b"),
-    re.compile(r"\bAppeal\s+Division|Division\s+d['']appel\b", re.IGNORECASE),
-    re.compile(r"\b(plaintiff|defendant|appellant|respondent|claimant)\b", re.IGNORECASE),
+    # Generic tribunal / ruling vocabulary (works for any adjudicative body).
+    re.compile(r"\b(Tribunal|Court|Cour|Judge|Juge|Arbitrator)\b", re.IGNORECASE),
+    re.compile(r"\b(plaintiff|defendant|appellant|respondent|claimant|player)\b", re.IGNORECASE),
     re.compile(r"\b(plaignant|défendeur|appelant|intimé|demandeur)\b", re.IGNORECASE),
     re.compile(r"\b(v\.|c\.)\s+[A-Z]", re.MULTILINE),
-    re.compile(r"\bSST|Social Security Tribunal\b", re.IGNORECASE),
     re.compile(r"\b(decision|décision|ruling|jugement|reasons|motifs)\b", re.IGNORECASE),
+    # Hockey demo domain — professional player-safety and officiating authorities.
+    # See guardrails/conflict.py for the authority mapping and comments.
+    re.compile(r"\bDoPS|Department of Player Safety\b", re.IGNORECASE),
+    re.compile(r"\bNHLOA|NHL Officials? Association\b", re.IGNORECASE),
+    re.compile(r"\bBoG|Board of Governors\b", re.IGNORECASE),
+    re.compile(r"\bsupplementary\s+discipline\b", re.IGNORECASE),
 ]
 
 _POLICY_PATTERNS = [

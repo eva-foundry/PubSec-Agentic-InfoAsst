@@ -104,7 +104,7 @@ class ChatStore:
                 ),
                 content_hash=_sha256("oas-eligibility-answer-full"),
                 citations=[
-                    {"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3"},
+                    {"file": "nhl-cba-excerpt.txt", "page": 1, "section": "Section 3"},
                 ],
                 provenance={"correlation_id": "corr-s1-1", "model": "gpt-5.1-2026-04"},
                 agent_steps=[
@@ -153,8 +153,8 @@ class ChatStore:
                 ),
                 content_hash=_sha256("oas-partial-pension-answer-full"),
                 citations=[
-                    {"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3(2)"},
-                    {"file": "oas-regulations-excerpt.txt", "page": 2, "section": "Part II"},
+                    {"file": "nhl-cba-excerpt.txt", "page": 1, "section": "Section 3(2)"},
+                    {"file": "nhl-bylaws-excerpt.txt", "page": 2, "section": "Part II"},
                 ],
                 provenance={"correlation_id": "corr-s1-2", "model": "gpt-5.1-2026-04"},
                 agent_steps=[
@@ -186,10 +186,10 @@ class ChatStore:
                 user_id="demo-eve",
                 role="user",
                 content_preview=_preview(
-                    "Has the SST considered voluntary departure cases where the "
-                    "claimant had just cause?"
+                    "Has the DoPS considered illegal-check cases where the "
+                    "player had a mitigating play-on circumstance?"
                 ),
-                content_hash=_sha256("voluntary-departure-just-cause-question"),
+                content_hash=_sha256("illegal-check-mitigating-question"),
                 citations=[],
                 provenance=None,
                 agent_steps=[],
@@ -205,15 +205,16 @@ class ChatStore:
                 user_id="demo-eve",
                 role="assistant",
                 content_preview=_preview(
-                    "The Social Security Tribunal has addressed voluntary departure "
-                    "with just cause in several decisions. In the sample decision "
-                    "provided, the Tribunal examined whether the claimant had "
-                    "exhausted reasonable alternatives before leaving employment [1]."
+                    "The Department of Player Safety has addressed illegal-check "
+                    "rulings with mitigating circumstances in several decisions. "
+                    "In the sample ruling provided, DoPS examined whether the "
+                    "player had a clear line of sight and sufficient time to "
+                    "adjust the angle of the check before contact [1]."
                 ),
-                content_hash=_sha256("voluntary-departure-answer-full"),
+                content_hash=_sha256("illegal-check-answer-full"),
                 citations=[
                     {
-                        "file": "ei-tribunal-decision-sample.txt",
+                        "file": "dops-ruling-sample.txt",
                         "page": 1,
                         "section": "Analysis",
                     },
@@ -278,7 +279,7 @@ class ChatStore:
                 ),
                 content_hash=_sha256("non-resident-answer-low-confidence"),
                 citations=[
-                    {"file": "oas-act-excerpt.txt", "page": 1, "section": "Section 3(1)(b)"},
+                    {"file": "nhl-cba-excerpt.txt", "page": 1, "section": "Section 3(1)(b)"},
                 ],
                 provenance={
                     "correlation_id": "corr-s3-1",

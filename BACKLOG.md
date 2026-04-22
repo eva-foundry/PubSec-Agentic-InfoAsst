@@ -18,10 +18,21 @@ Seven files still contain `eva-foundry` as the repo host (CI workflows, bicep pa
 
 Files: `.github/workflows/*.yml`, `infra/environments/{prod,staging}.bicepparam`, `infra/main.bicep`, `infra/modules/container-apps/main.bicep`, `docs/azure-e2e-{log,runbook}.md`, `docs/plans/port-lovable-ui-and-wire-backend.md`.
 
-### 🟠 Scrub Canadian tribunal / court acronyms (SST, FCA, SCC)
-The source-authority classifier ([services/api-gateway/app/tools/classify.py](services/api-gateway/app/tools/classify.py), [guardrails/conflict.py](services/api-gateway/app/guardrails/conflict.py)) and its seed data reference `SST` (Social Security Tribunal), `FCA` (Federal Court of Appeal), and `SCC` (Supreme Court of Canada) as concrete examples of multi-jurisdictional legal sources. The logic itself is a legitimate feature — demonstrating tribunal-aware source authority ranking — but the specific acronyms telegraph a single jurisdiction.
+### ✅ Canadian tribunal / court acronyms — swapped to a professional-hockey demo domain (2026-04-21)
+Closed by commit swapping SST/FCA/SCC → DoPS/NHLOA/BoG across the source-authority classifier ([services/api-gateway/app/tools/classify.py](services/api-gateway/app/tools/classify.py)), conflict resolver ([guardrails/conflict.py](services/api-gateway/app/guardrails/conflict.py)), seed data (stores/chat_store, stores/azure/seed, stores/workspace_store), red-team payloads, feedback store correction text, and tests. The multi-source-authority demo is preserved; it now demonstrates hockey discipline (Department of Player Safety → NHL Officials Association → Board of Governors) instead of a single-jurisdiction legal hierarchy.
 
-Decision needed: (a) keep as a demo of multi-jurisdictional ranking with a README note that acronyms are examples, (b) genericise to `TribunalA / TribunalB / SupremeCourt` across classifier + seed + tests, or (c) replace with US-equivalent examples (`BIA`, `CAFC`, `SCOTUS`) for broader recognition in the upstream audience.
+### 🟠 Deeper Canadian-domain content scrub (OAS Act, Employment Insurance, Jurisprudence, BDM, AssistMe)
+The workspace seed data, MSW fixtures, frontend test assertions, orchestrator examples, and design-principles prose still reference Canadian federal content: Old Age Security Act (R.S.C. 1985 c. O-9), Employment Insurance, EI Jurisprudence project, Benefits Delivery Modernization (BDM), and AssistMe. These are out of scope for the tribunal-acronym swap but belong with the same upstream-PR narrative.
+
+Files still carrying this content:
+- [services/api-gateway/app/stores/azure/seed.py](services/api-gateway/app/stores/azure/seed.py) — `ws-oas-act` workspace name + French description + business prompt still reference the OAS Act
+- [services/api-gateway/app/feedback/store.py](services/api-gateway/app/feedback/store.py) — several correction-text strings mention insurable employment, s. 7 qualifying period, etc.
+- [apps/portal-unified/src/test/msw/chat-fixtures.ts](apps/portal-unified/src/test/msw/chat-fixtures.ts) + [apps/portal-unified/src/pages/__tests__/Chat.test.tsx](apps/portal-unified/src/pages/__tests__/Chat.test.tsx) — frontend mock data returns OAS-eligibility answers
+- [services/api-gateway/app/agents/orchestrator.py](services/api-gateway/app/agents/orchestrator.py) — acronym-expansion example uses `OAS → Old Age Security`
+- [docs/index.html](docs/index.html) — architecture-tour prose keeps OAS Act as the demo citation and `Tribunal/court decisions` as a chunker example
+- [AIA-Design-Principles-Beyond-Agentic-State.md](AIA-Design-Principles-Beyond-Agentic-State.md) — uses `Jurisprudence project`, `BDM Knowledge Management`, `AssistMe` as concrete examples
+
+Recommended path: continue the hockey-domain framing. OAS Act → NHL Collective Bargaining Agreement; EI Jurisprudence → DoPS Rulings library; BDM KM → Rule Book Knowledge Management; AssistMe → a generic on-ice-official assistant. Workspace IDs (`ws-oas-act`, `ws-ei-juris`) can stay as opaque database strings; only display names + business prompts + prose need to change.
 
 ### 🟢 Generic opensource-friendly sample corpus
 [data/sample-documents/](data/sample-documents/) is empty (bring-your-own). For the upstream PR to demonstrate end-to-end functionality, a small generic corpus (5–10 public-domain docs) should ship. Candidates: a few RFCs, a handful of Wikipedia articles on a narrow topic, or a curated set of permissive-licence policy documents.

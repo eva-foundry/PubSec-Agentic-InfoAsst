@@ -32,17 +32,22 @@ class TestAuthorityClassification:
         assert self.resolver.classify_authority("SOR") == SourceAuthority.REGULATION
 
     def test_classify_tribunal_decision(self):
-        """tribunal/SST/court/SCC/FCA → TRIBUNAL_DECISION."""
+        """tribunal/DoPS/ruling/BoG/NHLOA → TRIBUNAL_DECISION.
+
+        The hockey demo domain uses DoPS (Department of Player Safety),
+        BoG (Board of Governors), and NHLOA (NHL Officials Association)
+        as three distinct tribunal-level authorities. The classifier
+        recognises each as TRIBUNAL_DECISION.
+        """
         assert self.resolver.classify_authority("tribunal") == SourceAuthority.TRIBUNAL_DECISION
-        assert self.resolver.classify_authority("SST") == SourceAuthority.TRIBUNAL_DECISION
-        assert self.resolver.classify_authority("court") == SourceAuthority.TRIBUNAL_DECISION
-        assert self.resolver.classify_authority("SCC") == SourceAuthority.TRIBUNAL_DECISION
-        assert self.resolver.classify_authority("FCA") == SourceAuthority.TRIBUNAL_DECISION
+        assert self.resolver.classify_authority("DoPS") == SourceAuthority.TRIBUNAL_DECISION
+        assert self.resolver.classify_authority("ruling") == SourceAuthority.TRIBUNAL_DECISION
+        assert self.resolver.classify_authority("BoG") == SourceAuthority.TRIBUNAL_DECISION
+        assert self.resolver.classify_authority("NHLOA") == SourceAuthority.TRIBUNAL_DECISION
 
     def test_classify_policy_directive(self):
-        """policy/TBS/directive → POLICY_DIRECTIVE."""
+        """policy/directive → POLICY_DIRECTIVE."""
         assert self.resolver.classify_authority("policy") == SourceAuthority.POLICY_DIRECTIVE
-        assert self.resolver.classify_authority("TBS") == SourceAuthority.POLICY_DIRECTIVE
         assert self.resolver.classify_authority("directive") == SourceAuthority.POLICY_DIRECTIVE
 
     def test_classify_operational_guidance(self):
@@ -80,7 +85,7 @@ class TestConflictDetection:
         claim = SourceClaim(
             source_id="src-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="Eligibility requires 600 hours",
         )
         report = self.resolver.detect_conflicts([claim])
@@ -98,13 +103,13 @@ class TestConflictDetection:
         claim_a = SourceClaim(
             source_id="src-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="Claim A",
         )
         claim_b = SourceClaim(
             source_id="src-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="Claim B",
         )
         report = self.resolver.detect_conflicts([claim_a, claim_b])
@@ -115,7 +120,7 @@ class TestConflictDetection:
         claim_legislation = SourceClaim(
             source_id="act-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="Eligibility requires 600 hours",
         )
         claim_guidance = SourceClaim(
@@ -140,7 +145,7 @@ class TestConflictResolutionByAuthority:
         claim_act = SourceClaim(
             source_id="act-001",
             source_type="act",
-            source_title="EI Act s.6",
+            source_title="NHL CBA Article 18.6",
             claim_text="600 hours minimum",
             authority=SourceAuthority.LEGISLATION,
         )
@@ -166,17 +171,17 @@ class TestConflictResolutionByAuthority:
     def test_resolve_regulation_vs_tribunal(self):
         """Regulation (50) beats tribunal decision (40)."""
         claim_reg = SourceClaim(
-            source_id="sor-001",
+            source_id="rulebook-001",
             source_type="regulation",
-            source_title="EI Regulations",
-            claim_text="Waiting period is 1 week",
+            source_title="NHL Rule Book — Rule 47 (Fighting)",
+            claim_text="Player faces automatic ejection on 3rd fighting major",
             authority=SourceAuthority.REGULATION,
         )
         claim_tribunal = SourceClaim(
-            source_id="sst-001",
+            source_id="dops-001",
             source_type="tribunal",
-            source_title="SST Case #123",
-            claim_text="Waiting period is 2 weeks",
+            source_title="DoPS Ruling #123",
+            claim_text="Player faces automatic ejection on 2nd fighting major",
             authority=SourceAuthority.TRIBUNAL_DECISION,
         )
         report = self.resolver.detect_conflicts([claim_reg, claim_tribunal])
@@ -187,9 +192,9 @@ class TestConflictResolutionByAuthority:
     def test_confidence_penalty_on_authority_conflict(self):
         """Confidence is reduced when authority conflict is found."""
         claim_legislation = SourceClaim(
-            source_id="act-001",
+            source_id="cba-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL Collective Bargaining Agreement",
             claim_text="Position A",
         )
         claim_guidance = SourceClaim(
@@ -388,7 +393,7 @@ class TestConflictExplanation:
         claim_act = SourceClaim(
             source_id="act-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="600 hours",
             authority=SourceAuthority.LEGISLATION,
         )
@@ -456,7 +461,7 @@ class TestConflictExplanation:
         claim_a = SourceClaim(
             source_id="act-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="600 hours required",
         )
         claim_b = SourceClaim(
@@ -485,7 +490,7 @@ class TestAuditLogging:
         claim_act = SourceClaim(
             source_id="act-001",
             source_type="legislation",
-            source_title="EI Act",
+            source_title="NHL CBA Article 18",
             claim_text="600 hours",
             authority=SourceAuthority.LEGISLATION,
         )

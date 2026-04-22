@@ -5,12 +5,18 @@ within a single agent run. Applies an arbitration hierarchy to resolve
 conflicts and surfaces both positions with full provenance.
 
 Arbitration hierarchy (highest authority wins):
-  1. Legislation (Acts of Parliament)
-  2. Regulations (Governor in Council)
-  3. Tribunal decisions (SST, courts)
-  4. Policy directives (TBS, Organization)
-  5. Operational guidance (manuals, SOPs)
+  1. Legislation (league-level governing documents, e.g. CBA, Constitution)
+  2. Regulations (NHL Rule Book, by-laws)
+  3. Tribunal decisions (DoPS rulings, NHLOA calls, BoG resolutions)
+  4. Policy directives (league memos, team directives)
+  5. Operational guidance (coaching manuals, on-ice SOPs)
   6. General knowledge (model generation)
+
+The demo domain here is professional hockey discipline + officiating, which
+offers a natural multi-level authority hierarchy (Department of Player
+Safety → Officiating Appeals → Board of Governors). The classifier is
+domain-agnostic — swap the token table below for any corpus where sources
+carry differing authority.
 
 NIST 800-53: SI-5 (Security Alerts & Advisories) — extended to agent conflicts
 """
@@ -48,10 +54,10 @@ _AUTHORITY_MAP: dict[str, SourceAuthority] = {
     "regulation": SourceAuthority.REGULATION,
     "sor": SourceAuthority.REGULATION,  # Statutory Orders and Regulations
     "tribunal": SourceAuthority.TRIBUNAL_DECISION,
-    "sst": SourceAuthority.TRIBUNAL_DECISION,  # Social Security Tribunal
-    "court": SourceAuthority.TRIBUNAL_DECISION,
-    "scc": SourceAuthority.TRIBUNAL_DECISION,  # Supreme Court of Canada
-    "fca": SourceAuthority.TRIBUNAL_DECISION,  # Federal Court of Appeal
+    "dops": SourceAuthority.TRIBUNAL_DECISION,  # Department of Player Safety
+    "ruling": SourceAuthority.TRIBUNAL_DECISION,
+    "bog": SourceAuthority.TRIBUNAL_DECISION,  # Board of Governors
+    "nhloa": SourceAuthority.TRIBUNAL_DECISION,  # NHL Officials Association
     "policy": SourceAuthority.POLICY_DIRECTIVE,
     "tbs": SourceAuthority.POLICY_DIRECTIVE,
     "directive": SourceAuthority.POLICY_DIRECTIVE,
