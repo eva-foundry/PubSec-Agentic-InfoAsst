@@ -222,7 +222,6 @@ Key settings:
 - [CLAUDE.md](CLAUDE.md) — authoritative project constraints and architecture guidance
 - [Agentic-State-Vision.md](Agentic-State-Vision.md) — design principles (Ilves & Kilian, 2025)
 - [AIA-Design-Principles-Beyond-Agentic-State.md](AIA-Design-Principles-Beyond-Agentic-State.md) — complementary principles
-- [Road-to-ATO-n-Continuous-Authorization.md](Road-to-ATO-n-Continuous-Authorization.md) — authorization roadmap
 - [docs/adr/](docs/adr/) — architectural decision records
 - [docs/compliance/](docs/compliance/) — compliance evidence
 - [docs/archive/](docs/archive/) — historical implementation notes from the build
